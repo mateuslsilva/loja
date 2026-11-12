@@ -17,7 +17,7 @@
   --verde:#2f7d5b; --verde-bg:#e3f2ea; --laranja:#b8621b; --laranja-bg:#fbeee0; --vermelho:#b3261e;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 "DM Sans",system-ui,sans-serif;padding-bottom:84px}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 "DM Sans",system-ui,sans-serif;padding-bottom:104px}
 header{background:var(--vinho);color:#fff;padding:14px 16px calc(14px) ;position:sticky;top:0;z-index:5;
   padding-top:max(14px,env(safe-area-inset-top))}
 header h1{margin:0;font:600 21px "Fraunces",Georgia,serif;letter-spacing:.2px}
@@ -53,16 +53,20 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rosa2);border-co
 .item:last-child{border:0}
 .qtd{display:flex;align-items:center;gap:6px}
 .qtd button{width:30px;height:30px;border-radius:8px;border:1px solid var(--linha);background:#fff;font-size:17px}
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);display:flex;z-index:6;
+nav{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));display:flex;gap:2px;z-index:6;padding:6px;
+  background:color-mix(in srgb,#fff 86%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid color-mix(in srgb,var(--vinho) 14%,transparent);border-radius:22px;
+  box-shadow:0 14px 34px -14px color-mix(in srgb,var(--vinho) 55%,transparent);
   padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;border:0;background:none;padding:9px 0 10px;font:500 11px "DM Sans",system-ui,sans-serif;color:var(--tx2);cursor:pointer}
-nav button svg{display:block;margin:0 auto 3px;width:23px;height:23px}
-nav button.ativa{color:var(--vinho);font-weight:700}
+nav button{flex:1;border:0;background:none;padding:7px 0 6px;border-radius:16px;font:500 10.5px "DM Sans",system-ui,sans-serif;color:var(--tx2);cursor:pointer;transition:background .2s,color .2s}
+nav button svg{display:block;margin:0 auto 2px;width:24px;height:24px}
+nav button.ativa{color:var(--vinho);font-weight:700;background:var(--rosa)}
+.ic .d{fill:currentColor;opacity:.16}.ativa .ic .d,.ic.cheio .d{opacity:.32}
 .matriz{width:100%;border-collapse:collapse;margin-top:8px}
 .matriz th,.matriz td{padding:5px;text-align:center;font-size:13px}
 .matriz td input{width:56px;padding:7px;text-align:center}
 .matriz th:first-child,.matriz td:first-child{text-align:left}
-.fab{position:fixed;right:16px;bottom:96px;width:56px;height:56px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:30px;box-shadow:0 6px 16px #7a2e4d55;z-index:4}
+.fab{position:fixed;right:16px;bottom:108px;width:56px;height:56px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:30px;box-shadow:0 6px 16px #7a2e4d55;z-index:4}
 .modal{position:fixed;inset:0;background:#2a1d2266;display:none;align-items:flex-end;justify-content:center;z-index:10}
 .modal.on{display:flex}
 .modal .folha{background:var(--bg);width:100%;max-width:760px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px 28px}
@@ -73,7 +77,8 @@ nav button.ativa{color:var(--vinho);font-weight:700}
 .var-lin{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed var(--linha)}
 pre.texto{white-space:pre-wrap;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:12px;font:14px "DM Sans",system-ui,sans-serif;margin:8px 0}
 .vazio{text-align:center;color:var(--tx2);padding:30px 10px}
-@media (min-width:900px){ body{padding-bottom:0;padding-left:96px} nav{top:0;bottom:0;right:auto;width:96px;flex-direction:column;justify-content:center;border-top:0;border-right:1px solid var(--linha)} nav button{flex:none;padding:14px 0} .fab{bottom:24px} header{padding-left:16px}}
+@media (min-width:900px){ body{padding-bottom:0;padding-left:110px} nav{left:14px;right:auto;top:50%;bottom:auto;transform:translateY(-50%);width:82px;flex-direction:column}
+  nav button{flex:none;padding:12px 0} .fab{bottom:24px} header{padding-left:16px}}
 @media print{ body *{visibility:hidden} #etiquetas,#etiquetas *{visibility:visible} #etiquetas{position:absolute;left:0;top:0} }
 .foto-prod{width:100%;max-height:340px;object-fit:cover;border-radius:14px;display:block;background:var(--rosa)}
 .foto-mini{width:64px;height:80px;object-fit:cover;border-radius:10px;background:var(--rosa);flex:0 0 64px}
@@ -95,7 +100,12 @@ details.ajuda ol{padding-left:20px;margin:8px 0 0}
 #carregando{position:fixed;inset:0;background:var(--bg);z-index:25;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
 #avisoDemo{display:none;background:var(--laranja-bg);color:var(--laranja);font-size:13px;padding:8px 16px;text-align:center}
 /* ---- cabeçalho com logo */
-header{display:flex;align-items:center;gap:12px}
+header{display:flex;align-items:center;gap:12px;
+  background:radial-gradient(130% 160% at 100% 0%,color-mix(in srgb,var(--laranja) 38%,transparent),transparent 58%),linear-gradient(135deg,var(--vinho),var(--vinho2))}
+header .h-txt{flex:1;min-width:0}
+.btn-ia{display:inline-flex;align-items:center;gap:6px;border:1px solid #ffffff55;background:#ffffff1f;color:#fff;border-radius:999px;padding:8px 13px;
+  font:700 13px "DM Sans",system-ui,sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.btn-ia svg{width:18px;height:18px}
 #logoTopo{height:42px;max-width:110px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;display:none}
 /* ---- assistente de cadastro */
 #telaCadastro{position:fixed;inset:0;background:var(--bg);z-index:28;display:none;overflow:auto}
@@ -132,6 +142,7 @@ header{display:flex;align-items:center;gap:12px}
 .grafico .barra-g{fill:var(--vinho)}
 .grafico .alvo{fill:transparent;cursor:pointer}
 .grafico g:hover .barra-g,.grafico g.ativo .barra-g{fill:var(--vinho2)}
+.grafico .barra-meta{fill:var(--rosa2);stroke:var(--vinho);stroke-width:1.5;stroke-dasharray:4 3}
 #dica{position:fixed;z-index:40;background:var(--tx);color:#fff;font-size:12px;padding:6px 9px;border-radius:8px;pointer-events:none;display:none;white-space:nowrap;font-variant-numeric:tabular-nums}
 .hbar{display:grid;grid-template-columns:86px 1fr auto;gap:8px;align-items:center;font-size:13px;padding:5px 0}
 .hbar .trilho{height:10px;background:var(--rosa);border-radius:6px;overflow:hidden}
@@ -186,19 +197,97 @@ header{display:flex;align-items:center;gap:12px}
 .leg span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
 .emojis{display:flex;gap:6px;flex-wrap:wrap}.emojis span{font-size:22px;padding:6px 8px;border-radius:10px;border:1px solid var(--linha);background:#fff;cursor:pointer}
 .emojis span.on{border-color:var(--vinho);background:var(--rosa)}
+/* ---- pulso da loja (topo da tela Vender) */
+.pulso{border-radius:22px;padding:16px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden;
+  background:radial-gradient(120% 120% at 0% 0%,color-mix(in srgb,var(--laranja) 30%,transparent),transparent 55%),linear-gradient(160deg,var(--vinho),var(--vinho2))}
+.pulso::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;
+  background-image:radial-gradient(#fff 1px,transparent 1.4px);background-size:16px 16px;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000);mask-image:linear-gradient(90deg,transparent 30%,#000)}
+.pulso-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative;z-index:1}
+.pulso-topo b{font:600 20px "Fraunces",Georgia,serif;display:block}
+.pulso-topo span{font-size:13px;opacity:.85}
+.streak{flex:0 0 auto;background:#ffffff26;border:1px solid #ffffff40;border-radius:14px;padding:6px 10px;text-align:center;line-height:1.1}
+.streak b{font:700 20px "DM Sans",system-ui,sans-serif!important}
+.streak small{display:block;font-size:10px;opacity:.85}
+.pulso-corpo{display:flex;gap:16px;align-items:center;margin-top:12px;position:relative;z-index:1}
+.pulso-corpo svg{flex:0 0 132px;width:132px;height:132px}
+.aneis-leg{list-style:none;margin:0;padding:0;flex:1;display:grid;gap:9px}
+.aneis-leg li{font-size:12.5px;line-height:1.25;opacity:.95}
+.aneis-leg li i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
+.aneis-leg li b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
+.anel-v{transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion:reduce){.anel-v{transition:none}}
+.pulso .btn{background:#fff;color:var(--vinho);margin-top:12px;position:relative;z-index:1}
+.missoes{display:grid;gap:8px;margin-bottom:12px}
+.missao{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid var(--linha);border-radius:16px;padding:11px 12px;cursor:pointer;font:inherit;color:inherit}
+.missao.feita{background:var(--verde-bg);border-color:transparent}
+.missao .chk{flex:0 0 36px;width:36px;height:36px}
+.missao small{display:block;color:var(--tx2);font-size:12.5px}
+.missao .seta{color:var(--tx2);flex:0 0 auto}
+.missao.feita .seta{display:none}
+.tit-sec{display:flex;justify-content:space-between;align-items:baseline;margin:6px 2px 8px}
+.tit-sec b{font:600 17px "Fraunces",Georgia,serif}.tit-sec span{font-size:12px;color:var(--tx2)}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.badge{text-align:center;font-size:11px;line-height:1.2;color:var(--tx2)}
+.badge span{display:grid;place-items:center;width:46px;height:46px;margin:0 auto 4px;border-radius:50%;font-size:22px;background:var(--rosa)}
+.badge.nao span{filter:grayscale(1);opacity:.35}
+.badge.sim{color:var(--tx);font-weight:700}
+.badge.sim span{background:radial-gradient(circle at 30% 30%,#fff,var(--rosa2));box-shadow:0 0 0 2px var(--vinho)}
+details.conquistas{background:#fff;border:1px solid var(--linha);border-radius:16px;padding:10px 12px;margin-bottom:12px}
+details.conquistas summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between}
+details.conquistas summary::-webkit-details-marker{display:none}
+/* ---- venda avulsa / cliente */
+.seg{display:flex;background:var(--rosa);border-radius:12px;padding:4px;gap:4px}
+.seg span{flex:1;text-align:center;padding:9px 6px;border-radius:9px;font-weight:700;font-size:14px;color:var(--tx2);cursor:pointer}
+.seg span.on{background:#fff;color:var(--vinho);box-shadow:0 1px 4px #0000001a}
+/* ---- gráficos novos */
+.donut-meta{display:flex;align-items:center;gap:18px}
+.donut-meta svg{flex:0 0 128px;width:128px;height:128px}
+.donut-meta .num{font:700 26px "DM Sans",system-ui,sans-serif;color:var(--vinho);font-variant-numeric:tabular-nums;line-height:1.1}
+.donut-meta .num.claro{color:color-mix(in srgb,var(--vinho) 45%,#9aa)}
+.chip-fixo{font-size:12px;color:var(--tx2);border:1px solid var(--linha);border-radius:999px;padding:3px 9px}
+.legenda{display:flex;gap:14px;font-size:12px;font-weight:700;color:var(--tx2);margin:-2px 0 6px}
+.legenda span{display:inline-flex;align-items:center;gap:5px}
+.legenda i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.spark{display:block;width:100%;height:26px;margin-top:6px}
+/* ---- termômetro com anel */
+.termo-corpo{display:flex;gap:14px;align-items:center}
+.termo-corpo svg{flex:0 0 96px;width:96px;height:96px}
+/* ---- assistente */
+#mIA .folha{display:flex;flex-direction:column;height:86vh;padding-bottom:12px}
+.ia-topo{display:flex;align-items:center;gap:10px}
+.ia-av{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--vinho),var(--laranja))}
+.ia-av svg{width:22px;height:22px}
+.chat{flex:1;overflow:auto;padding:12px 2px;display:flex;flex-direction:column;gap:8px}
+.bolha{max-width:86%;padding:10px 13px;border-radius:16px;font-size:14.5px;line-height:1.45}
+.bolha.eu{align-self:flex-end;background:var(--vinho);color:#fff;border-bottom-right-radius:5px}
+.bolha.ia{align-self:flex-start;background:#fff;border:1px solid var(--linha);border-bottom-left-radius:5px}
+.bolha .acoes-ia{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.bolha .acoes-ia button{border:1px solid var(--vinho);color:var(--vinho);background:#fff;border-radius:999px;padding:6px 11px;font:700 12.5px "DM Sans",system-ui,sans-serif;cursor:pointer}
+.digitando{display:inline-flex;gap:4px}.digitando i{width:7px;height:7px;border-radius:50%;background:var(--tx2);animation:pulsar 1s infinite}
+.digitando i:nth-child(2){animation-delay:.15s}.digitando i:nth-child(3){animation-delay:.3s}
+@keyframes pulsar{0%,100%{opacity:.25}50%{opacity:1}}
+.ia-sug{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.ia-sug span{flex:0 0 auto;border:1px solid var(--linha);background:#fff;border-radius:999px;padding:7px 11px;font-size:13px;cursor:pointer}
+.ia-in{display:flex;gap:8px;align-items:center}
+.ia-in input{border-radius:999px;padding:12px 16px}
+.ia-in button{flex:0 0 46px;width:46px;height:46px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:var(--vinho);color:#fff}
+.ia-in button.mic{background:var(--rosa);color:var(--vinho)}
+.ia-in button.mic.ouvindo{background:var(--laranja);color:#fff;box-shadow:0 0 0 6px color-mix(in srgb,var(--laranja) 25%,transparent)}
+.ia-in svg{width:20px;height:20px}
 .etq{display:inline-block;width:5cm;border:1px dashed #999;padding:4px;margin:2px;text-align:center;font-size:10px;font-family:Arial}
 .etq svg{width:100%;height:40px}
 </style>
 </head>
 <body>
-<header><img id="logoTopo" alt=""><div><h1 id="nomeLoja">Minha Loja</h1><small>Gestão da loja · BY: Mateus Lima</small></div></header>
+<header><img id="logoTopo" alt=""><div class="h-txt"><h1 id="nomeLoja">Minha Loja</h1><small>Gestão da loja · BY: Mateus Lima</small></div>
+  <button class="btn-ia" onclick="abrirAssistente()" aria-label="Abrir assistente"><span data-ico="ia"></span>Pergunte</button></header>
 <div id="avisoDemo">Modo demonstração: os dados ficam só neste aparelho.</div>
 <div id="avisoVersao" style="display:none;background:var(--vinho2);color:#fff;font-size:13px;padding:9px 16px;text-align:center;cursor:pointer"></div>
 
 <main>
 <!-- ================= VENDER ================= -->
 <section id="t-vender" class="tela ativa">
-  <div id="miniTermo"></div>
+  <div id="pulso"></div>
   <h2>Nova venda</h2>
   <div class="card">
     <div class="lin">
@@ -212,8 +301,15 @@ header{display:flex;align-items:center;gap:12px}
   <div class="card">
     <label>Forma de pagamento</label>
     <div class="chips" id="formas"></div>
-    <label>Cliente (opcional)</label>
-    <select id="cliVenda"><option value="">— sem cliente —</option></select>
+    <label>Tipo de venda</label>
+    <div class="seg" id="tipoVenda"><span class="on" data-v="avulsa">Venda avulsa</span><span data-v="cliente">Para cliente</span></div>
+    <div id="boxCliente" style="display:none;margin-top:8px">
+      <div class="lin"><select id="cliVenda"><option value="">Escolha a cliente…</option></select>
+        <button class="btn sec peq" style="flex:0 0 auto" onclick="toggleCliRapida()">+ Nova</button></div>
+      <div id="cliRapida" style="display:none;margin-top:8px">
+        <div class="lin"><input id="crNome" placeholder="Nome da cliente"><input id="crZap" inputmode="tel" placeholder="WhatsApp"></div>
+        <button class="btn sec" style="margin-top:8px" onclick="salvarCliRapida()">Cadastrar e escolher</button></div>
+    </div>
     <label>Desconto no caixa (R$)</label>
     <input id="descVenda" type="number" inputmode="decimal" min="0" step="0.01" value="0" oninput="renderCarrinho()">
     <div class="lin" style="margin-top:14px"><span class="muted">Total</span><span class="big" id="totalVenda" style="text-align:right">R$ 0,00</span></div>
@@ -484,13 +580,26 @@ header{display:flex;align-items:center;gap:12px}
 <div id="toast"></div>
 
 <nav>
-  <button class="ativa" data-t="vender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>Vender</button>
-  <button data-t="estoque"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3 4 6l2 4 2-1v12h8V9l2 1 2-4-4-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3z"/></svg>Estoque</button>
-  <button data-t="promo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12V3h9l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Promoções</button>
-  <button data-t="dinheiro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M16 12h2M2 10h20M6 6V4h12v2"/></svg>Dinheiro</button>
-  <button data-t="painel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Painel</button>
-  <button data-t="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Clientes</button>
+  <button class="ativa" data-t="vender"><span data-ico="vender"></span>Vender</button>
+  <button data-t="estoque"><span data-ico="estoque"></span>Estoque</button>
+  <button data-t="promo"><span data-ico="promo"></span>Promoções</button>
+  <button data-t="dinheiro"><span data-ico="dinheiro"></span>Dinheiro</button>
+  <button data-t="painel"><span data-ico="painel"></span>Painel</button>
+  <button data-t="mais"><span data-ico="clientes"></span>Clientes</button>
 </nav>
+
+<!-- ================= ASSISTENTE ================= -->
+<div class="modal" id="mIA"><div class="folha">
+  <div class="ia-topo"><span class="ia-av" data-ico="ia"></span><div style="flex:1"><b>Assistente da loja</b><div class="muted" style="font-size:12px">Pergunte sobre vendas, estoque, metas e contas</div></div>
+    <button class="fechar" onclick="fechar('mIA')">✕</button></div>
+  <div class="chat" id="chat"></div>
+  <div class="ia-sug" id="iaSug"></div>
+  <form class="ia-in" onsubmit="enviarPergunta(event)">
+    <button type="button" class="mic" id="btnMic" onclick="ouvir()" aria-label="Falar"><span data-ico="mic"></span></button>
+    <input id="iaTxt" placeholder="Ex.: quanto vendi hoje?" autocomplete="off">
+    <button type="submit" aria-label="Enviar"><span data-ico="enviar"></span></button>
+  </form>
+</div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -519,6 +628,147 @@ function irPara(t){
   if (leitor && t!=="vender") pararLeitor();
   ({vender:carregarCaixa, estoque:carregarEstoque, promo:carregarPromo, dinheiro:carregarDinheiro, painel:carregarPainel, mais:carregarMais})[t]();
   window.scrollTo(0,0);
+}
+
+// ---------- ÍCONES (duotone, desenhados para o app)
+const ICONES = {
+  vender:'<path class="d" d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/>',
+  estoque:'<path class="d" d="M8.5 4 4 6.5l1.6 3.6 2-.9V20h8.8V9.2l2 .9L20 6.5 15.5 4c-.6 1.5-2 2.4-3.5 2.4S9.1 5.5 8.5 4z"/><path d="M8.5 4 4 6.5l1.6 3.6 2-.9V20h8.8V9.2l2 .9L20 6.5 15.5 4c-.6 1.5-2 2.4-3.5 2.4S9.1 5.5 8.5 4z"/>',
+  promo:'<path class="d" d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7L20.6 12a1.4 1.4 0 0 1 0 2l-6.6 6.6a1.4 1.4 0 0 1-2 0z"/><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7L20.6 12a1.4 1.4 0 0 1 0 2l-6.6 6.6a1.4 1.4 0 0 1-2 0z"/><path d="m11.5 9.5-2 3h3l-2 3"/>',
+  dinheiro:'<rect class="d" x="2.5" y="6" width="19" height="13" rx="3"/><rect x="2.5" y="6" width="19" height="13" rx="3"/><path d="M15 12.5h3.5M6 6V5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 18 5v1"/><circle cx="15.5" cy="12.5" r=".6" fill="currentColor"/>',
+  painel:'<circle class="d" cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/>',
+  clientes:'<circle class="d" cx="9" cy="8.5" r="3.5"/><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.8-3.2 3.3-5 6.5-5s5.7 1.8 6.5 5"/><path d="M15.5 5.2a3.3 3.3 0 0 1 0 6.6M17.5 14.6c2 .6 3.4 2.3 4 4.9"/>',
+  ia:'<path class="d" d="M12 3.5l1.9 5 5 1.9-5 1.9-1.9 5-1.9-5-5-1.9 5-1.9z"/><path d="M12 3.5l1.9 5 5 1.9-5 1.9-1.9 5-1.9-5-5-1.9 5-1.9z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>',
+  mic:'<rect class="d" x="9" y="3" width="6" height="11" rx="3"/><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+  enviar:'<path d="M4 12 20 4l-4.5 16-3.5-6.5z"/><path d="m12 13.5 3.5-5"/>',
+  seta:'<path d="m9 6 6 6-6 6"/>',
+};
+const ico = (n, cls="") => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES[n]||""}</svg>`;
+function pintarIcones(raiz=document){ raiz.querySelectorAll("[data-ico]").forEach(e=>{ if(!e.dataset.pronto){ e.innerHTML=ico(e.dataset.ico); e.dataset.pronto=1; } }); }
+pintarIcones();
+
+// ---------- GRÁFICOS: anéis, rosca de meta, vendas × meta, minigráficos
+function aneisSVG(lista, {tam=132, esp=11, gap=4, cores, trilho="#ffffff2e", centro=""}={}){
+  const c=tam/2; let out=`<svg viewBox="0 0 ${tam} ${tam}" role="img" aria-label="Anéis de progresso">`;
+  lista.forEach((a,i)=>{ const r=c-esp/2-i*(esp+gap), circ=2*Math.PI*r, pct=Math.max(0,Math.min(1.5,a.alvo?a.valor/a.alvo:0));
+    out+=`<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${trilho}" stroke-width="${esp}"/>
+      <circle class="anel-v" cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${cores[i]}" stroke-width="${esp}" stroke-linecap="round"
+        stroke-dasharray="${circ}" stroke-dashoffset="${circ}" data-alvo="${circ*(1-Math.min(1,pct))}" transform="rotate(-90 ${c} ${c})"/>`; });
+  return out+centro+"</svg>";
+}
+function animarAneis(raiz){ requestAnimationFrame(()=>requestAnimationFrame(()=>raiz.querySelectorAll(".anel-v").forEach(e=>e.style.strokeDashoffset=e.dataset.alvo))); }
+function roscaMeta(pct){
+  const t=128,c=64,esp=16,r=c-esp/2,circ=2*Math.PI*r, v=Math.min(1,pct/100);
+  return `<svg viewBox="0 0 ${t} ${t}" role="img" aria-label="${pct}% da meta"><circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--rosa2)" stroke-width="${esp}"/>
+    <circle class="anel-v" cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--vinho)" stroke-width="${esp}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" data-alvo="${circ*(1-v)}" transform="rotate(-90 ${c} ${c})"/>
+    <text x="${c}" y="${c+9}" text-anchor="middle" style="font:700 26px 'DM Sans',system-ui,sans-serif;fill:var(--tx)">${Math.round(pct)}%</text></svg>`;
+}
+function vendasVsMeta(lista){
+  const W=600,H=210,mt=12,mb=34,mr=96,ml=4,h=H-mt-mb, temMeta=lista.some(x=>x.meta);
+  const max=Math.max(1,...lista.map(x=>Math.max(x.vendas,x.meta||0))), p10=10**Math.floor(Math.log10(max)), nice=Math.ceil(max/p10)*p10;
+  const y=v=>mt+h-(v/nice)*h, passo=(W-ml-mr)/lista.length, lb=Math.min(30,passo*(temMeta?0.32:0.55));
+  const barra=(x,v,cls,extra="")=>{ const a=Math.max(v>0?3:0,y(0)-y(v)); if(!a) return ""; const r=Math.min(4,lb/2,a), yt=y(0)-a;
+    return `<path class="${cls}" ${extra} d="M${x},${y(0)} V${yt+r} Q${x},${yt} ${x+r},${yt} H${x+lb-r} Q${x+lb},${yt} ${x+lb},${yt+r} V${y(0)} Z"/>`; };
+  let out=`<svg class="grafico" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vendas e meta">`;
+  for(const f of [0.5,1]) out+=`<line class="grade" x1="0" x2="${W-mr+6}" y1="${y(nice*f)}" y2="${y(nice*f)}"/><text class="eixo" x="${W}" y="${y(nice*f)+6}" text-anchor="end">${compacto(nice*f)}</text>`;
+  out+=`<line class="grade" x1="0" x2="${W-mr+6}" y1="${y(0)}" y2="${y(0)}"/>`;
+  lista.forEach((d,i)=>{ const cx=ml+passo*i+passo/2, x1=temMeta?cx-lb-2:cx-lb/2, x2=cx+2;
+    out+=`<g data-tip="${d.rotulo}${d.detalhe?" ("+d.detalhe+")":""}: vendeu ${brl(d.vendas)}${d.meta?" · meta "+brl(d.meta):""}"><rect class="alvo" x="${ml+passo*i}" y="${mt}" width="${passo}" height="${h+mb}"/>
+      ${barra(x1,d.vendas,"barra-g")}${temMeta?barra(x2,d.meta||0,"barra-meta"):""}
+      <text class="eixo" x="${cx}" y="${H-8}" text-anchor="middle">${d.rotulo}</text></g>`; });
+  return out+"</svg>";
+}
+function spark(vals){
+  const W=120,H=26,max=Math.max(...vals,0.01),min=0, pts=vals.map((v,i)=>[i*(W/(vals.length-1)), H-2-(v-min)/(max-min||1)*(H-4)]);
+  const linha=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${linha} L${W},${H} L0,${H} Z" fill="var(--rosa)"/><path d="${linha}" fill="none" stroke="var(--vinho)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+// ---------- PULSO DA LOJA + MISSÕES (tela Vender)
+const CORES_ANEIS = ["#ffffff", "color-mix(in srgb,var(--laranja) 55%,#fff)", "color-mix(in srgb,var(--rosa2) 70%,#fff)"];
+async function carregarPulso(){
+  const p = await api("/pulso");
+  const fmt = a => a.id==="contas" ? `${brl(a.valor)} de ${brl(a.alvo)}` : `${compacto(a.valor)} de ${compacto(a.alvo)}`;
+  const pct0 = p.aneis.length ? Math.round(p.aneis[0].valor/p.aneis[0].alvo*100) : 0;
+  const fz = [0,26,21,16][p.aneis.length], fz2 = [0,10,9,8][p.aneis.length];
+  const centro = p.aneis.length ? `<text x="66" y="${66+fz*0.15}" text-anchor="middle" style="font:700 ${fz}px 'DM Sans',system-ui,sans-serif;fill:#fff">${pct0}%</text>
+    <text x="66" y="${66+fz*0.15+fz2+5}" text-anchor="middle" style="font:500 ${fz2}px 'DM Sans',system-ui,sans-serif;fill:#ffffffcc">${p.aneis[0].id==="contas"?"das contas":"da meta"}</text>` : "";
+  const acoes = {salvar_dia:"irPara('dinheiro');setTimeout(abrirSalvarDia,300)", dinheiro:"irPara('dinheiro')", vender:"$('codVenda').focus()", promo:"irPara('promo')"};
+  const ganhas = p.conquistas.filter(c=>c.ganho).length;
+  $("pulso").innerHTML = `<div class="pulso">
+      <div class="pulso-topo"><div><b>${p.saudacao}</b><span>${p.aneis.length ? "Pulso da loja hoje" : "Ative o pulso da loja"}</span></div>
+        <div class="streak" title="${p.sequencia_texto}"><b>🔥 ${p.sequencia}</b><small>dia${p.sequencia===1?"":"s"} seguido${p.sequencia===1?"":"s"}</small></div></div>
+      ${p.aneis.length ? `<div class="pulso-corpo">${aneisSVG(p.aneis,{cores:CORES_ANEIS, centro})}
+        <ul class="aneis-leg">${p.aneis.map((a,i)=>`<li><i style="--c:${CORES_ANEIS[i]}"></i>${a.nome}<b>${fmt(a)}</b></li>`).join("")}</ul></div>
+        ${p.falta_hoje>0 && !p.relampago && new Date().getHours()>=11 ? `<button class="btn" onclick="irPara('dinheiro');setTimeout(abrirSalvarDia,300)">⚡ Salvar meu dia</button>`:""}`
+      : `<p style="position:relative;z-index:1;margin:10px 0 0;opacity:.92">Cadastre as contas da loja e uma meta de vendas: os anéis mostram, em tempo real, se o dia está pago e quanto falta.</p>
+        <button class="btn" onclick="irPara('dinheiro')">Cadastrar contas</button>`}
+    </div>
+    <div class="tit-sec"><b>Missões de hoje</b><span>${p.missoes_feitas} de ${p.missoes.length} feitas</span></div>
+    <div class="missoes">${p.missoes.map(m=>{ const feita=m.progresso>=1, r=15, circ=2*Math.PI*r;
+      return `<button class="missao ${feita?"feita":""}" onclick="${feita?"":acoes[m.acao]||""}">
+        <svg class="chk" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="${r}" fill="none" stroke="${feita?"var(--verde)":"var(--rosa2)"}" stroke-width="3.5"/>
+          ${feita?`<path d="m11.5 18.5 4.5 4.5 8.5-9" fill="none" stroke="var(--verde)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`
+          :`<circle cx="18" cy="18" r="${r}" fill="none" stroke="var(--vinho)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-m.progresso)}" transform="rotate(-90 18 18)"/>`}</svg>
+        <div style="flex:1"><b>${m.titulo}</b><small>${m.detalhe}</small></div><span class="seta">${ico("seta")}</span></button>`; }).join("")}</div>
+    <details class="conquistas"><summary><span>🏅 Conquistas</span><span class="muted">${ganhas} de ${p.conquistas.length}</span></summary>
+      <div class="badges">${p.conquistas.map(c=>`<div class="badge ${c.ganho?"sim":"nao"}"><span>${c.emoji}</span>${c.nome}</div>`).join("")}</div></details>`;
+  animarAneis($("pulso"));
+}
+
+// ---------- VENDA AVULSA OU PARA CLIENTE
+let tipoVenda = "avulsa";
+$("tipoVenda").onclick = e => { const v=e.target.dataset.v; if(!v) return; tipoVenda=v;
+  $("tipoVenda").querySelectorAll("span").forEach(x=>x.classList.toggle("on",x.dataset.v===v)); $("boxCliente").style.display = v==="cliente"?"block":"none"; };
+function toggleCliRapida(){ const b=$("cliRapida"); b.style.display = b.style.display==="none"?"block":"none"; if(b.style.display==="block") $("crNome").focus(); }
+async function salvarCliRapida(){
+  if(!$("crNome").value.trim()) return toast("Informe o nome da cliente");
+  try{ const c = await api("/clientes",{method:"POST",body:{nome:$("crNome").value.trim(), whatsapp:$("crZap").value||null}});
+    $("cliVenda").add(new Option(c.nome, c.cliente_id)); $("cliVenda").value=c.cliente_id; $("crNome").value=$("crZap").value=""; $("cliRapida").style.display="none";
+    toast("Cliente cadastrada e escolhida"); }catch(e){ toast(e.message); }
+}
+
+// ---------- ASSISTENTE
+let iaVoz = false, reconhecedor = null;
+function abrirAssistente(){
+  $("mIA").classList.add("on"); pintarIcones($("mIA"));
+  if (!$("chat").children.length) bolhaIA({texto:"Oi! Sou o assistente da loja ✨ Pergunte por texto ou pelo microfone. Ex.: <i>quanto vendi hoje?</i>, <i>tem vestido preto M?</i>, <i>quanto falta pra meta?</i>"});
+  $("iaSug").innerHTML = (window.lojaSugestoes||[]).map(t=>`<span>${t}</span>`).join("");
+  if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) $("btnMic").style.display="none";
+  setTimeout(()=>$("iaTxt").focus(), 250);
+}
+$("iaSug").onclick = e => { if(e.target.tagName==="SPAN") perguntarIA(e.target.textContent); };
+function bolhaIA(r){
+  const b=document.createElement("div"); b.className="bolha ia";
+  b.innerHTML = r.texto + (r.acoes?.length?`<div class="acoes-ia">${r.acoes.map(a=>`<button data-a="${a.acao}">${a.rotulo}</button>`).join("")}</div>`:"");
+  b.querySelectorAll("button[data-a]").forEach(x=>x.onclick=()=>acaoIA(x.dataset.a));
+  $("chat").appendChild(b); $("chat").scrollTop=$("chat").scrollHeight; return b;
+}
+function acaoIA(a){
+  if (a.startsWith("perguntar:")) return perguntarIA(a.slice(10));
+  fechar("mIA");
+  if (a==="salvar_dia") { irPara("dinheiro"); setTimeout(abrirSalvarDia,300); }
+  else if (a.startsWith("ir:")) irPara(a.slice(3));
+}
+async function perguntarIA(t){
+  t=String(t||"").trim(); if(!t) return;
+  const eu=document.createElement("div"); eu.className="bolha eu"; eu.textContent=t; $("chat").appendChild(eu);
+  const esp=bolhaIA({texto:'<span class="digitando"><i></i><i></i><i></i></span>'});
+  const r = await window.lojaPerguntar(t).catch(e=>({texto:"Não consegui responder agora: "+e.message}));
+  esp.remove(); bolhaIA(r);
+  if (iaVoz && "speechSynthesis" in window) { const u=new SpeechSynthesisUtterance(r.texto.replace(/<br>/g,". ").replace(/<[^>]+>/g,"").replace(/&nbsp;/g," ")); u.lang="pt-BR"; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+  iaVoz=false;
+}
+function enviarPergunta(e){ e.preventDefault(); const t=$("iaTxt").value; $("iaTxt").value=""; perguntarIA(t); }
+function ouvir(){
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition; if(!R) return;
+  if (reconhecedor) { reconhecedor.stop(); return; }
+  reconhecedor = new R(); reconhecedor.lang="pt-BR"; reconhecedor.interimResults=false;
+  $("btnMic").classList.add("ouvindo"); $("iaTxt").placeholder="Pode falar…";
+  reconhecedor.onresult = ev => { iaVoz=true; perguntarIA(ev.results[0][0].transcript); };
+  reconhecedor.onerror = () => toast("Não consegui ouvir. Verifique a permissão do microfone.");
+  reconhecedor.onend = () => { reconhecedor=null; $("btnMic").classList.remove("ouvindo"); $("iaTxt").placeholder="Ex.: quanto vendi hoje?"; };
+  reconhecedor.start();
 }
 
 // ---------- VENDER
@@ -557,21 +807,21 @@ function mudaQtd(k,d){ const i=carrinho[k]; const est=i.lotes.reduce((s,l)=>s+l.
 async function finalizarVenda(){
   $("btnFinalizar").disabled=true;
   try{
-    const r = await api("/vendas",{method:"POST", body:{forma_pagamento:forma, cliente_id: $("cliVenda").value || null,
+    if (tipoVenda==="cliente" && !$("cliVenda").value) { $("btnFinalizar").disabled=false; return toast("Escolha a cliente ou mude para Venda avulsa"); }
+    const r = await api("/vendas",{method:"POST", body:{forma_pagamento:forma, cliente_id: tipoVenda==="cliente" ? $("cliVenda").value : null,
       desconto_extra:Number($("descVenda").value||0), itens:carrinho.map(i=>({codigo:i.codigo, quantidade:i.qtd}))}});
     toast(`Venda registrada! ${brl(r.total)} · lucro ${brl(r.lucro)}${r.alerta?" · "+r.alerta:""}`, 4000);
     for (const ev of r.relampago||[]) if (ev.tipo==="nova_etapa") setTimeout(()=>avisar("⚡ Próxima promoção relâmpago:", `${ev.item.nome} por ${brl(ev.item.preco_relampago)}.`), 4200);
     carrinho=[]; $("descVenda").value=0; renderCarrinho(); carregarCaixa();
+    $("tipoVenda").querySelector('[data-v="avulsa"]').click(); $("cliVenda").value="";
   }catch(e){ toast(e.message); $("btnFinalizar").disabled=false; }
 }
 async function carregarCaixa(){
-  const [c, clis, f] = await Promise.all([api("/vendas"), api("/clientes"), api("/financas")]);
-  const h=f.hoje;
-  $("miniTermo").innerHTML = f.contas_dia>0 ? `<div class="mini-termo" onclick="irPara('dinheiro')" title="Ver detalhes">
-      <span style="font-size:13px">Contas de hoje</span><span class="trilho"><i style="width:${Math.min(100,h.pct)}%"></i></span>
-      <b>${h.pct>=100?"pagas ✅":brl(h.coberto)+" de "+brl(h.custo_diario)}</b></div>`
-    : `<div class="mini-termo" onclick="irPara('dinheiro')"><span style="font-size:13px">💡 Cadastre as contas da loja (aluguel, luz…) para saber quanto vender por dia</span></div>`;
-  $("cliVenda").innerHTML = '<option value="">— sem cliente —</option>' + clis.map(x=>`<option value="${x.cliente_id}">${x.nome}</option>`).join("");
+  const [c, clis] = await Promise.all([api("/vendas"), api("/clientes")]);
+  carregarPulso();
+  const escolhida = $("cliVenda").value;
+  $("cliVenda").innerHTML = '<option value="">Escolha a cliente…</option>' + clis.map(x=>`<option value="${x.cliente_id}">${x.nome}</option>`).join("");
+  $("cliVenda").value = escolhida;
   const formas = Object.entries(c.por_forma_pagamento).map(([k,v])=>`<span class="tag ok" style="margin:2px">${FORMAS[k]||k}: ${brl(v)}</span>`).join("");
   $("caixaDia").innerHTML = `<label style="margin-top:0">Caixa de hoje</label>
     <div class="lin"><div><b class="big">${brl(c.total)}</b><div class="muted">${c.quantidade_vendas} venda(s) · lucro ${brl(c.lucro)}</div></div></div>
@@ -770,14 +1020,15 @@ async function carregarDinheiro(){
   const semContas = f.contas_dia<=0;
   $("termoHoje").innerHTML = `<div class="termo">
     <div class="muted">${semContas?"Hoje":"Contas de hoje (aluguel, luz, água… ÷ 30)"}</div>
-    ${semContas?`<div class="msg">${h.mensagem}</div>`:`<div class="lin"><b class="big">${brl(h.lucro_hoje)}</b><span class="muted" style="text-align:right">de ${brl(h.custo_diario)} de lucro</span></div>
-    <div class="trilho"><i style="width:${Math.min(100,h.pct)}%"></i></div>
-    <div class="muted">Vendeu ${brl(h.vendas_hoje)} hoje · ${h.pct}% das contas do dia</div>
+    ${semContas?`<div class="msg">${h.mensagem}</div>`:`<div class="termo-corpo">${aneisSVG([{valor:h.lucro_hoje,alvo:h.custo_diario}],{tam:96,esp:10,cores:["#fff"],
+        centro:`<text x="48" y="54" text-anchor="middle" style="font:700 19px 'DM Sans',system-ui,sans-serif;fill:#fff">${h.pct}%</text>`})}
+      <div><b class="big">${brl(h.lucro_hoje)}</b><div class="muted">de ${brl(h.custo_diario)} de lucro</div><div class="muted">Vendeu ${brl(h.vendas_hoje)} hoje</div></div></div>
     <div class="msg">${h.mensagem}</div>
     ${h.falta>0?`<div class="msg">Faltam <b>${brl(h.falta)}</b> de lucro ≈ vender mais <b>${brl(h.venda_para_cobrir)}</b> (sua margem é ${f.margem.toLocaleString("pt-BR")}%).</div>`:""}
     ${h.sobra>0?`<div class="msg">Hoje sobraram <b>${brl(h.sobra)}</b> depois das contas do dia. Separe assim:</div>${blocoDivisao(h.divisao_sobra)}`:""}
     ${h.falta>0 && !f.relampago?`<button class="btn" onclick="abrirSalvarDia()">⚡ Salvar meu dia</button>`:""}`}
   </div>`;
+  animarAneis($("termoHoje"));
   renderRelampago(f.relampago);
   // contas
   $("listaContas").innerHTML = f.despesas.length ? f.despesas.map(d=>`<div class="conta" onclick="abrirConta('${d.id}')">
@@ -946,6 +1197,7 @@ let periodoPainel = "mes";
 $("periodos").onclick = e => { const p=e.target.dataset.p; if(!p) return; periodoPainel=p;
   document.querySelectorAll("#periodos .chip").forEach(c=>c.classList.toggle("on", c.dataset.p===p)); carregarPainel(); };
 const num = v => Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const compacto = v => v>=1000 ? "R$ "+(v/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil" : brl(v);
 const brlCurto = v => v>=10000 ? "R$ "+(v/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil" : brl(v);
 function delta(v, inverso){
   if (v===null) return '<span class="delta igual">novo</span>';
@@ -960,7 +1212,7 @@ function graficoBarras(serie, fmt=brl){
   const y = v => mt + h - (v/nice)*h;
   const cada = Math.ceil(serie.length/6);
   let out = `<svg class="grafico" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de vendas">`;
-  for (const f of [0.5,1]) out += `<line class="grade" x1="0" x2="${W-mr+6}" y1="${y(nice*f)}" y2="${y(nice*f)}"/><text class="eixo" x="${W}" y="${y(nice*f)+4}" text-anchor="end">${brlCurto(nice*f)}</text>`;
+  for (const f of [0.5,1]) out += `<line class="grade" x1="0" x2="${W-mr+6}" y1="${y(nice*f)}" y2="${y(nice*f)}"/><text class="eixo" x="${W}" y="${y(nice*f)+4}" text-anchor="end">${compacto(nice*f)}</text>`;
   out += `<line class="grade" x1="0" x2="${W-mr+6}" y1="${y(0)}" y2="${y(0)}"/>`;
   serie.forEach((s,i)=>{
     const cx = ml + passo*i + passo/2, x = cx-larg/2, alt = Math.max(s.valor>0?3:0, y(0)-y(s.valor)), r=Math.min(4, larg/2, alt);
@@ -988,11 +1240,12 @@ async function carregarPainel(){
   const [p, fin] = await Promise.all([api("/painel?periodo="+periodoPainel), api("/financas")]), a=p.atual, c=p.comparacao, m=p.mei, e=p.estoque;
   const contas = fin.contas_mes;
   const nomeP = {hoje:"Vendas dos últimos 7 dias", "7d":"Vendas por dia", mes:"Vendas por dia do mês", ano:"Vendas por mês"}[p.periodo];
-  const meta = p.meta ? `<div class="card"><div class="tit-card"><b>Meta do mês</b><span>${p.meta.dias_restantes} dia(s) restante(s)</span></div>
-      <div class="lin"><b class="big">${brl(p.meta.vendido)}</b><span class="muted" style="text-align:right">de ${brl(p.meta.valor)}</span></div>
-      <div class="barra"><i style="width:${Math.min(p.meta.pct,100)}%"></i></div>
-      <div class="muted">${p.meta.pct}% da meta${p.meta.falta>0?` · faltam <b>${brl(p.meta.falta)}</b> (≈ ${brl(p.meta.por_dia)} por dia)`:" · <b>meta batida! 🎉</b>"}</div>
-      <div class="muted">No ritmo atual o mês fecha em <b>${brl(p.meta.ritmo)}</b>.</div></div>`
+  const meta = p.meta ? `<div class="card"><div class="tit-card"><b>Meta de vendas</b><span class="chip-fixo">Do mês atual</span></div>
+      <div class="donut-meta">${roscaMeta(p.meta.pct)}
+        <div><span class="muted">Já vendeu</span><div class="num">${brl(p.meta.vendido)}</div>
+          <span class="muted">Da meta de</span><div class="num claro">${brl(p.meta.valor)}</div></div></div>
+      <div class="muted" style="margin-top:10px">${p.meta.falta>0?`Faltam <b>${brl(p.meta.falta)}</b> em ${p.meta.dias_restantes} dia(s), ≈ ${brl(p.meta.por_dia)} por dia.`:"<b>Meta batida! 🎉</b>"}
+        No ritmo atual o mês fecha em <b>${brl(p.meta.ritmo)}</b>.</div></div>`
     : `<div class="card"><div class="tit-card"><b>Meta do mês</b></div><p class="muted" style="margin:0 0 8px">Defina uma meta para acompanhar quanto falta vender por dia.</p>
       <button class="btn sec peq" onclick="irPara('mais')">Definir meta</button></div>`;
   const formas = Object.entries(p.formas).sort((x,y)=>y[1]-x[1]).map(([k,v])=>({rotulo:FORMAS[k]||k, valor:v}));
@@ -1002,16 +1255,19 @@ async function carregarPainel(){
   tams.sort((x,y)=>(ordemT.indexOf(x)+1||99)-(ordemT.indexOf(y)+1||99));
   $("painel").innerHTML = `
     <div class="kpis">
-      <div class="kpi"><span class="muted">Faturamento</span><span class="valor">${brl(a.faturamento)}</span>${delta(c.faturamento)}</div>
-      <div class="kpi"><span class="muted">Lucro</span><span class="valor">${brl(a.lucro)}</span>${delta(c.lucro)} <span class="muted" style="font-size:12px">margem ${a.margem}%</span></div>
-      <div class="kpi"><span class="muted">Vendas</span><span class="valor">${a.vendas}</span>${delta(c.vendas)}</div>
-      <div class="kpi"><span class="muted">Ticket médio</span><span class="valor">${brl(a.ticket)}</span>${delta(c.ticket)}</div>
+      <div class="kpi"><span class="muted">Faturamento</span><span class="valor">${brl(a.faturamento)}</span>${delta(c.faturamento)}${spark(p.spark.faturamento)}</div>
+      <div class="kpi"><span class="muted">Lucro</span><span class="valor">${brl(a.lucro)}</span>${delta(c.lucro)} <span class="muted" style="font-size:12px">margem ${a.margem}%</span>${spark(p.spark.lucro)}</div>
+      <div class="kpi"><span class="muted">Vendas</span><span class="valor">${a.vendas}</span>${delta(c.vendas)}${spark(p.spark.vendas)}</div>
+      <div class="kpi"><span class="muted">Ticket médio</span><span class="valor">${brl(a.ticket)}</span>${delta(c.ticket)}${spark(p.spark.ticket)}</div>
       <div class="kpi"><span class="muted">Peças vendidas</span><span class="valor">${a.pecas}</span>${delta(c.pecas)}</div>
       <div class="kpi"><span class="muted">Peças por venda</span><span class="valor">${a.pecas_por_venda.toLocaleString("pt-BR")}</span></div>
     </div>
-    <p class="muted" style="font-size:12px;margin:6px 0 12px">Setas comparam com ${p.comparado_com}.</p>
+    <p class="muted" style="font-size:12px;margin:6px 0 12px">Setas comparam com ${p.comparado_com}. Linhas: últimos 14 dias.</p>
     <div class="painel-grid">
       ${meta}
+      <div class="card"><div class="tit-card"><b>${p.periodo==="ano"?"Vendas × meta por mês":"Vendas × meta por semana"}</b><span>toque nas barras</span></div>
+        <div class="legenda"><span><i style="background:var(--vinho)"></i>Vendas</span>${p.vs_meta.some(x=>x.meta)?'<span><i style="background:var(--rosa2);box-shadow:inset 0 0 0 1.5px var(--vinho)"></i>Meta</span>':'<span style="font-weight:500">defina uma meta para comparar</span>'}</div>
+        ${vendasVsMeta(p.vs_meta)}</div>
       <div class="card"><div class="tit-card"><b>${nomeP}</b><span>toque nas barras</span></div>${graficoBarras(p.serie)}</div>
       <div class="card"><div class="tit-card"><b>Mais vendidos</b><span>no período</span></div>
         ${p.mais_vendidos.length ? p.mais_vendidos.map((x,i)=>`<div class="rank"><span class="pos">${i+1}º</span>${x.foto?`<img src="${x.foto}" alt="">`:'<span class="semfoto"></span>'}
@@ -1058,6 +1314,7 @@ async function carregarPainel(){
         <div class="muted">${m.uso_pct}% usado · projeção do ano ${brl(m.projecao_ano)}</div>
         ${m.alerta?`<p style="color:var(--vermelho);font-weight:700;margin-bottom:0">⚠️ ${m.alerta}</p>`:""}</div>
     </div>`;
+  animarAneis($("painel"));
 }
 
 // ---------- CLIENTES / CONFIG

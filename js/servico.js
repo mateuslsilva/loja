@@ -290,8 +290,30 @@ function painel(periodo = "mes") {
   if (uso >= 100) alerta = "Limite do MEI ultrapassado! Procure um contador.";
   else if (uso >= 80 || projecao > cfg.limite_mei_anual) alerta = "Atenção: no ritmo atual você pode passar do limite do MEI este ano.";
 
+  // vendas × meta: semanas do mês (ou meses do ano)
+  const vsMeta = [], diasMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0).getDate();
+  if (periodo === "ano") {
+    for (let m = 0; m <= agora.getMonth(); m++) {
+      const a = new Date(agora.getFullYear(), m, 1), b = new Date(agora.getFullYear(), m + 1, 1);
+      vsMeta.push({ rotulo: MESES[m], vendas: r2(E.vendas.filter((v) => entre(v, a, b)).reduce((s, v) => s + v.total, 0)), meta: cfg.meta_mensal || null });
+    }
+  } else {
+    for (let ini = 1, k = 1; ini <= diasMes; ini += 7, k++) {
+      const fim = Math.min(diasMes, ini + 6);
+      const a = new Date(agora.getFullYear(), agora.getMonth(), ini), b = new Date(agora.getFullYear(), agora.getMonth(), fim + 1);
+      vsMeta.push({ rotulo: `Sem ${k}`, detalhe: `${ini}–${fim}/${agora.getMonth() + 1}`, vendas: r2(E.vendas.filter((v) => entre(v, a, b)).reduce((s, v) => s + v.total, 0)),
+        meta: cfg.meta_mensal ? r2(cfg.meta_mensal * (fim - ini + 1) / diasMes) : null, futura: a > agora });
+    }
+  }
+  // minigráficos: últimos 14 dias
+  const spark = { faturamento: [], lucro: [], vendas: [], ticket: [] };
+  for (let k = 13; k >= 0; k--) {
+    const a = somaDias(inicioDia(agora), -k), r = resumoVendas(E.vendas.filter((v) => entre(v, a, somaDias(a, 1))));
+    spark.faturamento.push(r.faturamento); spark.lucro.push(r.lucro); spark.vendas.push(r.vendas); spark.ticket.push(r.ticket);
+  }
+
   return {
-    periodo, comparado_com: I.rotulo, atual, comparacao: comp, serie, formas,
+    periodo, comparado_com: I.rotulo, atual, comparacao: comp, serie, formas, vs_meta: vsMeta, spark,
     mais_vendidos: maisVendidos,
     vendas_por_tamanho: [...porTam].sort((a, b) => R.chaveTamanho(a[0]) - R.chaveTamanho(b[0])).map(([t, q]) => ({ rotulo: t, valor: q })),
     vendas_por_categoria: [...porCat].sort((a, b) => b[1] - a[1]).map(([c, v]) => ({ rotulo: c, valor: v })),
@@ -480,6 +502,82 @@ async function dividirMes(d) {
   return financas();
 }
 
+// ---------------------------------------------------------------- pulso da loja: anéis, missões, sequência, conquistas
+function pulso() {
+  const cfg = E.config, agora = new Date(), hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+  const fin = financas(), h = fin.hoje, diasMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0).getDate();
+  const doDia = (d) => vendasEntre(d, new Date(d.getTime() + 864e5));
+  const vHoje = doDia(hoje);
+  const metaDia = cfg.meta_mensal > 0 ? cfg.meta_mensal / diasMes : (fin.meta.por_dia || 0);
+  const vendasMes = fin.mes.vendas;
+  const aneis = [];
+  if (h.custo_diario > 0) aneis.push({ id: "contas", nome: "Contas do dia", valor: h.lucro_hoje, alvo: h.custo_diario, dica: "lucro de hoje × contas do dia" });
+  if (metaDia > 0) aneis.push({ id: "dia", nome: "Meta do dia", valor: h.vendas_hoje, alvo: Math.round(metaDia * 100) / 100, dica: "vendas de hoje" });
+  if (cfg.meta_mensal > 0) aneis.push({ id: "mes", nome: "Meta do mês", valor: vendasMes, alvo: cfg.meta_mensal, dica: "vendas do mês" });
+
+  // missões do dia (calculadas a partir dos dados, nada para marcar à mão)
+  const ticket = fin.mes.vendas && E.vendas.length ? vendasMes / Math.max(1, E.vendas.filter((v) => new Date(v.data) >= new Date(agora.getFullYear(), agora.getMonth(), 1)).length) : 0;
+  const nVendas = Math.min(8, Math.max(2, Math.ceil((metaDia || h.venda_para_cobrir || 0) / (ticket || 80)) || 2));
+  const escada = R.lerEscada(cfg.escada_promocao), diasAlerta = escada.length ? escada[0][0] : 35;
+  const idsHoje = new Set(vHoje.map((v) => v.id));
+  const vendeuParada = E.itens_venda.some((iv) => idsHoje.has(iv.venda_id) &&
+    R.diasEntre(E.lotes.find((l) => l.id === iv.lote_id)?.data_entrada || R.hojeISO()) >= diasAlerta);
+  const temParada = E.lotes.some((l) => l.quantidade_atual > 0 && R.diasEntre(l.data_entrada) >= diasAlerta);
+  const missoes = [];
+  if (h.custo_diario > 0) missoes.push({ id: "contas", titulo: "Pague as contas de hoje", detalhe: h.falta > 0 ? `faltam ${R.brl(h.falta)} de lucro` : "contas pagas!",
+    progresso: Math.min(1, h.lucro_hoje / h.custo_diario), acao: h.falta > 0 ? "salvar_dia" : null });
+  else missoes.push({ id: "contas", titulo: "Cadastre as contas da loja", detalhe: "aluguel, luz, água…", progresso: E.despesas.length ? 1 : 0, acao: "dinheiro" });
+  missoes.push({ id: "vendas", titulo: `Faça ${nVendas} vendas hoje`, detalhe: `${vHoje.length} de ${nVendas}`, progresso: Math.min(1, vHoje.length / nVendas), acao: "vender" });
+  if (temParada || vendeuParada) missoes.push({ id: "parada", titulo: "Venda 1 peça parada", detalhe: `há mais de ${diasAlerta} dias na loja`, progresso: vendeuParada ? 1 : 0, acao: "promo" });
+  else missoes.push({ id: "cliente", titulo: "Identifique a cliente em 1 venda", detalhe: "fideliza e libera aniversário e avisos",
+    progresso: vHoje.some((v) => v.cliente_id) ? 1 : 0, acao: "vender" });
+
+  // sequência: dias seguidos batendo o objetivo (domingo sem venda não quebra)
+  const bateu = (vs) => h.custo_diario > 0 ? lucroDe(vs) >= h.custo_diario : vs.length > 0;
+  let seq = 0;
+  const hojeBateu = bateu(vHoje);
+  for (let k = 1; k < 400; k++) {
+    const d = new Date(hoje.getTime() - k * 864e5), vs = doDia(d);
+    if (bateu(vs)) seq++;
+    else if (d.getDay() === 0 && !vs.length) continue;
+    else break;
+  }
+  if (hojeBateu) seq++;
+  const objetivoSeq = h.custo_diario > 0 ? "dias seguidos pagando as contas" : "dias seguidos com venda";
+
+  // recorde do mês e conquistas
+  const totalVendas = E.vendas.length, maiorMes = (() => {
+    const m = new Map(); E.vendas.forEach((v) => { const k = v.data.slice(0, 7); m.set(k, (m.get(k) || 0) + v.total); });
+    return Math.max(0, ...m.values());
+  })();
+  const conquistas = [
+    { id: "primeira", emoji: "🛍️", nome: "Primeira venda", ganho: totalVendas >= 1 },
+    { id: "dez", emoji: "🔟", nome: "10 vendas", ganho: totalVendas >= 10 },
+    { id: "cem", emoji: "💯", nome: "100 vendas", ganho: totalVendas >= 100 },
+    { id: "mil", emoji: "💵", nome: "R$ 1 mil num mês", ganho: maiorMes >= 1000 },
+    { id: "dezmil", emoji: "💎", nome: "R$ 10 mil num mês", ganho: maiorMes >= 10000 },
+    { id: "meta", emoji: "🎯", nome: "Meta do mês batida", ganho: cfg.meta_mensal > 0 && vendasMes >= cfg.meta_mensal },
+    { id: "seq7", emoji: "🔥", nome: "7 dias de sequência", ganho: seq >= 7 },
+    { id: "sonho", emoji: "⭐", nome: "Sonho conquistado", ganho: E.sonhos.some((s) => s.concluido) },
+  ];
+  const hora = agora.getHours(), nome = (cfg.responsavel_nome || "").split(" ")[0];
+  const saudacao = `${hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite"}${nome ? ", " + nome : ""}!`;
+  return { saudacao, aneis, missoes, missoes_feitas: missoes.filter((m) => m.progresso >= 1).length,
+    sequencia: seq, sequencia_texto: objetivoSeq, sequencia_hoje: hojeBateu, conquistas, relampago: !!relampagoAtivo(),
+    falta_hoje: h.falta };
+}
+
+function rankingClientes() {
+  const m = new Map();
+  for (const v of E.vendas) if (v.cliente_id) {
+    const g = m.get(v.cliente_id) || { total: 0, compras: 0, ultima: v.data };
+    g.total += v.total; g.compras++; if (v.data > g.ultima) g.ultima = v.data; m.set(v.cliente_id, g);
+  }
+  return [...m].map(([id, g]) => ({ ...E.clientes.find((c) => c.id === id), cliente_id: id, total: Math.round(g.total * 100) / 100,
+    compras: g.compras, ultima: g.ultima, dias_sem_comprar: R.diasEntre(R.hojeISO(new Date(g.ultima))) }))
+    .filter((c) => c.nome).sort((a, b) => b.total - a.total);
+}
+
 // ---------------------------------------------------------------- salvar meu dia (promoção relâmpago)
 const relampagoAtivo = () => E.relampagos.find((r) => r.status === "ativo");
 
@@ -629,7 +727,10 @@ export async function api(url, opt = {}) {
       case "POST /estoque": return await entradaEstoque(b);
       case "POST /vendas": return await registrarVenda(b);
       case "GET /vendas": return vendasDoDia(q.get("dia") || undefined);
-      case "GET /clientes": return [...E.clientes].sort((a, b) => a.nome.localeCompare(b.nome)).map((c) => ({ cliente_id: c.id, ...c }));
+      case "GET /pulso": return pulso();
+      case "GET /clientes":
+        if (seg[1] === "ranking") return rankingClientes();
+        return [...E.clientes].sort((a, b) => a.nome.localeCompare(b.nome)).map((c) => ({ cliente_id: c.id, ...c }));
       case "POST /clientes": return await novoCliente(b);
       case "GET /promocoes": return seg[1] === "divulgacao" ? divulgacao() : pecasEmPromocao();
       case "POST /promocoes": {

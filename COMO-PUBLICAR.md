@@ -112,6 +112,18 @@ Quem controla isso é o arquivo `versao.json`: toda atualização vem com um nú
   - **Meus sonhos**: quanto guardar por mês para chegar no prazo; no fechamento do mês o app sugere
     quanto colocar em cada sonho.
 
+- **Pulso da loja** (topo da tela Vender): anéis que enchem conforme você vende (contas do dia,
+  meta do dia, meta do mês), **sequência 🔥** de dias seguidos pagando as contas e **missões do dia**
+  geradas pelos dados da loja ("Faça 4 vendas hoje", "Venda 1 peça parada"…), mais **conquistas**.
+- **Venda avulsa ou para cliente**: a venda rápida não pede cliente; em "Para cliente" dá para
+  escolher ou cadastrar a cliente na hora (nome + WhatsApp).
+- **Gráficos**: rosca da meta ("Já vendeu / Da meta de"), Vendas × meta por semana, linhas de
+  tendência dos últimos 14 dias nos números do painel.
+- **Assistente da loja** (botão "Pergunte"): responde por texto ou voz perguntas como "quanto vendi
+  hoje?", "tem vestido preto M?", "quanto falta pra meta?", "o que está parado?", "melhores clientes",
+  "quanto falta pra moto?". Roda dentro do app, sem custo. Entende perguntas sobre a loja; assuntos
+  fora da loja ele não responde.
+
 ## Limites desta versão
 - Os avisos de troca da promoção relâmpago aparecem com o app aberto (ou em segundo plano no
   celular, se a pessoa permitir notificações). Se o app ficar fechado, a troca acontece assim que

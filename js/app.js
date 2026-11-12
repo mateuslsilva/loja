@@ -2,6 +2,10 @@
 import { criarBanco } from "./banco.js";
 import { api, iniciarServico } from "./servico.js";
 import { aplicarTema } from "./tema.js";
+import { perguntar, SUGESTOES } from "./assistente.js";
+
+window.lojaPerguntar = perguntar;
+window.lojaSugestoes = SUGESTOES;
 
 const $ = (id) => document.getElementById(id);
 let banco;
