@@ -69,6 +69,7 @@ nav button.ativa{color:var(--vinho);font-weight:700;background:var(--rosa)}
 .fab{position:fixed;right:16px;bottom:108px;width:56px;height:56px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:30px;box-shadow:0 6px 16px #7a2e4d55;z-index:4}
 .modal{position:fixed;inset:0;background:#2a1d2266;display:none;align-items:flex-end;justify-content:center;z-index:10}
 .modal.on{display:flex}
+#mMsg{z-index:12}#mAvisar{z-index:11}
 .modal .folha{background:var(--bg);width:100%;max-width:760px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px 28px}
 .modal .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .fechar{border:0;background:var(--rosa);color:var(--vinho);border-radius:50%;width:34px;height:34px;font-size:18px}
@@ -77,9 +78,27 @@ nav button.ativa{color:var(--vinho);font-weight:700;background:var(--rosa)}
 .var-lin{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed var(--linha)}
 pre.texto{white-space:pre-wrap;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:12px;font:14px "DM Sans",system-ui,sans-serif;margin:8px 0}
 .vazio{text-align:center;color:var(--tx2);padding:30px 10px}
+/* ciclo da demanda */
+.dem{border:1px solid color-mix(in srgb,var(--vinho) 22%,var(--linha));background:linear-gradient(160deg,color-mix(in srgb,var(--vinho) 7%,#fff),#fff 60%)}
+.dem h3{margin:0 0 2px;font:700 17px "DM Sans",system-ui,sans-serif;color:var(--vinho)}
+.dem-tot{display:flex;gap:10px;margin:10px 0}
+.dem-tot div{flex:1;background:#fff;border:1px solid var(--linha);border-radius:12px;padding:8px 10px}
+.dem-tot b{display:block;font-size:19px;white-space:nowrap}.dem-tot.tres b{font-size:16px}.dem-tot.tres div{padding:8px}.dem-tot span{font-size:12px;color:var(--tx2)}
+.dem-lin{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px dashed var(--linha)}
+.dem-lin:first-of-type{border-top:0}
+.dem-q{flex:0 0 44px;height:44px;border-radius:12px;background:var(--vinho);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:17px;line-height:1}
+.dem-q small{font-size:10px;font-weight:600;opacity:.85}
+.dem-q.claro{background:var(--rosa);color:var(--vinho)}
+.dem-barra{height:6px;border-radius:4px;background:var(--rosa);margin-top:5px;overflow:hidden}.dem-barra i{display:block;height:100%;background:var(--vinho)}
+.evitar{background:#fff4f2;border:1px solid #f3cfc8;border-radius:12px;padding:8px 10px;margin-top:10px;font-size:14px}
+.av-item{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--linha)}
+.av-item.feito{opacity:.5}
+.av-item .btn{flex:0 0 auto;width:auto;padding:9px 12px;text-decoration:none}
 @media (min-width:900px){ body{padding-bottom:0;padding-left:110px} nav{left:14px;right:auto;top:50%;bottom:auto;transform:translateY(-50%);width:82px;flex-direction:column}
   nav button{flex:none;padding:12px 0} .fab{bottom:24px} header{padding-left:16px}}
-@media print{ body *{visibility:hidden} #etiquetas,#etiquetas *{visibility:visible} #etiquetas{position:absolute;left:0;top:0} }
+@media print{ body>*:not(#etiquetas){display:none!important} body{padding:0!important;margin:0!important;background:#fff!important}
+  #etiquetas{display:block!important} #etiquetas .quebra:not(:last-child){page-break-after:always;break-after:page} }
+#etiquetas{display:none}
 .foto-prod{width:100%;max-height:340px;object-fit:cover;border-radius:14px;display:block;background:var(--rosa)}
 .foto-mini{width:64px;height:80px;object-fit:cover;border-radius:10px;background:var(--rosa);flex:0 0 64px}
 .flyers{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
@@ -274,7 +293,38 @@ details.conquistas summary::-webkit-details-marker{display:none}
 .ia-in button.mic{background:var(--rosa);color:var(--vinho)}
 .ia-in button.mic.ouvindo{background:var(--laranja);color:#fff;box-shadow:0 0 0 6px color-mix(in srgb,var(--laranja) 25%,transparent)}
 .ia-in svg{width:20px;height:20px}
-.etq{display:inline-block;width:5cm;border:1px dashed #999;padding:4px;margin:2px;text-align:center;font-size:10px;font-family:Arial}
+.etq{box-sizing:border-box;overflow:hidden;text-align:center;font-family:Arial,Helvetica,sans-serif;color:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;line-height:1.05}
+.etq .e-loja{font-weight:700;letter-spacing:.2px}.etq .e-nome{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.etq .e-var{white-space:nowrap}.etq .e-preco{font-weight:700}
+.etq svg{display:block;width:100%}
+.linha-etq{display:flex;box-sizing:border-box}
+.prev-etq{display:flex;justify-content:center;padding:14px;background:repeating-conic-gradient(#f3f0f1 0 25%,#fff 0 50%) 0 0/16px 16px;border-radius:12px;margin-top:10px}
+.prev-etq .etq{background:#fff;box-shadow:0 2px 10px #0002;border-radius:3px}
+/* ---- seletor de produtos */
+.sug{position:relative}
+.sug-lista{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--linha);border-radius:14px;box-shadow:0 16px 30px -12px #0004;z-index:8;max-height:300px;overflow:auto}
+.sug-lista button{display:flex;width:100%;gap:10px;align-items:center;border:0;background:none;padding:9px 12px;text-align:left;font:inherit;color:inherit;cursor:pointer;border-bottom:1px solid var(--linha)}
+.sug-lista button:last-child{border:0}.sug-lista button:hover{background:var(--rosa)}
+.sel-prod{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--linha)}
+.sel-prod img,.sel-prod .semfoto{width:52px;height:64px;border-radius:10px;object-fit:cover;background:var(--rosa);flex:0 0 52px}
+.vchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.vchip{border:1px solid var(--linha);background:#fff;border-radius:10px;padding:6px 9px;font-size:13px;cursor:pointer;text-align:left;line-height:1.2;font-family:inherit;color:inherit}
+.vchip small{display:block;color:var(--tx2);font-size:11px}
+.vchip:disabled{opacity:.4;cursor:not-allowed}
+.vchip.promo{border-color:var(--laranja)}
+/* ---- condicional e entregas */
+.lista-op .op{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--linha)}
+.lista-op .op:last-child{border:0}
+.st.atrasada{background:#fde3e1;color:var(--vermelho)}.st.hoje{background:var(--laranja-bg);color:var(--laranja)}
+.st.aguardando_envio{background:var(--laranja-bg);color:var(--laranja)}.st.enviado{background:var(--rosa);color:var(--vinho)}.st.entregue{background:var(--verde-bg);color:var(--verde)}
+.ficou{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--linha)}
+pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;border-radius:12px;padding:12px;font:14px/1.45 "DM Sans",system-ui,sans-serif;margin:8px 0;color:#1d2a1f}
+/* ---- mapa do Brasil (blocos por estado) */
+.mapa-br{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;max-width:290px}
+.mapa-br div{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font:700 11px "DM Sans",system-ui,sans-serif;cursor:default}
+.mapa-br .vazio-uf{background:#f2eef0;color:#b4a9ad}
+.origem{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.etq-x{}
 .etq svg{width:100%;height:40px}
 </style>
 </head>
@@ -291,10 +341,12 @@ details.conquistas summary::-webkit-details-marker{display:none}
   <h2>Nova venda</h2>
   <div class="card">
     <div class="lin">
-      <input id="codVenda" placeholder="Código da peça ou código de barras" autocomplete="off" style="flex:3">
-      <button class="btn peq" style="flex:0 0 52px;font-size:20px" onclick="addVenda()">+</button>
+      <div class="sug" style="flex:3"><input id="codVenda" placeholder="Nome da peça, código ou código de barras" autocomplete="off">
+        <div class="sug-lista" id="sugCod" style="display:none"></div></div>
+      <button class="btn peq" style="flex:0 0 auto;padding:10px 14px" onclick="abrirSeletor()">+ Produtos</button>
     </div>
-    <button class="btn sec" style="margin-top:8px" onclick="abrirLeitor()">📷 Ler código com a câmera</button>
+    <div class="lin" style="margin-top:8px"><button class="btn sec" onclick="abrirLeitor()">📷 Ler código</button>
+      <button class="btn sec" onclick="abrirProcura()">🔎 Procuraram e não tinha</button></div>
     <div id="leitor"></div>
   </div>
   <div class="card" id="carrinho"><div class="vazio">Nenhuma peça na venda ainda.</div></div>
@@ -310,17 +362,39 @@ details.conquistas summary::-webkit-details-marker{display:none}
         <div class="lin"><input id="crNome" placeholder="Nome da cliente"><input id="crZap" inputmode="tel" placeholder="WhatsApp"></div>
         <button class="btn sec" style="margin-top:8px" onclick="salvarCliRapida()">Cadastrar e escolher</button></div>
     </div>
+    <label>Onde foi a venda</label>
+    <div class="seg" id="canalVenda"><span class="on" data-v="loja">🏬 Na loja</span><span data-v="online">📦 Online / entrega</span></div>
+    <div id="boxEntrega" style="display:none;margin-top:8px">
+      <p class="muted" style="margin:4px 0">Dados de quem vai receber (obrigatórios para venda online).</p>
+      <div class="chips" id="enMetodo"><span class="chip on" data-v="correios">Correios</span><span class="chip" data-v="transportadora">Transportadora</span>
+        <span class="chip" data-v="motoboy">Motoboy / app</span><span class="chip" data-v="outro">Outro</span></div>
+      <label>Nome de quem recebe <span class="obrig">*</span></label><input id="enNome" autocomplete="off">
+      <div class="lin"><div><label>Celular com DDD <span class="obrig">*</span></label><input id="enTel" inputmode="tel" placeholder="(62) 99999-9999"></div>
+        <div style="flex:0 0 120px"><label>País</label><input id="enPais" value="Brasil"></div></div>
+      <div class="lin"><div style="flex:0 0 130px"><label>CEP <span class="obrig">*</span></label><input id="enCep" inputmode="numeric" placeholder="00000-000"></div>
+        <div><label>Cidade <span class="obrig">*</span></label><input id="enCidade"></div>
+        <div style="flex:0 0 60px"><label>UF <span class="obrig">*</span></label><input id="enUf" maxlength="2" style="text-transform:uppercase"></div></div>
+      <label>Rua <span class="obrig">*</span></label><input id="enRua">
+      <div class="lin"><div style="flex:0 0 90px"><label>Número <span class="obrig">*</span></label><input id="enNum"></div>
+        <div><label>Bairro <span class="obrig">*</span></label><input id="enBairro"></div></div>
+      <label>Complemento</label><input id="enCompl" placeholder="Apto, bloco, referência…">
+      <label>Código de rastreio</label><input id="enRastreio" placeholder="Ex.: AA123456789BR (pode colocar depois)" style="text-transform:uppercase">
+    </div>
     <label>Desconto no caixa (R$)</label>
     <input id="descVenda" type="number" inputmode="decimal" min="0" step="0.01" value="0" oninput="renderCarrinho()">
     <div class="lin" style="margin-top:14px"><span class="muted">Total</span><span class="big" id="totalVenda" style="text-align:right">R$ 0,00</span></div>
     <button class="btn" style="margin-top:12px" id="btnFinalizar" onclick="finalizarVenda()" disabled>Finalizar venda</button>
+    <button class="btn sec" style="margin-top:8px" id="btnCond" onclick="abrirCondicional()" disabled>🧺 Cliente vai levar no condicional</button>
   </div>
   <div class="card" id="caixaDia"></div>
+  <div class="card lista-op" id="boxCondicionais" style="display:none"></div>
+  <div class="card lista-op" id="boxEntregas" style="display:none"></div>
 </section>
 
 <!-- ================= ESTOQUE ================= -->
 <section id="t-estoque" class="tela">
   <h2>Estoque</h2>
+  <div id="demanda"></div>
   <input id="buscaEst" placeholder="Buscar produto…" oninput="carregarEstoque()">
   <div id="listaEst" style="margin-top:12px"></div>
   <button class="fab" onclick="abrirCadastro()" title="Cadastrar produto">+</button>
@@ -573,8 +647,86 @@ details.conquistas summary::-webkit-details-marker{display:none}
   <button class="btn" style="margin-top:8px" onclick="salvarSonho()">Guardar meu sonho</button>
 </div></div>
 
+<!-- ================= SELETOR DE PRODUTOS ================= -->
+<div class="modal" id="mSeletor"><div class="folha">
+  <div class="topo"><h2 style="margin:0">Escolher peças</h2><button class="fechar" onclick="fechar('mSeletor')">✕</button></div>
+  <input id="selBusca" placeholder="Buscar: vestido, preto, M…" autocomplete="off">
+  <div id="selLista"></div>
+  <button class="btn" style="margin-top:12px;position:sticky;bottom:0" onclick="fechar('mSeletor')" id="selOk">Pronto</button>
+</div></div>
+
+<!-- ================= CONDICIONAL ================= -->
+<div class="modal" id="mCond"><div class="folha">
+  <div class="topo"><h2 style="margin:0">🧺 Condicional</h2><button class="fechar" onclick="fechar('mCond')">✕</button></div>
+  <p class="muted" style="margin-top:0">As peças saem reservadas no nome da cliente. Na volta você marca o que ela ficou: só isso vira venda.</p>
+  <div id="condItens"></div>
+  <label>Cliente <span class="obrig">*</span></label>
+  <div class="lin"><select id="condCli"></select><button class="btn sec peq" style="flex:0 0 auto" onclick="toggleCondNova()">+ Nova</button></div>
+  <div id="condNova" style="display:none;margin-top:8px"><div class="lin"><input id="cnNome" placeholder="Nome"><input id="cnZap" inputmode="tel" placeholder="WhatsApp"></div></div>
+  <label>Devolve em</label>
+  <div class="chips" id="condPrazo"><span class="chip" data-d="1">1 dia</span><span class="chip" data-d="2">2 dias</span><span class="chip on" data-d="3">3 dias</span><span class="chip" data-d="5">5 dias</span><span class="chip" data-d="7">7 dias</span></div>
+  <label>Observação</label><input id="condObs" placeholder="Opcional">
+  <button class="btn" style="margin-top:14px" onclick="salvarCondicional()">Registrar condicional</button>
+</div></div>
+<div class="modal" id="mCondFechar"><div class="folha" id="mCondFecharCorpo"></div></div>
+
+<!-- ================= PROCURA (venda perdida) ================= -->
+<div class="modal" id="mProcura"><div class="folha">
+  <div class="topo"><h2 style="margin:0">🔎 Procuraram e não tinha</h2><button class="fechar" onclick="fechar('mProcura')">✕</button></div>
+  <p class="muted" style="margin-top:0">Anote em 10 segundos. O app junta esses pedidos, mostra quanto você deixou de vender, coloca na lista de compras e avisa a cliente quando a peça chegar.</p>
+  <label>O que ela queria</label>
+  <div class="chips" id="prCat"></div>
+  <input id="prDesc" placeholder="Detalhe (opcional): calça jeans cintura alta, vestido longo…" style="margin-top:8px">
+  <label>Tamanho</label>
+  <div class="chips" id="prTam"></div>
+  <label>Cor</label><input id="prCor" placeholder="Ex.: preto (opcional)">
+  <label>Quem pediu <span class="muted" style="font-weight:400">(para avisar quando chegar)</span></label>
+  <select id="prCli"><option value="">Não sei / não quis deixar contato</option></select>
+  <div class="lin" style="margin-top:8px"><input id="prNome" placeholder="ou nome"><input id="prZap" inputmode="tel" placeholder="WhatsApp"></div>
+  <button class="btn" style="margin-top:14px" onclick="salvarProcura()">Registrar procura</button>
+</div></div>
+
+
+<!-- ================= MENSAGEM (WhatsApp) ================= -->
+<div class="modal" id="mMsg"><div class="folha">
+  <div class="topo"><h2 style="margin:0" id="msgTit">Mensagem</h2><button class="fechar" onclick="fechar('mMsg')">✕</button></div>
+  <div id="msgExtra"></div>
+  <pre class="msg-wa" id="msgTxt"></pre>
+  <div class="lin"><button class="btn sec" onclick="copiar('msgTxt')">Copiar</button><a class="btn" id="msgWa" target="_blank" style="text-decoration:none;text-align:center">Abrir no WhatsApp</a></div>
+</div></div>
+
+<!-- ================= ETIQUETAS ================= -->
+<div class="modal" id="mEtq"><div class="folha">
+  <div class="topo"><h2 style="margin:0">🏷️ Etiquetas</h2><button class="fechar" onclick="fechar('mEtq')">✕</button></div>
+  <label>Tamanho da etiqueta (impressora térmica)</label>
+  <select id="etqTam">
+    <option value="40x25">40 × 25 mm (1 coluna) – mais comum em roupas</option>
+    <option value="50x30">50 × 30 mm (1 coluna)</option>
+    <option value="60x40">60 × 40 mm (1 coluna)</option>
+    <option value="33x22x3">33 × 22 mm (rolo de 3 colunas)</option>
+    <option value="a4">Folha A4 (impressora comum, 3 × 10)</option>
+  </select>
+  <div class="lin" style="margin-top:8px">
+    <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:14px;color:var(--tx);margin:0"><input type="checkbox" id="etqPreco" checked style="width:auto"> Mostrar preço</label>
+    <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:14px;color:var(--tx);margin:0"><input type="checkbox" id="etqLoja" checked style="width:auto"> Nome da loja</label>
+  </div>
+  <div class="prev-etq" id="etqPrev"></div>
+  <label>Quantas de cada</label>
+  <div id="etqLista"></div>
+  <details class="ajuda"><summary>Como imprimir na térmica</summary>
+    <ol><li>Na janela de impressão, escolha a impressora de etiquetas (Elgin, Argox, Zebra…).</li>
+      <li>Em "Tamanho do papel", escolha o mesmo tamanho da etiqueta (ex.: 40 × 25 mm).</li>
+      <li>Margens: <b>Nenhuma</b>; Escala: <b>100%</b> (ou "Tamanho real").</li>
+      <li>Imprima 1 etiqueta de teste antes do lote.</li></ol>
+    <p class="muted">O código de barras é EAN-13 (padrão do comércio); qualquer leitor lê, e o app reconhece na hora da venda.</p></details>
+  <button class="btn" style="margin-top:12px" onclick="imprimirEtiquetas()">Imprimir etiquetas</button>
+</div></div>
+
 <!-- ================= MODAL PRODUTO ================= -->
 <div class="modal" id="mProduto"><div class="folha" id="mProdutoCorpo"></div></div>
+<!-- ================= QUEM AVISAR ================= -->
+<div class="modal" id="mAvisar"><div class="folha" id="mAvisarCorpo"></div></div>
+
 
 <div id="etiquetas"></div>
 <div id="toast"></div>
@@ -716,6 +868,137 @@ async function carregarPulso(){
   animarAneis($("pulso"));
 }
 
+// ---------- SELETOR DE PRODUTOS E SUGESTÕES
+function htmlVariacoes(p){ return `<div class="vchips">${p.variacoes.map(v=>`<button class="vchip ${v.promo?"promo":""}" ${v.disponivel>0?"":"disabled"} data-c="${v.codigo}">
+  <b>${v.cor} · ${v.tamanho}</b><small>${v.disponivel>0?`${v.disponivel} disp. · ${brl(v.preco)}`:(v.reservado?"em condicional":"esgotado")}</small></button>`).join("")}</div>`; }
+async function abrirSeletor(q=""){
+  $("selBusca").value = typeof q==="string" ? q : ""; $("mSeletor").classList.add("on"); await listarSeletor();
+  setTimeout(()=>$("selBusca").focus(),200);
+}
+let tSel; $("selBusca").addEventListener("input",()=>{ clearTimeout(tSel); tSel=setTimeout(listarSeletor,150); });
+async function listarSeletor(){
+  const ps = await api("/buscar?q="+encodeURIComponent($("selBusca").value));
+  $("selLista").innerHTML = ps.length ? ps.map(p=>`<div class="sel-prod">${p.foto?`<img src="${p.foto}" alt="">`:'<span class="semfoto"></span>'}
+    <div style="flex:1;min-width:0"><b>${p.nome}</b> <span class="muted">${p.codigo}</span>${htmlVariacoes(p)}</div></div>`).join("")
+    : `<div class="vazio">Nada encontrado. Tente outra palavra (ex.: "vestido", "preto", "M").
+       ${$("selBusca").value.trim()?`<button class="btn sec" style="margin-top:12px" onclick="fechar('mSeletor');abrirProcura($('selBusca').value)">🔎 Registrar que procuraram “${esc($("selBusca").value.trim())}”</button>`:""}</div>`;
+}
+const esc = (t) => String(t??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+$("selLista").onclick = async e => { const b=e.target.closest(".vchip"); if(!b||b.disabled) return; if (await addVenda(b.dataset.c)!==false) { $("selOk").textContent=`Pronto (${carrinho.reduce((s,i)=>s+i.qtd,0)} peça(s) na venda)`; listarSeletor(); } };
+let tSug; $("codVenda").addEventListener("input",()=>{ clearTimeout(tSug); tSug=setTimeout(sugerir,150); });
+$("codVenda").addEventListener("blur",()=>setTimeout(()=>$("sugCod").style.display="none",200));
+async function sugerir(){
+  const q=$("codVenda").value.trim(); if(q.length<2){ $("sugCod").style.display="none"; return; }
+  const ps = (await api("/buscar?q="+encodeURIComponent(q))).flatMap(p=>p.variacoes.filter(v=>v.disponivel>0).map(v=>({...v, nome:p.nome}))).slice(0,8);
+  $("sugCod").innerHTML = ps.map(v=>`<button data-c="${v.codigo}"><div style="flex:1"><b>${v.nome}</b> <span class="muted">${v.cor} · ${v.tamanho}</span><div class="muted" style="font-size:12px">${v.codigo} · ${v.disponivel} disp.</div></div><b>${brl(v.preco)}</b></button>`).join("");
+  $("sugCod").style.display = ps.length ? "block" : "none";
+}
+$("sugCod").onmousedown = e => { const b=e.target.closest("button"); if(b){ e.preventDefault(); addVenda(b.dataset.c); } };
+
+// ---------- NA LOJA OU ONLINE
+let canalVenda = "loja", metodoEntrega = "correios";
+$("canalVenda").onclick = e => { const v=e.target.closest("[data-v]")?.dataset.v; if(!v) return; canalVenda=v;
+  $("canalVenda").querySelectorAll("span").forEach(x=>x.classList.toggle("on",x.dataset.v===v)); $("boxEntrega").style.display = v==="online"?"block":"none";
+  if (v==="online" && tipoVenda==="cliente" && $("cliVenda").value && !$("enNome").value) preencherDaCliente(); };
+$("enMetodo").onclick = e => { const v=e.target.dataset.v; if(!v) return; metodoEntrega=v; $("enMetodo").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.dataset.v===v)); };
+$("cliVenda").addEventListener("change",()=>{ if(canalVenda==="online") preencherDaCliente(); });
+async function preencherDaCliente(){ const c=(await api("/clientes")).find(x=>x.cliente_id===$("cliVenda").value); if(!c) return; $("enNome").value=c.nome; if(c.whatsapp) $("enTel").value=mascaraZap(c.whatsapp); }
+$("enTel").addEventListener("input",e=>e.target.value=mascaraZap(e.target.value));
+$("enCep").addEventListener("input", async e => { e.target.value=mascaraCep(e.target.value); const cep=soDig(e.target.value); if(cep.length!==8) return;
+  try{ const r=await (await fetch(`https://viacep.com.br/ws/${cep}/json/`)).json(); if(r.erro) return toast("CEP não encontrado");
+    $("enRua").value=r.logradouro||""; $("enBairro").value=r.bairro||""; $("enCidade").value=r.localidade||""; $("enUf").value=r.uf||""; $("enNum").focus(); }catch(_){} });
+function dadosEntrega(){ return { metodo:metodoEntrega, nome:$("enNome").value, telefone:$("enTel").value, pais:$("enPais").value||"Brasil", cep:$("enCep").value,
+  endereco:$("enRua").value, numero:$("enNum").value, complemento:$("enCompl").value, bairro:$("enBairro").value, cidade:$("enCidade").value,
+  uf:$("enUf").value, rastreio:$("enRastreio").value }; }
+
+// ---------- MENSAGEM PRONTA (WhatsApp)
+function mostrarMsg(titulo, texto, fone, extra=""){
+  $("msgTit").textContent=titulo; $("msgTxt").textContent=texto; $("msgExtra").innerHTML=extra;
+  const d=soDig(fone||""); $("msgWa").href = `https://wa.me/${d? (d.length<=11?"55"+d:d) : ""}?text=${encodeURIComponent(texto)}`;
+  $("mMsg").classList.add("on");
+}
+
+// ---------- CONDICIONAL
+let prazoCond = 3;
+$("condPrazo").onclick = e => { const d=+e.target.dataset.d; if(!d) return; prazoCond=d; $("condPrazo").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",+c.dataset.d===d)); };
+function toggleCondNova(){ const b=$("condNova"); b.style.display = b.style.display==="none"?"block":"none"; }
+async function abrirCondicional(){
+  if(!carrinho.length) return;
+  const clis = await api("/clientes");
+  $("condCli").innerHTML = '<option value="">Escolha a cliente…</option>'+clis.map(c=>`<option value="${c.cliente_id}">${c.nome}</option>`).join("");
+  if (tipoVenda==="cliente") $("condCli").value=$("cliVenda").value;
+  $("condItens").innerHTML = `<div class="card" style="margin:0">${carrinho.map(i=>`<div class="ficou"><div style="flex:1"><b>${i.qtd}x ${i.nome}</b><div class="muted">${i.cor} · ${i.tam}</div></div><b>${brl(precoItem(i))}</b></div>`).join("")}</div>`;
+  $("mCond").classList.add("on");
+}
+async function salvarCondicional(){
+  try{
+    let cli=$("condCli").value;
+    if (!cli && $("cnNome").value.trim()) cli = (await api("/clientes",{method:"POST",body:{nome:$("cnNome").value.trim(), whatsapp:$("cnZap").value||null}})).cliente_id;
+    if (!cli) return toast("Escolha ou cadastre a cliente");
+    const c = await api("/condicionais",{method:"POST",body:{cliente_id:cli, prazo_dias:prazoCond, obs:$("condObs").value, itens:carrinho.map(i=>({codigo:i.codigo, quantidade:i.qtd}))}});
+    fechar("mCond"); carrinho=[]; renderCarrinho(); $("condObs").value=""; $("cnNome").value=$("cnZap").value=""; $("condNova").style.display="none";
+    carregarCaixa();
+    mostrarMsg("🧺 Condicional registrado", c.mensagem_saida, c.whatsapp, `<p class="muted" style="margin-top:0">As peças ficaram reservadas no nome de ${c.cliente} até ${c.prazo.slice(8,10)}/${c.prazo.slice(5,7)}. Mande o resumo para ela:</p>`);
+  }catch(e){ toast(e.message); }
+}
+let condAtual=null;
+async function abrirFecharCond(id){
+  condAtual = (await api("/condicionais")).find(c=>c.id===id); const c=condAtual; if(!c) return;
+  $("mCondFecharCorpo").innerHTML = `<div class="topo"><h2 style="margin:0">Fechar condicional</h2><button class="fechar" onclick="fechar('mCondFechar')">✕</button></div>
+    <p style="margin-top:0"><b>${c.cliente}</b> · levou em ${new Date(c.data).toLocaleDateString("pt-BR")} · devolução até ${c.prazo.slice(8,10)}/${c.prazo.slice(5,7)}</p>
+    <p class="muted">Marque quantas peças ela <b>ficou</b>. O resto volta para o estoque.</p>
+    ${c.itens.map((it,k)=>`<div class="ficou"><div style="flex:1"><b>${it.nome}</b><div class="muted">${it.cor} · ${it.tamanho} · ${brl(it.preco)} · levou ${it.quantidade}</div></div>
+      <div class="qtd"><button onclick="ficouQtd(${k},-1)">−</button><b id="fq${k}">0</b><button onclick="ficouQtd(${k},1)">+</button></div></div>`).join("")}
+    <label>Forma de pagamento (do que ficou)</label>
+    <div class="chips" id="fcForma">${Object.entries(FORMAS).map(([k,v])=>`<span class="chip ${k==="pix"?"on":""}" data-f="${k}">${v}</span>`).join("")}</div>
+    <div class="lin" style="margin-top:14px"><span class="muted">Total do que ficou</span><b class="big" id="fcTotal" style="text-align:right">R$ 0,00</b></div>
+    <button class="btn" style="margin-top:12px" onclick="confirmarFecharCond()">Fechar condicional</button>
+    <div class="lin" style="margin-top:8px"><button class="btn sec" onclick="mostrarMsg('Lembrete do condicional', condAtual.mensagem_lembrete, condAtual.whatsapp)">Mandar lembrete</button>
+      <button class="btn sec" onclick="cancelarCond()">Devolveu tudo</button></div>`;
+  c.ficou = c.itens.map(()=>0);
+  $("fcForma").onclick = e => { const f=e.target.dataset.f; if(!f) return; $("fcForma").querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x.dataset.f===f)); };
+  $("mCondFechar").classList.add("on");
+}
+function ficouQtd(k,d){ const c=condAtual; c.ficou[k]=Math.max(0,Math.min(c.itens[k].quantidade,c.ficou[k]+d)); $("fq"+k).textContent=c.ficou[k];
+  $("fcTotal").textContent=brl(c.itens.reduce((s,it,i)=>s+it.preco*c.ficou[i],0)); }
+async function confirmarFecharCond(){
+  const c=condAtual, ficou=c.itens.map((it,i)=>({variacao_id:it.variacao_id, quantidade:c.ficou[i]})).filter(x=>x.quantidade>0);
+  try{ const r = await api(`/condicionais/${c.id}/fechar`,{method:"POST",body:{ficou, forma_pagamento:$("fcForma").querySelector(".on").dataset.f}});
+    fechar("mCondFechar"); toast(r.venda?`Condicional fechado: venda de ${brl(r.venda.total)} (lucro ${brl(r.venda.lucro)})`:"Condicional fechado: tudo voltou para o estoque", 4000); carregarCaixa();
+  }catch(e){ toast(e.message); }
+}
+async function cancelarCond(){ if(!confirm("A cliente devolveu todas as peças?")) return; await api(`/condicionais/${condAtual.id}/cancelar`,{method:"POST"}); fechar("mCondFechar"); toast("Peças de volta no estoque"); carregarCaixa(); }
+
+// ---------- LISTAS: condicionais abertos e entregas
+async function carregarOperacoes(){
+  const [cs, es] = await Promise.all([api("/condicionais"), api("/entregas")]);
+  const ab = cs.filter(c=>c.status==="aberta");
+  $("boxCondicionais").style.display = ab.length ? "block" : "none";
+  $("boxCondicionais").innerHTML = `<div class="tit-card"><b>🧺 Condicionais abertos</b><span>${ab.length} · ${ab.filter(c=>c.atrasada).length} atrasado(s)</span></div>` +
+    ab.map(c=>`<div class="op"><div style="flex:1"><b>${c.cliente}</b><div class="muted">${c.pecas} peça(s) · ${brl(c.total)}</div>
+      <span class="st ${c.atrasada?"atrasada":c.vence_hoje?"hoje":"aguardando"}">${c.atrasada?`atrasado ${c.dias_atraso} dia(s)`:c.vence_hoje?"devolve hoje":`até ${c.prazo.slice(8,10)}/${c.prazo.slice(5,7)}`}</span></div>
+      <button class="btn peq" style="flex:0 0 auto" onclick="abrirFecharCond('${c.id}')">Fechar</button></div>`).join("");
+  const pend = es.filter(e=>e.status!=="entregue").slice(0,8);
+  $("boxEntregas").style.display = es.length ? "block" : "none";
+  $("boxEntregas").innerHTML = `<div class="tit-card"><b>📦 Entregas</b><span>${es.filter(e=>e.status==="aguardando_envio").length} aguardando envio</span></div>` +
+    (pend.length ? pend.map(e=>`<div class="op"><div style="flex:1"><b>${e.nome}</b><div class="muted">${e.cidade}${e.uf?"/"+e.uf:""} · ${brl(e.total)} · ${e.metodo_nome}</div>
+      <span class="st ${e.status}">${e.status==="aguardando_envio"?"falta o código de rastreio":"enviado · "+e.rastreio}</span></div>
+      <button class="btn ${e.status==="aguardando_envio"?"":"sec"} peq" style="flex:0 0 auto" onclick="abrirEntrega('${e.venda_id}')">${e.status==="aguardando_envio"?"Informar código":"Mensagem"}</button></div>`).join("")
+    : '<p class="muted" style="margin:0">Todas as entregas foram concluídas. 🎉</p>');
+}
+async function abrirEntrega(id){
+  const e=(await api("/entregas")).find(x=>x.venda_id===id); if(!e) return;
+  const extra = `<p style="margin-top:0"><b>${e.nome}</b> · ${e.endereco_completo}<br><span class="muted">${e.itens.join(", ")}</span></p>
+    <label>Código de rastreio</label><div class="lin"><input id="rtCod" value="${e.rastreio||""}" placeholder="AA123456789BR" style="text-transform:uppercase">
+    <button class="btn peq" style="flex:0 0 auto" onclick="salvarRastreio('${id}')">Salvar</button></div>
+    ${e.rastreio && !e.rastreio_valido?'<p style="color:var(--laranja);font-size:13px">Esse código não parece dos Correios (formato AA123456789BR). Confira.</p>':""}
+    ${e.status==="enviado"?`<button class="btn sec peq" style="margin-top:8px" onclick="marcarEntregue('${id}')">✅ Marcar como entregue</button>`:""}
+    <p class="muted" style="margin-bottom:0">Mensagem para a cliente:</p>`;
+  mostrarMsg("📦 Entrega", e.mensagem, e.telefone, extra);
+}
+async function salvarRastreio(id){ try{ const e=await api(`/vendas/${id}/entrega`,{method:"PUT",body:{rastreio:$("rtCod").value}}); toast("Código salvo! Mande a mensagem para a cliente"); fechar("mMsg"); abrirEntrega(id); carregarOperacoes(); }catch(er){ toast(er.message); } }
+async function marcarEntregue(id){ await api(`/vendas/${id}/entrega`,{method:"PUT",body:{status:"entregue"}}); fechar("mMsg"); toast("Entrega concluída ✅"); carregarOperacoes(); }
+
 // ---------- VENDA AVULSA OU PARA CLIENTE
 let tipoVenda = "avulsa";
 $("tipoVenda").onclick = e => { const v=e.target.dataset.v; if(!v) return; tipoVenda=v;
@@ -783,42 +1066,51 @@ async function addVenda(codigo){
     const p = await api("/pecas/"+encodeURIComponent(codigo));
     const ja = carrinho.find(i=>i.codigo===p.codigo);
     const noCarrinho = ja ? ja.qtd : 0;
-    if (p.quantidade <= noCarrinho) return toast(`Sem estoque de ${p.codigo}`);
-    if (ja) ja.qtd++; else carrinho.push({codigo:p.codigo, nome:p.produto, cor:p.cor, tam:p.tamanho, lotes:p.lotes, qtd:1});
-    $("codVenda").value=""; renderCarrinho(); toast("Adicionado: "+p.produto+" "+p.cor+" "+p.tamanho, 1500);
-  } catch(e){ toast(e.message); }
+    if (p.disponivel <= noCarrinho) return toast(p.reservado ? `${p.codigo}: as peças que sobraram estão em condicional` : `Sem estoque de ${p.codigo}`);
+    if (ja) ja.qtd++; else carrinho.push({codigo:p.codigo, nome:p.produto, cor:p.cor, tam:p.tamanho, lotes:p.lotes, disp:p.disponivel, qtd:1});
+    $("codVenda").value=""; $("sugCod").style.display="none"; renderCarrinho(); toast("Adicionado: "+p.produto+" "+p.cor+" "+p.tamanho, 1500);
+    return true;
+  } catch(e){
+    if (/não encontrada/.test(e.message)) { abrirSeletor(codigo); return false; }   // não é código: procura pelo nome
+    toast(e.message);
+  }
 }
 function precoItem(i){ // soma usando lotes mais antigos primeiro (igual ao servidor)
   let falta=i.qtd, tot=0; for (const l of i.lotes){ const q=Math.min(falta,l.quantidade); tot+=q*l.preco_atual; falta-=q; if(!falta) break; } return tot;
 }
 function renderCarrinho(){
   const c=$("carrinho");
-  if(!carrinho.length){ c.innerHTML='<div class="vazio">Nenhuma peça na venda ainda.</div>'; $("totalVenda").textContent=brl(0); $("btnFinalizar").disabled=true; return; }
+  if(!carrinho.length){ c.innerHTML='<div class="vazio">Nenhuma peça na venda ainda.<br><span style="font-size:13px">Toque em <b>+ Produtos</b>, digite o nome ou leia o código.</span></div>'; $("totalVenda").textContent=brl(0); $("btnFinalizar").disabled=true; $("btnCond").disabled=true; return; }
   c.innerHTML = carrinho.map((i,k)=>{ const promo=i.lotes[0]?.preco_promocional;
     return `<div class="item"><div><b>${i.nome}</b><div class="muted">${i.cor} · ${i.tam} · ${i.codigo}</div>
       ${promo?'<span class="tag promo">promoção</span>':''}</div>
       <div style="text-align:right"><div><b>${brl(precoItem(i))}</b></div>
       <div class="qtd" style="justify-content:flex-end;margin-top:4px"><button onclick="mudaQtd(${k},-1)">−</button>${i.qtd}<button onclick="mudaQtd(${k},1)">+</button></div></div></div>`;}).join("");
   const tot = carrinho.reduce((s,i)=>s+precoItem(i),0) - Number($("descVenda").value||0);
-  $("totalVenda").textContent = brl(Math.max(tot,0)); $("btnFinalizar").disabled=false;
+  $("totalVenda").textContent = brl(Math.max(tot,0)); $("btnFinalizar").disabled=false; $("btnCond").disabled=false;
 }
-function mudaQtd(k,d){ const i=carrinho[k]; const est=i.lotes.reduce((s,l)=>s+l.quantidade,0);
+function mudaQtd(k,d){ const i=carrinho[k]; const est=i.disp ?? i.lotes.reduce((s,l)=>s+l.quantidade,0);
   i.qtd+=d; if(i.qtd>est){i.qtd=est; toast("Estoque máximo atingido");} if(i.qtd<=0) carrinho.splice(k,1); renderCarrinho(); }
 async function finalizarVenda(){
   $("btnFinalizar").disabled=true;
   try{
     if (tipoVenda==="cliente" && !$("cliVenda").value) { $("btnFinalizar").disabled=false; return toast("Escolha a cliente ou mude para Venda avulsa"); }
     const r = await api("/vendas",{method:"POST", body:{forma_pagamento:forma, cliente_id: tipoVenda==="cliente" ? $("cliVenda").value : null,
-      desconto_extra:Number($("descVenda").value||0), itens:carrinho.map(i=>({codigo:i.codigo, quantidade:i.qtd}))}});
+      desconto_extra:Number($("descVenda").value||0), itens:carrinho.map(i=>({codigo:i.codigo, quantidade:i.qtd})),
+      canal: canalVenda, entrega: canalVenda==="online" ? dadosEntrega() : null}});
+    if (r.entrega) setTimeout(()=>mostrarMsg(r.entrega.rastreio?"📦 Pedido enviado":"📦 Pedido registrado", r.entrega.mensagem, r.entrega.telefone,
+      r.entrega.rastreio?"":`<p class="muted" style="margin-top:0">Quando postar, informe o código de rastreio em <b>Entregas</b> (aqui na tela Vender) e o app gera a mensagem com o rastreio.</p>`), 400);
     toast(`Venda registrada! ${brl(r.total)} · lucro ${brl(r.lucro)}${r.alerta?" · "+r.alerta:""}`, 4000);
     for (const ev of r.relampago||[]) if (ev.tipo==="nova_etapa") setTimeout(()=>avisar("⚡ Próxima promoção relâmpago:", `${ev.item.nome} por ${brl(ev.item.preco_relampago)}.`), 4200);
     carrinho=[]; $("descVenda").value=0; renderCarrinho(); carregarCaixa();
     $("tipoVenda").querySelector('[data-v="avulsa"]').click(); $("cliVenda").value="";
+    if (canalVenda==="online") { ["enNome","enTel","enCep","enCidade","enUf","enRua","enNum","enBairro","enCompl","enRastreio"].forEach(i=>$(i).value=""); $("enPais").value="Brasil";
+      $("canalVenda").querySelector('[data-v="loja"]').click(); }
   }catch(e){ toast(e.message); $("btnFinalizar").disabled=false; }
 }
 async function carregarCaixa(){
   const [c, clis] = await Promise.all([api("/vendas"), api("/clientes")]);
-  carregarPulso();
+  carregarPulso(); carregarOperacoes();
   const escolhida = $("cliVenda").value;
   $("cliVenda").innerHTML = '<option value="">Escolha a cliente…</option>' + clis.map(x=>`<option value="${x.cliente_id}">${x.nome}</option>`).join("");
   $("cliVenda").value = escolhida;
@@ -838,6 +1130,7 @@ function pararLeitor(){ if(leitor){ leitor.stop().catch(()=>{}); leitor=null; $(
 
 // ---------- ESTOQUE
 async function carregarEstoque(){
+  if (!$("buscaEst").value) carregarDemanda();
   const b=$("buscaEst").value; const ps = await api("/produtos"+(b?"?busca="+encodeURIComponent(b):""));
   if(!ps.length){ $("listaEst").innerHTML='<div class="vazio">Nenhum produto ainda.<br>Toque no + para cadastrar.</div>'; return; }
   $("listaEst").innerHTML = ps.map(p=>{
@@ -862,27 +1155,163 @@ async function abrirProduto(id){
         ${temPromo?`<button class="btn" onclick="fazerFlyer('${p.produto_id}','promo')">Flyer de promoção</button>`:""}
         <button class="btn ${temPromo?"sec":""}" onclick="fazerFlyer('${p.produto_id}','novidade')">Flyer de novidade</button>
       </div>
+      <button class="btn sec" style="margin-top:8px" onclick="abrirAvisar('${p.produto_id}')">📣 Avisar clientes que vão querer</button>
       <div id="flyerProd"></div>
     </div>
     ${p.variacoes.map(v=>`<div class="card"><div class="lin"><div><b>${v.cor} · ${v.tamanho}</b><div class="muted">${v.codigo} · ${v.codigo_barras}</div></div>
       <div style="flex:0 0 auto"><b>${v.quantidade} pç</b></div></div>
       ${v.lotes.map(l=>`<div class="var-lin"><div class="muted">${l.quantidade} pç · ${l.dias_em_loja} dias na loja<br>custo ${brl(l.custo)} · margem ${l.margem_pct}%</div>
         <div style="text-align:right">${l.preco_promocional?`<span class="preco-de">${brl(l.preco_venda)}</span><b>${brl(l.preco_promocional)}</b><br><span class="tag ${l.promo_no_piso?"piso":"promo"}">${l.promo_no_piso?"no limite da margem":"-"+l.desconto_pct+"%"}</span>`:`<b>${brl(l.preco_venda)}</b>`}</div></div>`).join("")}
-      <div class="lin" style="margin-top:10px"><button class="btn sec peq" onclick="repor('${v.codigo}')">Repor estoque</button>
-      <button class="btn sec peq" onclick="etiquetas('${v.codigo_barras}','${p.nome.replace(/'/g,"")}','${v.cor} ${v.tamanho}',${v.lotes[0]?.preco_atual||0},${v.quantidade||1})">Imprimir etiquetas</button></div></div>`).join("")}`;
+      <div class="lin" style="margin-top:10px"><button class="btn sec peq" onclick="repor('${v.codigo}','${p.produto_id}')">Repor estoque</button>
+      <button class="btn sec peq" onclick='abrirEtiquetas([${JSON.stringify({nome:p.nome, variacao:v.cor+" "+v.tamanho, codigo:v.codigo, barras:v.codigo_barras, preco:v.lotes[0]?.preco_atual||0, qtd:v.quantidade||1}).replace(/'/g,"&#39;")}])'>Etiquetas</button></div></div>`).join("")}
+    <button class="btn" onclick='abrirEtiquetas(${JSON.stringify(p.variacoes.map(v=>({nome:p.nome, variacao:v.cor+" "+v.tamanho, codigo:v.codigo, barras:v.codigo_barras, preco:v.lotes[0]?.preco_atual||0, qtd:v.quantidade}))).replace(/'/g,"&#39;")})'>🏷️ Etiquetas de todas as cores/tamanhos</button>`;
   $("mProduto").classList.add("on");
 }
-async function repor(codigo){
+async function repor(codigo, pid){
   const qtd = prompt("Quantas peças chegaram?"); if(!qtd) return;
   const custo = prompt("Valor pago por peça (R$)?"); if(!custo) return;
   try{ await api("/estoque/entrada",{method:"POST",body:{codigo, quantidade:Number(qtd), custo:Number(custo.replace(",","."))}});
-    toast("Estoque reposto"); fechar("mProduto"); carregarEstoque(); }catch(e){ toast(e.message); }
+    toast("Estoque reposto"); fechar("mProduto"); carregarEstoque(); if(pid) avisarSeTiver(pid); }catch(e){ toast(e.message); }
 }
-function etiquetas(barras, nome, var_, preco, qtd){
-  const n = Number(prompt("Quantas etiquetas?", qtd)); if(!n) return;
-  $("etiquetas").innerHTML = Array.from({length:n},()=>`<div class="etq"><b>${nome}</b><br>${var_} · ${brl(preco)}<svg class="bc"></svg></div>`).join("");
-  document.querySelectorAll("#etiquetas .bc").forEach(s=>JsBarcode(s, barras, {format:"EAN13", height:36, fontSize:11, margin:0}));
-  setTimeout(()=>window.print(), 200);
+// ---------- CICLO DA DEMANDA: procuraram → compra inteligente → avisar quem queria
+let prCat="", prTam="";
+async function abrirProcura(texto=""){
+  const [cats, clis] = await Promise.all([api("/categorias"), api("/clientes")]);
+  prCat=""; prTam="";
+  $("prCat").innerHTML = Object.entries(cats).map(([k,v])=>`<span class="chip" data-c="${k}">${v}</span>`).join("");
+  $("prTam").innerHTML = TAMANHOS.map(t=>`<span class="chip" data-t="${t}">${t}</span>`).join("");
+  $("prCli").innerHTML = '<option value="">Não sei / não quis deixar contato</option>' + clis.map(c=>`<option value="${c.cliente_id}">${esc(c.nome)}</option>`).join("");
+  ["prCor","prNome","prZap"].forEach(i=>$(i).value=""); $("prDesc").value = texto;
+  // tenta adivinhar categoria/tamanho/cor do texto digitado na busca
+  const t = " "+texto.toLowerCase()+" ";
+  for (const [k,v] of Object.entries(cats)) if (t.includes(v.toLowerCase().replace(/s$/,""))) { prCat=k; break; }
+  for (const tm of TAMANHOS) if (t.includes(" "+tm.toLowerCase()+" ")) { prTam=tm; break; }
+  marcarChipsPr(); $("mProcura").classList.add("on");
+}
+function marcarChipsPr(){
+  $("prCat").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", c.dataset.c===prCat));
+  $("prTam").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", c.dataset.t===prTam));
+}
+$("prCat").onclick = e => { const c=e.target.dataset.c; if(!c) return; prCat = prCat===c ? "" : c; marcarChipsPr(); };
+$("prTam").onclick = e => { const t=e.target.dataset.t; if(!t) return; prTam = prTam===t ? "" : t; marcarChipsPr(); };
+$("prZap").addEventListener("input",e=>e.target.value=mascaraZap(e.target.value));
+async function salvarProcura(){
+  try{
+    await api("/procuras",{method:"POST",body:{categoria:prCat||null, descricao:$("prDesc").value, tamanho:prTam||null, cor:$("prCor").value,
+      cliente_id:$("prCli").value||null, nome:$("prNome").value, whatsapp:$("prZap").value}});
+    fechar("mProcura");
+    const r = await api("/procuras");
+    toast(`Anotado! ${r.total_pedidos} procura(s) no radar · ${brl(r.valor_perdido)} em vendas perdidas`, 3500);
+  }catch(e){ toast(e.message); }
+}
+let orcCompra = null;
+async function carregarDemanda(){
+  const [r, c] = await Promise.all([api("/procuras"), api("/compras"+(orcCompra?"?orcamento="+orcCompra:""))]);
+  const maxP = Math.max(1, ...r.itens.map(i=>i.pedidos));
+  const radar = `<div class="card dem">
+    <h3>🔎 Radar de vendas perdidas</h3>
+    <div class="muted">O que pediram e você não tinha (últimos ${r.dias} dias)</div>
+    ${r.itens.length ? `<div class="dem-tot"><div><b>${r.total_pedidos}</b><span>pedidos sem ter</span></div><div><b>${brl(r.valor_perdido)}</b><span>deixou de vender</span></div></div>
+      ${r.itens.slice(0,6).map(i=>`<div class="dem-lin"><div class="dem-q claro">${i.pedidos}<small>pedido${i.pedidos>1?"s":""}</small></div>
+        <div style="flex:1;min-width:0"><b>${esc(i.nome_cat)}${i.tamanho?" "+i.tamanho:""}</b>
+        <div class="muted" style="font-size:13px">${[i.cores.join(", "), i.descricoes.join(" / "), i.pessoas_para_avisar?i.pessoas_para_avisar+" para avisar":""].filter(Boolean).map(esc).join(" · ")||"&nbsp;"}</div>
+        <div class="dem-barra"><i style="width:${i.pedidos/maxP*100}%"></i></div></div></div>`).join("")}`
+      : `<p class="muted" style="margin:10px 0">Nenhuma procura ainda. Quando alguém pedir uma peça que você não tem, anote: é o dado que nenhum sistema de loja guarda.</p>`}
+    <button class="btn sec" style="margin-top:10px" onclick="abrirProcura()">+ Anotar procura</button></div>`;
+  const compra = `<div class="card dem">
+    <h3>🧠 Compra inteligente</h3>
+    <div class="muted">O que comprar no fornecedor para dar mais lucro, pelo que vende, pelo que pediram e pelo que está parado.</div>
+    <div class="lin" style="margin-top:10px;align-items:center"><span style="flex:0 0 auto">Vou gastar</span>
+      <input id="orcCompra" type="number" inputmode="decimal" min="0" step="50" value="${Math.round(c.orcamento)}" style="flex:1">
+      <button class="btn peq" style="flex:0 0 auto;width:auto" onclick="orcCompra=Number($('orcCompra').value)||null;carregarDemanda()">Montar</button></div>
+    ${c.orcamento_sugerido && Math.round(c.orcamento)!==c.orcamento_sugerido?`<p class="muted" style="margin:6px 0 0;font-size:13px">Para cobrir tudo que deve vender em 30 dias: ${brl(c.orcamento_sugerido)}</p>`:""}
+    ${c.compras.length ? `<div class="dem-tot tres"><div><b>${c.pecas} pç</b><span>custam ${brl(c.gasto)}</span></div><div><b>${brl(c.venda_prevista)}</b><span>deve virar em vendas</span></div><div><b>${brl(c.lucro_previsto)}</b><span>lucro previsto</span></div></div>
+      ${c.compras.map(x=>`<div class="dem-lin"><div class="dem-q">${x.qtd}<small>pç</small></div>
+        <div style="flex:1;min-width:0"><b>${esc(x.nome_cat)} ${x.tamanho||""}</b>${x.cores.length?` <span class="muted">${x.cores.map(esc).join(", ")}</span>`:""}
+        <div class="muted" style="font-size:13px">${x.motivo}</div></div>
+        <div style="text-align:right;flex:0 0 auto"><b>${brl(x.custo_total)}</b><div class="muted" style="font-size:12px">${brl(x.custo_unit)}/pç</div></div></div>`).join("")}
+      ${c.sobra>0?`<p class="muted" style="margin:8px 0 0">Sobram ${brl(c.sobra)}: guarde no caixa, não precisa gastar tudo.</p>`:""}`
+      : `<p class="muted" style="margin:10px 0">${c.poucos_dados?"Ainda tenho poucos dados. Com algumas vendas e procuras anotadas eu monto a lista.":"Pelo que você vende hoje, o estoque está suficiente. Não precisa comprar agora. 👌"}</p>`}
+    ${c.testar?.length?`<div class="evitar" style="background:color-mix(in srgb,var(--vinho) 6%,#fff);border-color:var(--rosa2)"><b>🧪 Pediram e você ainda não trabalha:</b> ${c.testar.map(t=>`${esc(t.nome_cat)} ${t.tamanho||""}${t.cores.length?" ("+t.cores.map(esc).join("/")+")":""} – ${t.pedidos} pedido(s)`).join("; ")}. Vale testar poucas peças.</div>`:""}
+    ${c.evitar.length?`<div class="evitar"><b>🚫 Não compre agora:</b> ${c.evitar.map(e=>`${esc(e.nome_cat)} ${e.tamanho||""} (${e.motivo})`).join("; ")}</div>`:""}
+  </div>`;
+  $("demanda").innerHTML = radar + compra;
+}
+async function avisarSeTiver(pid){
+  try{ const a = await api(`/produtos/${pid}/avisar`); if (a.procuras.length || a.clientes.length) mostrarAvisar(pid, a, true); }catch(_){}
+}
+async function abrirAvisar(pid){ mostrarAvisar(pid, await api(`/produtos/${pid}/avisar`), false); }
+function linkZap(fone, txt){ const d=soDig(fone||""); return `https://wa.me/${d.length<=11?"55"+d:d}?text=${encodeURIComponent(txt)}`; }
+let avMsgs = [];
+function verMsgAviso(i, proc){ const x=avMsgs[i]; mostrarMsg("Mensagem para "+(x.nome||"a cliente"), x.mensagem, ""); if(proc) avisado(x.id, "av-"+x.id); }
+function mostrarAvisar(pid, a, chegou){
+  avMsgs = [];
+  const avisar = (x, proc) => `<div class="av-item" id="av-${proc?x.id:x.cliente_id}"><div style="flex:1;min-width:0"><b>${esc(x.nome||"Cliente")}</b>
+      <div class="muted" style="font-size:13px">${proc?`pediu ${esc(x.pediu)} ${x.dias<1?"hoje":x.dias===1?"ontem":"há "+x.dias+" dias"}`:x.motivo}</div></div>
+      ${x.whatsapp?`<a class="btn" target="_blank" href="${linkZap(x.whatsapp,x.mensagem)}" onclick="avisado('${proc?x.id:""}','av-${proc?x.id:x.cliente_id}')">WhatsApp</a>`
+        : `<button class="btn sec" onclick="verMsgAviso(${avMsgs.push(x)-1}, ${proc})">Ver msg</button>`}</div>`;
+  $("mAvisarCorpo").innerHTML = `<div class="topo"><h2 style="margin:0">📣 Quem avisar</h2><button class="fechar" onclick="fechar('mAvisar')">✕</button></div>
+    <p class="muted" style="margin-top:0">${chegou?"Chegou peça que alguém estava esperando! ":""}${esc(a.produto)}: avise primeiro quem tem mais chance de comprar.</p>
+    ${a.procuras.length?`<div class="card dem"><h3>Pediram e agora tem (${a.procuras.length})</h3><div class="muted">Venda quase certa: ela já queria essa peça.</div>${a.procuras.map(x=>avisar(x,true)).join("")}</div>`:""}
+    ${a.clientes.length?`<div class="card"><h3 style="margin:0 0 2px;font-size:17px">Clientes com o perfil dessa peça (${a.clientes.length})</h3><div class="muted">Vestem o tamanho e compram esse tipo de roupa.</div>${a.clientes.map(x=>avisar(x,false)).join("")}</div>`:""}
+    ${!a.procuras.length&&!a.clientes.length?'<div class="vazio">Ninguém para avisar ainda. Conforme as clientes compram (vendas “Para cliente”), o app aprende o tamanho e o estilo de cada uma.</div>':""}`;
+  $("mAvisar").classList.add("on");
+}
+async function avisado(id, el){
+  $(el)?.classList.add("feito");
+  if (id) try{ await api(`/procuras/${id}/avisada`,{method:"POST"}); }catch(_){}
+}
+
+// ---------- ETIQUETAS (impressora térmica)
+const TAM_ETQ = { "40x25":{w:40,h:25,col:1}, "50x30":{w:50,h:30,col:1}, "60x40":{w:60,h:40,col:1}, "33x22x3":{w:33,h:22,col:3,gap:2}, "a4":{w:66,h:25.4,col:3,a4:true} };
+let etqItens = [];
+function lerPref(k,pad){ try{ return localStorage.getItem(k) ?? pad; }catch(_){ return pad; } }
+function gravarPref(k,v){ try{ localStorage.setItem(k,v); }catch(_){} }
+function abrirEtiquetas(itens){
+  fechar("mProduto"); etqItens = itens; $("etqTam").value = lerPref("etq_tam","40x25");
+  $("etqLista").innerHTML = itens.map((it,i)=>`<div class="ficou"><div style="flex:1"><b>${it.nome}</b><div class="muted">${it.variacao} · ${it.codigo}</div></div>
+    <input type="number" min="0" value="${it.qtd}" data-i="${i}" style="flex:0 0 76px;text-align:center"></div>`).join("");
+  $("mEtq").classList.add("on"); previaEtq();
+}
+["etqTam","etqPreco","etqLoja"].forEach(id=>$(id).addEventListener("change",()=>{ gravarPref("etq_tam",$("etqTam").value); previaEtq(); }));
+function htmlEtq(it, t){
+  const mm = t.h, fLoja = Math.max(5, mm*0.24), fNome = Math.max(5.5, mm*0.27), fVar = Math.max(5, mm*0.25), fPreco = Math.max(6.5, mm*0.36);
+  return `<div class="etq" style="width:${t.w}mm;height:${t.h}mm;padding:${mm*0.05}mm ${t.w*0.04}mm">
+    ${$("etqLoja").checked?`<div class="e-loja" style="font-size:${fLoja}pt">${$("nomeLoja").textContent}</div>`:""}
+    <div class="e-nome" style="font-size:${fNome}pt">${it.nome}</div>
+    <div class="e-var" style="font-size:${fVar}pt">${it.variacao}${$("etqPreco").checked?` · <span class="e-preco" style="font-size:${fPreco}pt">${brl(it.preco)}</span>`:""}</div>
+    <svg class="bc" data-c="${it.barras}" style="height:${mm*0.42}mm"></svg></div>`;
+}
+function desenharCodigos(raiz){
+  if (!window.JsBarcode) return;
+  raiz.querySelectorAll("svg.bc").forEach(s=>{ try{ JsBarcode(s, s.dataset.c, {format:"EAN13", width:2, height:50, fontSize:16, textMargin:0, margin:0, marginLeft:22, marginRight:14, flat:true}); }catch(_){} });
+}
+function previaEtq(){
+  const t=TAM_ETQ[$("etqTam").value]; if(!etqItens.length) return;
+  $("etqPrev").innerHTML = htmlEtq(etqItens[0], t); desenharCodigos($("etqPrev"));
+  const s=$("etqPrev").querySelector(".etq"); const k=Math.min(3.2, 260/(t.w*3.78)); s.style.transform=`scale(${k})`; s.style.transformOrigin="top center";
+  $("etqPrev").style.height=(t.h*3.78*k+28)+"px";
+}
+function imprimirEtiquetas(){
+  const t=TAM_ETQ[$("etqTam").value], lista=[];
+  document.querySelectorAll("#etqLista input").forEach(inp=>{ const n=Math.max(0,Number(inp.value)||0); for(let k=0;k<n;k++) lista.push(etqItens[+inp.dataset.i]); });
+  if(!lista.length) return toast("Coloque a quantidade de etiquetas");
+  let html="", estilo;
+  if (t.a4) {
+    estilo = `@page{size:A4;margin:10mm 4mm}`;
+    html = `<div style="display:grid;grid-template-columns:repeat(3,${t.w}mm);gap:0 2mm">${lista.map(it=>htmlEtq(it,t)).join("")}</div>`;
+  } else if (t.col>1) {
+    const W = t.col*t.w + (t.col-1)*t.gap;
+    estilo = `@page{size:${W}mm ${t.h}mm;margin:0}`;
+    for (let i=0;i<lista.length;i+=t.col) html += `<div class="linha-etq quebra" style="width:${W}mm;height:${t.h}mm;gap:${t.gap}mm">${lista.slice(i,i+t.col).map(it=>htmlEtq(it,t)).join("")}</div>`;
+  } else {
+    estilo = `@page{size:${t.w}mm ${t.h}mm;margin:0}`;
+    html = lista.map(it=>`<div class="quebra">${htmlEtq(it,t)}</div>`).join("");
+  }
+  let st=$("estiloEtq"); if(!st){ st=document.createElement("style"); st.id="estiloEtq"; document.head.appendChild(st); }
+  st.textContent = `@media print{${estilo} html,body{margin:0!important;padding:0!important;background:#fff!important}}`;
+  $("etiquetas").innerHTML = html; desenharCodigos($("etiquetas"));
+  setTimeout(()=>window.print(), 250);
 }
 
 // ---------- CADASTRO
@@ -919,7 +1348,7 @@ async function salvarProduto(){
       custo:Number($("pCusto").value), preco_venda:Number($("pPreco").value), data_entrada:$("pData").value||null, grade}});
     if ($("pFoto").files[0]) await enviarFoto(p.produto_id, $("pFoto").files[0]);
     fechar("mCadastro"); toast(`Cadastrado! Código ${p.codigo} com ${p.variacoes.length} variações`, 3500);
-    carregarEstoque(); abrirProduto(p.produto_id);
+    carregarEstoque(); await abrirProduto(p.produto_id); avisarSeTiver(p.produto_id);
   }catch(e){ toast(e.message); }
 }
 
@@ -1192,6 +1621,33 @@ async function conferirRelampago(){
 }
 setInterval(conferirRelampago, 60000);
 
+// ---------- DE ONDE VÊM AS VENDAS (loja x online + mapa do Brasil)
+const MAPA_BR = {RR:[0,1],AP:[0,3],AM:[1,1],PA:[1,2],MA:[1,3],CE:[1,4],RN:[1,5],AC:[2,0],RO:[2,1],TO:[2,2],PI:[2,3],PE:[2,4],PB:[2,5],
+  MT:[3,1],GO:[3,2],BA:[3,3],SE:[3,4],AL:[3,5],MS:[4,1],DF:[4,2],MG:[4,3],ES:[4,4],PR:[5,1],SP:[5,2],RJ:[5,3],SC:[6,1],RS:[7,1]};
+function cardOrigem(o){
+  const tot = o.loja.total + o.online.total, pctOn = tot ? Math.round(o.online.total/tot*100) : 0;
+  const t=110,c=55,esp=14,r=c-esp/2,circ=2*Math.PI*r;
+  const rosca = `<svg viewBox="0 0 ${t} ${t}" style="width:110px;height:110px;flex:0 0 110px" role="img" aria-label="${pctOn}% online">
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--rosa2)" stroke-width="${esp}"/>
+    <circle class="anel-v" cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--vinho)" stroke-width="${esp}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" data-alvo="${circ*(1-pctOn/100)}" transform="rotate(-90 ${c} ${c})"/>
+    <text x="${c}" y="${c+2}" text-anchor="middle" style="font:700 20px 'DM Sans',system-ui,sans-serif;fill:var(--tx)">${pctOn}%</text>
+    <text x="${c}" y="${c+16}" text-anchor="middle" style="font:500 10px 'DM Sans',system-ui,sans-serif;fill:var(--tx2)">online</text></svg>`;
+  const maxUf = Math.max(1,...Object.values(o.por_uf).map(x=>x.total));
+  const tiles = Object.entries(MAPA_BR).map(([uf,[lin,col]])=>{ const d=o.por_uf[uf];
+    if(!d) return `<div class="vazio-uf" style="grid-row:${lin+1};grid-column:${col+1}" title="${uf}: sem vendas">${uf}</div>`;
+    const k = 25 + Math.round(d.total/maxUf*75);
+    return `<div data-tip="${uf}: ${d.vendas} venda(s) · ${brl(d.total)}" style="grid-row:${lin+1};grid-column:${col+1};background:color-mix(in srgb,var(--vinho) ${k}%,var(--rosa));color:${k>55?"#fff":"var(--tx)"}">${uf}</div>`; }).join("");
+  return `<div class="card largo"><div class="tit-card"><b>De onde vêm as vendas</b><span>no período</span></div>
+    <div class="origem">${rosca}
+      <div style="flex:1;min-width:150px"><div class="legenda" style="margin:0 0 6px"><span><i style="background:var(--vinho)"></i>Online / entrega</span><span><i style="background:var(--rosa2)"></i>Na loja</span></div>
+        <div>🏬 Na loja: <b>${brl(o.loja.total)}</b> <span class="muted">(${o.loja.vendas})</span></div>
+        <div>📦 Online: <b>${brl(o.online.total)}</b> <span class="muted">(${o.online.vendas})</span></div>
+        ${o.exterior.vendas?`<div>🌎 Fora do Brasil: <b>${brl(o.exterior.total)}</b> <span class="muted">(${o.exterior.vendas})</span></div>`:""}
+        ${o.top_cidades.length?`<div class="muted" style="margin-top:6px;font-size:13px">Cidades que mais compram online: ${o.top_cidades.map(x=>`${x.cidade} (${x.vendas})`).join(", ")}</div>`:""}</div>
+      <div style="flex:1;min-width:220px"><div class="muted" style="font-size:12px;margin-bottom:6px">Vendas online por estado (toque no estado)</div><div class="mapa-br">${tiles}</div></div></div>
+    ${!o.online.vendas?'<p class="muted" style="margin-bottom:0">Quando vender pela internet, escolha "Online / entrega" na venda: o mapa mostra para onde suas peças estão indo.</p>':""}</div>`;
+}
+
 // ---------- PAINEL
 let periodoPainel = "mes";
 $("periodos").onclick = e => { const p=e.target.dataset.p; if(!p) return; periodoPainel=p;
@@ -1276,6 +1732,7 @@ async function carregarPainel(){
       <div class="card"><div class="tit-card"><b>Formas de pagamento</b><span>no período</span></div>
         ${formas.length ? barrasH(formas, brl) : '<p class="muted">Nenhuma venda no período.</p>'}
         ${p.fiado>0?`<p class="muted" style="margin-bottom:0">No fiado: <b>${brl(p.fiado)}</b></p>`:""}</div>
+      ${cardOrigem(p.origem)}
       <div class="card largo"><div class="tit-card"><b>Resultado por mês</b><span>últimos 6 meses</span></div>
         <div style="overflow-x:auto"><table class="tabela"><tr><th>Mês</th><th>Vendas</th><th>Custo peças</th><th>Taxas</th><th>Lucro bruto</th>${contas?"<th>Contas</th><th>Sobrou</th>":""}</tr>
         ${(()=>{ const prim=p.dre.findIndex(d=>d.faturamento>0), ult=p.dre.length-1, hojeD=new Date().getDate();

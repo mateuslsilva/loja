@@ -5,6 +5,7 @@ import * as R from "./regras.js";
 import { gerarFlyer } from "./flyer.js";
 import { coresDaLogo } from "./tema.js";
 import * as F from "./financas.js";
+import * as D from "./demanda.js";
 
 const FORMAS = ["pix", "dinheiro", "debito", "credito", "fiado"];
 let banco, E;  // E = estado em memória (todas as tabelas)
@@ -25,6 +26,10 @@ const variacoesDe = (pid) => E.variacoes.filter((v) => v.produto_id === pid);
 const lotesDe = (vid) => E.lotes.filter((l) => l.variacao_id === vid)
   .sort((a, b) => a.data_entrada.localeCompare(b.data_entrada) || a.id.localeCompare(b.id));
 const qtdVariacao = (vid) => lotesDe(vid).reduce((s, l) => s + l.quantidade_atual, 0);
+/** Peças da variação que estão com clientes no condicional (fora da loja, ainda não vendidas). */
+const reservado = (vid, excetoCond = null) => (E.condicionais || []).filter((c) => c.status === "aberta" && c.id !== excetoCond)
+  .reduce((s, c) => s + c.itens.filter((i) => i.variacao_id === vid).reduce((t, i) => t + i.quantidade, 0), 0);
+const disponivel = (vid, excetoCond = null) => qtdVariacao(vid) - reservado(vid, excetoCond);
 const produto = (id) => E.produtos.find((p) => p.id === id) || falhar("Produto não encontrado");
 const codigoBase = (p) => `${p.categoria}-${String(p.sequencial).padStart(4, "0")}`;
 
@@ -38,7 +43,7 @@ function loteJson(l) {
 function variacaoJson(v) {
   const p = E.produtos.find((x) => x.id === v.produto_id);
   return { variacao_id: v.id, codigo: v.codigo, codigo_barras: v.codigo_barras, produto: p.nome,
-    cor: v.cor, tamanho: v.tamanho, quantidade: qtdVariacao(v.id),
+    cor: v.cor, tamanho: v.tamanho, quantidade: qtdVariacao(v.id), reservado: reservado(v.id), disponivel: disponivel(v.id),
     lotes: lotesDe(v.id).filter((l) => l.quantidade_atual > 0).map(loteJson) };
 }
 function produtoJson(p) {
@@ -102,23 +107,253 @@ async function entradaEstoque(d) {
 }
 
 // ---------------------------------------------------------------- vendas
-async function registrarVenda(d) {
+const METODOS_ENTREGA = { correios: "Correios", transportadora: "Transportadora", motoboy: "Motoboy / app de entrega", outro: "Outro" };
+
+function validarEntrega(e) {
+  if (!e) falhar("Preencha os dados de entrega.");
+  const dig = (x) => String(x || "").replace(/\D/g, "");
+  const brasil = !e.pais || /^bra[sz]il$/i.test(e.pais.trim());
+  const faltando = [];
+  if (!e.nome?.trim()) faltando.push("nome de quem recebe");
+  if (dig(e.telefone).length < 10) faltando.push("celular com DDD");
+  if (!e.endereco?.trim()) faltando.push("rua / endereço");
+  if (!e.numero?.trim()) faltando.push("número");
+  if (!e.cidade?.trim()) faltando.push("cidade");
+  if (brasil) {
+    if (dig(e.cep).length !== 8) faltando.push("CEP");
+    if (!/^[A-Za-z]{2}$/.test(e.uf || "")) faltando.push("estado (UF)");
+  }
+  if (faltando.length) falhar("Venda online: falta " + faltando.join(", ") + ".");
+  const rastreio = String(e.rastreio || "").trim().toUpperCase();
+  return { metodo: METODOS_ENTREGA[e.metodo] ? e.metodo : "correios", nome: e.nome.trim(), telefone: dig(e.telefone),
+    pais: brasil ? "Brasil" : e.pais.trim(), cep: dig(e.cep), endereco: e.endereco.trim(), numero: e.numero.trim(),
+    complemento: e.complemento?.trim() || "", bairro: e.bairro?.trim() || "", cidade: e.cidade.trim(),
+    uf: brasil ? e.uf.toUpperCase() : (e.uf || "").trim(), rastreio, status: rastreio ? "enviado" : "aguardando_envio",
+    enviado_em: rastreio ? new Date().toISOString() : null };
+}
+
+async function vender(d, { condicional = null } = {}) {
   if (!FORMAS.includes(d.forma_pagamento)) falhar("Forma de pagamento inválida.");
   if (!d.itens?.length) falhar("Adicione pelo menos uma peça.");
+  const canal = d.canal === "online" ? "online" : "loja";
+  const entrega = canal === "online" ? validarEntrega(d.entrega) : null;
   const itens = d.itens.map((it) => {
-    const v = acharVariacao(it.codigo);
-    if (qtdVariacao(v.id) < it.quantidade) falhar(`${v.codigo}: só tem ${qtdVariacao(v.id)} em estoque.`);
+    const v = it.variacao_id ? E.variacoes.find((x) => x.id === it.variacao_id) : acharVariacao(it.codigo);
+    const livre = disponivel(v.id, condicional);
+    if (livre < it.quantidade) falhar(`${v.codigo}: só tem ${livre} disponível${reservado(v.id, condicional) ? " (o resto está em condicional)" : ""}.`);
     return { variacao_id: v.id, quantidade: it.quantidade, codigo: v.codigo };
   });
   await verificarRelampago();
   const id = novoId();
   const r = await banco.registrarVenda({ id, forma: d.forma_pagamento, clienteId: d.cliente_id || null,
-    desconto: d.desconto_extra || 0, itens });
+    desconto: d.desconto_extra || 0, itens, canal, entrega, condicional });
   E = await banco.carregar();  // recarrega estoque e vendas como ficaram no banco
   if (banco.prepararFotos) await banco.prepararFotos([...E.produtos.map((p) => p.foto), E.config.logo]);
   const ev = await verificarRelampago();  // a peça relâmpago pode ter sido vendida agora
   const lucro = Math.round((r.total - r.custo - r.taxa_maquininha) * 100) / 100;
-  return { ...r, lucro, alerta: lucro < 0 ? "Atenção: essa venda deu prejuízo." : null, relampago: ev };
+  return { ...r, lucro, alerta: lucro < 0 ? "Atenção: essa venda deu prejuízo." : null, relampago: ev,
+    entrega: entrega ? entregaJson(E.vendas.find((v) => v.id === id)) : null };
+}
+const registrarVenda = (d) => vender(d);
+
+// ---------------------------------------------------------------- entregas (vendas online)
+const primeiroNome = (n) => String(n || "").trim().split(/\s+/)[0] || "";
+function itensDaVenda(vendaId) {
+  return E.itens_venda.filter((i) => i.venda_id === vendaId).map((i) => {
+    const v = E.variacoes.find((x) => x.id === i.variacao_id), p = v && E.produtos.find((x) => x.id === v.produto_id);
+    return `${i.quantidade}x ${p?.nome || "peça"}${v ? ` ${v.cor} ${v.tamanho}` : ""}`;
+  });
+}
+function enderecoTexto(e) {
+  return `${e.endereco}, ${e.numero}${e.complemento ? " – " + e.complemento : ""}${e.bairro ? ", " + e.bairro : ""}, ${e.cidade}${e.uf ? "/" + e.uf : ""}` +
+    `${e.cep ? ", CEP " + e.cep.replace(/^(\d{5})(\d{3})$/, "$1-$2") : ""}${e.pais && e.pais !== "Brasil" ? ", " + e.pais : ""}`;
+}
+function mensagemEntrega(v) {
+  const e = v.entrega, loja = E.config.nome_loja, itens = itensDaVenda(v.id).map((t) => "• " + t).join("\n");
+  if (!e.rastreio) return `Oi, ${primeiroNome(e.nome)}! 💖 Aqui é da ${loja}. Recebemos seu pedido:\n${itens}\n\nVai para: ${enderecoTexto(e)}\n\n` +
+    "Assim que postarmos, te mandamos o código de rastreio. Obrigada pela compra! ✨";
+  const link = e.metodo === "correios" ? `\nAcompanhe aqui: https://rastreamento.correios.com.br/app/index.php (cole o código)` : "";
+  return `Oi, ${primeiroNome(e.nome)}! 💖 Aqui é da ${loja}. Seu pedido foi enviado! 📦\n\n${itens}\n\nEnvio: ${METODOS_ENTREGA[e.metodo]}\n` +
+    `Código de rastreio: *${e.rastreio}*${link}\n\nEntrega em: ${enderecoTexto(e)}\n\nQualquer dúvida é só chamar. Obrigada pela compra! ✨`;
+}
+function entregaJson(v) {
+  const e = v.entrega;
+  return { venda_id: v.id, data: v.data, total: v.total, ...e, metodo_nome: METODOS_ENTREGA[e.metodo], endereco_completo: enderecoTexto(e),
+    itens: itensDaVenda(v.id), mensagem: mensagemEntrega(v),
+    rastreio_valido: !e.rastreio || e.metodo !== "correios" || /^[A-Z]{2}\d{9}[A-Z]{2}$/.test(e.rastreio) };
+}
+function listarEntregas() {
+  const ordem = { aguardando_envio: 0, enviado: 1, entregue: 2 };
+  return E.vendas.filter((v) => v.canal === "online" && v.entrega).map(entregaJson)
+    .sort((a, b) => (ordem[a.status] - ordem[b.status]) || String(b.data).localeCompare(String(a.data)));
+}
+async function atualizarEntrega(vendaId, d) {
+  const v = E.vendas.find((x) => x.id === vendaId && x.entrega) || falhar("Venda online não encontrada.");
+  const e = { ...v.entrega };
+  if (d.rastreio !== undefined) {
+    e.rastreio = String(d.rastreio || "").trim().toUpperCase();
+    if (!e.rastreio) falhar("Informe o código de rastreio.");
+    e.status = "enviado"; e.enviado_em = e.enviado_em || new Date().toISOString();
+  }
+  if (d.metodo && METODOS_ENTREGA[d.metodo]) e.metodo = d.metodo;
+  if (d.status === "entregue") { e.status = "entregue"; e.entregue_em = new Date().toISOString(); }
+  await banco.atualizar("vendas", vendaId, { entrega: e }); v.entrega = e;
+  return entregaJson(v);
+}
+
+// ---------------------------------------------------------------- condicional
+function dataBR(iso) { const [a, m, d] = String(iso).slice(0, 10).split("-"); return `${d}/${m}`; }
+const DIAS_SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+function condicionalJson(c) {
+  const cli = E.clientes.find((x) => x.id === c.cliente_id) || {};
+  const total = Math.round(c.itens.reduce((s, i) => s + i.quantidade * i.preco, 0) * 100) / 100;
+  const atraso = c.status === "aberta" ? R.diasEntre(c.prazo) : 0;
+  const lista = c.itens.map((i) => `• ${i.quantidade}x ${i.nome} ${i.cor} ${i.tamanho} – ${R.brl(i.preco)}`).join("\n");
+  const dia = DIAS_SEMANA[new Date(c.prazo + "T12:00").getDay()];
+  const msgSaida = `Oi, ${primeiroNome(cli.nome)}! 💖 Separei para você levar no condicional:\n${lista}\n\nTotal: ${R.brl(total)}\n` +
+    `Devolução até ${dataBR(c.prazo)} (${dia}). O que ficar com você, a gente acerta na volta. 😊\n${E.config.nome_loja}`;
+  const msgLembrete = `Oi, ${primeiroNome(cli.nome)}! Tudo bem? 💖 Passando para lembrar do condicional que você levou da ${E.config.nome_loja}` +
+    ` (devolução ${atraso > 0 ? "era" : "é"} até ${dataBR(c.prazo)}):\n${lista}\n\nGostou de alguma? Me avisa que eu já separo! 😊`;
+  return { ...c, cliente: cli.nome, whatsapp: cli.whatsapp, total, pecas: c.itens.reduce((s, i) => s + i.quantidade, 0),
+    atrasada: atraso > 0, dias_atraso: Math.max(0, atraso), vence_hoje: atraso === 0 && c.status === "aberta",
+    mensagem_saida: msgSaida, mensagem_lembrete: msgLembrete };
+}
+async function criarCondicional(d) {
+  const cli = E.clientes.find((x) => x.id === d.cliente_id) || falhar("Escolha a cliente do condicional.");
+  if (!d.itens?.length) falhar("Adicione as peças que a cliente vai levar.");
+  const itens = d.itens.map((it) => {
+    const v = acharVariacao(it.codigo), p = E.produtos.find((x) => x.id === v.produto_id);
+    if (disponivel(v.id) < it.quantidade) falhar(`${v.codigo}: só tem ${disponivel(v.id)} disponível.`);
+    const l = lotesDe(v.id).find((x) => x.quantidade_atual > 0);
+    return { variacao_id: v.id, codigo: v.codigo, nome: p.nome, cor: v.cor, tamanho: v.tamanho, quantidade: it.quantidade, preco: R.precoAtual(l) };
+  });
+  const prazo = new Date(); prazo.setDate(prazo.getDate() + (Number(d.prazo_dias) || 3));
+  const c = { id: novoId(), cliente_id: cli.id, data: new Date().toISOString(), prazo: R.hojeISO(prazo), itens, status: "aberta",
+    fechada_em: null, venda_id: null, obs: d.obs || null };
+  await banco.inserir("condicionais", [c]); E.condicionais.push(c);
+  return condicionalJson(c);
+}
+function listarCondicionais() {
+  return E.condicionais.map(condicionalJson).sort((a, b) => (a.status !== "aberta") - (b.status !== "aberta") ||
+    (a.status === "aberta" ? a.prazo.localeCompare(b.prazo) : String(b.fechada_em).localeCompare(String(a.fechada_em)))).slice(0, 40);
+}
+async function fecharCondicional(id, d) {
+  const c = E.condicionais.find((x) => x.id === id && x.status === "aberta") || falhar("Condicional não encontrado ou já fechado.");
+  const ficou = (d.ficou || []).filter((x) => x.quantidade > 0);
+  for (const f of ficou) {
+    const it = c.itens.find((i) => i.variacao_id === f.variacao_id);
+    if (!it || f.quantidade > it.quantidade) falhar("Quantidade maior do que a cliente levou.");
+  }
+  let venda = null;
+  if (ficou.length) venda = await vender({ forma_pagamento: d.forma_pagamento || "pix", cliente_id: c.cliente_id, desconto_extra: d.desconto_extra || 0,
+    itens: ficou.map((f) => ({ variacao_id: f.variacao_id, quantidade: f.quantidade })) }, { condicional: c.id });
+  const campos = { status: "fechada", fechada_em: new Date().toISOString(), venda_id: venda?.venda_id || null };
+  const atual = E.condicionais.find((x) => x.id === id);  // E pode ter sido recarregado pela venda
+  await banco.atualizar("condicionais", id, campos); Object.assign(atual, campos);
+  return { condicional: condicionalJson(atual), venda };
+}
+async function cancelarCondicional(id) {
+  const c = E.condicionais.find((x) => x.id === id && x.status === "aberta") || falhar("Condicional não encontrado.");
+  const campos = { status: "cancelada", fechada_em: new Date().toISOString() };
+  await banco.atualizar("condicionais", id, campos); Object.assign(c, campos);
+  return condicionalJson(c);
+}
+
+// ---------------------------------------------------------------- ciclo da demanda: procuras → compras → avisar
+function precoMedioCat() {
+  const m = {};
+  for (const l of E.lotes) { const v = E.variacoes.find((x) => x.id === l.variacao_id), p = v && E.produtos.find((x) => x.id === v.produto_id); if (!p) continue;
+    const g = m[p.categoria] ||= [0, 0]; g[0] += l.preco_venda; g[1]++; }
+  return Object.fromEntries(Object.entries(m).map(([k, [s, n]]) => [k, Math.round(s / n * 100) / 100]));
+}
+function procuraJson(p) {
+  const cli = p.cliente_id ? E.clientes.find((c) => c.id === p.cliente_id) : null;
+  return { ...p, nome: cli?.nome || p.nome, whatsapp: cli?.whatsapp || p.whatsapp, nome_cat: R.CATEGORIAS[p.categoria] || p.descricao || "Peça" };
+}
+async function registrarProcura(d) {
+  const categoria = d.categoria ? R.siglaCategoria(d.categoria) : null;
+  if (!categoria && !d.descricao?.trim()) falhar("Diga o que a cliente procurou (tipo de peça ou descrição).");
+  const p = { id: novoId(), data: new Date().toISOString(), categoria, descricao: d.descricao?.trim() || null,
+    cor: d.cor ? R.titulo(d.cor) : null, tamanho: d.tamanho ? R.normalizaTamanho(d.tamanho) : null,
+    cliente_id: d.cliente_id || null, nome: d.nome?.trim() || null, whatsapp: String(d.whatsapp || "").replace(/\D/g, "") || null,
+    status: "aberta", avisada_em: null, produto_id: null };
+  await banco.inserir("procuras", [p]); E.procuras.push(p);
+  return procuraJson(p);
+}
+function radarDemanda() {
+  const r = D.radar(E.procuras, { precoMedioCat: precoMedioCat(), nomesCat: R.CATEGORIAS });
+  return { ...r, recentes: E.procuras.filter((p) => p.status === "aberta").sort((a, b) => String(b.data).localeCompare(String(a.data))).slice(0, 10).map(procuraJson) };
+}
+function compraInteligente(orcamento) {
+  const agora = Date.now(), lim = agora - 60 * 864e5;
+  const idsVendas = new Set(E.vendas.filter((v) => new Date(v.data).getTime() >= lim).map((v) => v.id));
+  const vendidos = E.itens_venda.filter((i) => idsVendas.has(i.venda_id)).map((i) => {
+    const v = E.variacoes.find((x) => x.id === i.variacao_id), p = v && E.produtos.find((x) => x.id === v.produto_id);
+    return p ? { categoria: p.categoria, tamanho: v.tamanho, cor: v.cor, qtd: i.quantidade } : null; }).filter(Boolean);
+  const estoque = E.lotes.filter((l) => l.quantidade_atual > 0).map((l) => {
+    const v = E.variacoes.find((x) => x.id === l.variacao_id), p = E.produtos.find((x) => x.id === v.produto_id);
+    return { categoria: p.categoria, tamanho: v.tamanho, cor: v.cor, disponivel: Math.max(0, Math.min(l.quantidade_atual, disponivel(v.id))),
+      dias: R.diasEntre(l.data_entrada), custo: l.custo_unit, preco: l.preco_venda }; });
+  const procuras = E.procuras.filter((p) => p.status === "aberta" && new Date(p.data).getTime() >= lim);
+  const escada = R.lerEscada(E.config.escada_promocao);
+  const base = { vendidos, estoque, procuras, nomesCat: R.CATEGORIAS, diasAlerta: escada.length ? escada[0][0] : 35 };
+  // sugestão: o que cobre toda a necessidade de 30 dias (arredondado para cima de 50 em 50)
+  const tudo = D.listaCompras({ ...base, orcamento: 1e9 }).gasto;
+  const sugerido = Math.ceil(tudo / 50) * 50;
+  const orc = Number(orcamento) > 0 ? Number(orcamento) : (sugerido || 500);
+  return { ...D.listaCompras({ ...base, orcamento: orc }), orcamento_sugerido: sugerido };
+}
+function perfisClientes() {
+  const m = new Map();
+  for (const v of E.vendas) if (v.cliente_id) {
+    const c = m.get(v.cliente_id) || { tamanhos: {}, categorias: {}, total: 0, ultima: v.data };
+    c.total += v.total; if (v.data > c.ultima) c.ultima = v.data;
+    for (const i of E.itens_venda.filter((x) => x.venda_id === v.id)) {
+      const va = E.variacoes.find((x) => x.id === i.variacao_id), p = va && E.produtos.find((x) => x.id === va.produto_id);
+      if (!p) continue; c.tamanhos[va.tamanho] = (c.tamanhos[va.tamanho] || 0) + i.quantidade; c.categorias[p.categoria] = (c.categorias[p.categoria] || 0) + i.quantidade;
+    }
+    m.set(v.cliente_id, c);
+  }
+  return E.clientes.map((c) => ({ cliente_id: c.id, nome: c.nome, whatsapp: c.whatsapp, ...(m.get(c.id) || { tamanhos: {}, categorias: {}, total: 0, ultima: null }) }));
+}
+function quemAvisar(produtoId) {
+  const p = produto(produtoId);
+  const vs = variacoesDe(p.id).map((v) => ({ ...v, disponivel: disponivel(v.id), preco: R.precoAtual(lotesDe(v.id).find((l) => l.quantidade_atual > 0) || { preco_venda: 0 }) }));
+  const preco = Math.min(...vs.filter((v) => v.disponivel > 0).map((v) => v.preco).concat([Infinity]));
+  if (!isFinite(preco)) return { produto: p.nome, procuras: [], clientes: [] };
+  const atend = D.procurasAtendidas(E.procuras.filter((x) => x.cliente_id || x.nome || x.whatsapp), p, vs).map(({ procura, variacao }) => {
+    const pj = procuraJson(procura);
+    return { id: procura.id, nome: pj.nome, whatsapp: pj.whatsapp, pediu: [pj.nome_cat, procura.cor, procura.tamanho].filter(Boolean).join(" "),
+      dias: R.diasEntre(R.hojeISO(new Date(procura.data))),
+      mensagem: D.msgProcura(pj, p, variacao, variacao.preco, E.config.nome_loja, R.CATEGORIAS[p.categoria]) };
+  });
+  const jaAvisar = new Set(atend.map((a) => a.whatsapp).filter(Boolean));
+  const cores = [...new Set(vs.filter((v) => v.disponivel > 0).map((v) => v.cor))];
+  const clientes = D.clientesParaNovidade(perfisClientes(), p, vs).filter((c) => !jaAvisar.has(c.whatsapp))
+    .map((c) => ({ ...c, mensagem: D.msgNovidade(c, p, cores, preco, E.config.nome_loja) }));
+  return { produto: p.nome, foto: banco.urlFoto(p.foto), procuras: atend, clientes };
+}
+async function marcarProcura(id, status) {
+  const p = E.procuras.find((x) => x.id === id) || falhar("Procura não encontrada");
+  const campos = { status, avisada_em: status === "avisada" ? new Date().toISOString() : p.avisada_em };
+  await banco.atualizar("procuras", id, campos); Object.assign(p, campos);
+  return procuraJson(p);
+}
+
+// ---------------------------------------------------------------- busca de produtos (vender sem leitor)
+function buscarPecas(q) {
+  const t = R.semAcento(String(q || "")).toLowerCase().trim().split(/\s+/).filter(Boolean);
+  return E.produtos.map((p) => {
+    const vs = variacoesDe(p.id).map((v) => {
+      const l = lotesDe(v.id).find((x) => x.quantidade_atual > 0);
+      return { codigo: v.codigo, cor: v.cor, tamanho: v.tamanho, disponivel: disponivel(v.id), reservado: reservado(v.id),
+        preco: l ? R.precoAtual(l) : null, promo: l?.preco_promocional != null,
+        busca: R.semAcento(`${p.nome} ${v.cor} ${v.tamanho} ${v.codigo} ${v.codigo_barras} ${R.CATEGORIAS[p.categoria] || ""}`).toLowerCase() };
+    }).filter((v) => t.every((w) => v.busca.includes(w)))
+      .sort((a, b) => a.cor.localeCompare(b.cor) || R.chaveTamanho(a.tamanho) - R.chaveTamanho(b.tamanho));
+    return { produto_id: p.id, nome: p.nome, codigo: codigoBase(p), foto: banco.urlFoto(p.foto), variacoes: vs.map(({ busca, ...x }) => x),
+      disponivel: vs.reduce((s, v) => s + v.disponivel, 0) };
+  }).filter((p) => p.variacoes.length).sort((a, b) => (b.disponivel > 0) - (a.disponivel > 0) || a.nome.localeCompare(b.nome)).slice(0, 40);
 }
 
 function vendasDoDia(dia = R.hojeISO()) {
@@ -312,8 +547,25 @@ function painel(periodo = "mes") {
     spark.faturamento.push(r.faturamento); spark.lucro.push(r.lucro); spark.vendas.push(r.vendas); spark.ticket.push(r.ticket);
   }
 
+  // de onde vêm as vendas: loja x online, e online por estado
+  const origem = { loja: { vendas: 0, total: 0 }, online: { vendas: 0, total: 0 }, por_uf: {}, exterior: { vendas: 0, total: 0 }, cidades: {} };
+  for (const v of vendas) {
+    const k = v.canal === "online" ? "online" : "loja";
+    origem[k].vendas++; origem[k].total = r2(origem[k].total + v.total);
+    if (k === "online" && v.entrega) {
+      if (v.entrega.pais && v.entrega.pais !== "Brasil") { origem.exterior.vendas++; origem.exterior.total = r2(origem.exterior.total + v.total); }
+      else {
+        const u = (v.entrega.uf || "").toUpperCase(); if (!u) continue;
+        const g = origem.por_uf[u] || { vendas: 0, total: 0 }; g.vendas++; g.total = r2(g.total + v.total); origem.por_uf[u] = g;
+        const c = `${v.entrega.cidade}/${u}`; origem.cidades[c] = (origem.cidades[c] || 0) + 1;
+      }
+    }
+  }
+  origem.top_cidades = Object.entries(origem.cidades).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([c, n]) => ({ cidade: c, vendas: n }));
+  delete origem.cidades;
+
   return {
-    periodo, comparado_com: I.rotulo, atual, comparacao: comp, serie, formas, vs_meta: vsMeta, spark,
+    periodo, comparado_com: I.rotulo, atual, comparacao: comp, serie, formas, vs_meta: vsMeta, spark, origem,
     mais_vendidos: maisVendidos,
     vendas_por_tamanho: [...porTam].sort((a, b) => R.chaveTamanho(a[0]) - R.chaveTamanho(b[0])).map(([t, q]) => ({ rotulo: t, valor: q })),
     vendas_por_categoria: [...porCat].sort((a, b) => b[1] - a[1]).map(([c, v]) => ({ rotulo: c, valor: v })),
@@ -589,7 +841,7 @@ function relampagoJson() {
 
 function sugestaoRelampago() {
   const emRelampago = new Set((relampagoAtivo()?.itens || []).map((i) => i.lote_id));
-  const cands = E.lotes.filter((l) => l.quantidade_atual > 0 && !emRelampago.has(l.id)).map((l) => {
+  const cands = E.lotes.filter((l) => l.quantidade_atual > 0 && !emRelampago.has(l.id) && disponivel(l.variacao_id) > 0).map((l) => {
     const v = E.variacoes.find((x) => x.id === l.variacao_id), p = E.produtos.find((x) => x.id === v.produto_id);
     return { produto_id: p.id, variacao_id: v.id, lote_id: l.id, nome: p.nome, cor: v.cor, tamanho: v.tamanho,
       foto: banco.urlFoto(p.foto), preco: R.precoAtual(l), custo: l.custo_unit, dias: R.diasEntre(l.data_entrada), qtd: l.quantidade_atual };
@@ -708,7 +960,7 @@ export async function api(url, opt = {}) {
   const [caminho, qs] = url.split("?"), q = new URLSearchParams(qs || ""), m = (opt.method || "GET").toUpperCase();
   const b = opt.body, seg = caminho.split("/").filter(Boolean).map(decodeURIComponent);
   try {
-    const comId = ["produtos", "despesas", "sonhos"].includes(seg[0]) && seg[1];
+    const comId = ["produtos", "despesas", "sonhos", "vendas", "condicionais", "procuras"].includes(seg[0]) && seg[1];
     switch (`${m} /${seg[0]}${comId ? "/:id" : ""}${seg[2] ? "/" + seg[2] : ""}`) {
       case "GET /config": return verConfig();
       case "PUT /config": return await salvarConfig(b);
@@ -728,6 +980,19 @@ export async function api(url, opt = {}) {
       case "POST /vendas": return await registrarVenda(b);
       case "GET /vendas": return vendasDoDia(q.get("dia") || undefined);
       case "GET /pulso": return pulso();
+      case "GET /buscar": return buscarPecas(q.get("q"));
+      case "POST /procuras": return await registrarProcura(b);
+      case "GET /procuras": return radarDemanda();
+      case "POST /procuras/:id/avisada": return await marcarProcura(seg[1], "avisada");
+      case "POST /procuras/:id/cancelar": return await marcarProcura(seg[1], "cancelada");
+      case "GET /compras": return compraInteligente(q.get("orcamento"));
+      case "GET /produtos/:id/avisar": return quemAvisar(seg[1]);
+      case "GET /entregas": return listarEntregas();
+      case "PUT /vendas/:id/entrega": return await atualizarEntrega(seg[1], b);
+      case "GET /condicionais": return listarCondicionais();
+      case "POST /condicionais": return await criarCondicional(b);
+      case "POST /condicionais/:id/fechar": return await fecharCondicional(seg[1], b);
+      case "POST /condicionais/:id/cancelar": return await cancelarCondicional(seg[1]);
       case "GET /clientes":
         if (seg[1] === "ranking") return rankingClientes();
         return [...E.clientes].sort((a, b) => a.nome.localeCompare(b.nome)).map((c) => ({ cliente_id: c.id, ...c }));

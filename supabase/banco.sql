@@ -175,6 +175,42 @@ create table if not exists itens_venda (
   em_promocao boolean not null default false
 );
 
+-- venda na loja ou online (com entrega e rastreio) – versão 5
+alter table vendas add column if not exists canal text not null default 'loja';
+alter table vendas add column if not exists entrega jsonb;
+alter table vendas add column if not exists condicional_id uuid;
+
+-- ---------- condicional: a cliente leva as peças para provar em casa
+create table if not exists condicionais (
+  id uuid primary key,
+  owner_id uuid not null default auth.uid() references auth.users on delete cascade,
+  cliente_id uuid not null references clientes on delete cascade,
+  data timestamptz not null default now(),
+  prazo date not null,
+  itens jsonb not null,              -- [{variacao_id, quantidade, preco}]
+  status text not null default 'aberta' check (status in ('aberta','fechada','cancelada')),
+  fechada_em timestamptz,
+  venda_id uuid,
+  obs text
+);
+
+-- ---------- procuras: o que a cliente pediu e a loja não tinha (vendas perdidas) – versão 6
+create table if not exists procuras (
+  id uuid primary key,
+  owner_id uuid not null default auth.uid() references auth.users on delete cascade,
+  data timestamptz not null default now(),
+  categoria text,
+  descricao text,
+  cor text,
+  tamanho text,
+  cliente_id uuid references clientes on delete set null,
+  nome text,
+  whatsapp text,
+  status text not null default 'aberta' check (status in ('aberta','avisada','atendida','cancelada')),
+  avisada_em timestamptz,
+  produto_id uuid references produtos on delete set null
+);
+
 create index if not exists idx_variacoes_produto on variacoes (produto_id);
 create index if not exists idx_lotes_variacao on lotes (variacao_id);
 create index if not exists idx_vendas_data on vendas (owner_id, data);
@@ -184,7 +220,7 @@ create index if not exists idx_itens_venda on itens_venda (venda_id);
 do $$
 declare t text;
 begin
-  foreach t in array array['config','produtos','variacoes','lotes','clientes','vendas','itens_venda','despesas','sonhos','aportes','relampagos'] loop
+  foreach t in array array['config','produtos','variacoes','lotes','clientes','vendas','itens_venda','despesas','sonhos','aportes','relampagos','condicionais','procuras'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists dono on %I', t);
     execute format('create policy dono on %I for all to authenticated
@@ -194,8 +230,10 @@ end $$;
 
 -- ---------- registrar venda numa transação só (baixa o estoque dos lotes mais antigos primeiro)
 -- p_itens: [{"variacao_id": "...", "quantidade": 2}, ...]
+drop function if exists registrar_venda(uuid, text, uuid, double precision, jsonb);
 create or replace function registrar_venda(
-  p_id uuid, p_forma text, p_cliente uuid, p_desconto double precision, p_itens jsonb
+  p_id uuid, p_forma text, p_cliente uuid, p_desconto double precision, p_itens jsonb,
+  p_canal text default 'loja', p_entrega jsonb default null, p_condicional uuid default null
 ) returns jsonb
 language plpgsql security invoker as $$
 declare
@@ -204,8 +242,8 @@ declare
   v_cfg config%rowtype; v_itens jsonb := '[]'::jsonb;
 begin
   select * into v_cfg from config where owner_id = auth.uid();
-  insert into vendas (id, forma_pagamento, cliente_id, total, custo_total)
-    values (p_id, p_forma, p_cliente, 0, 0);
+  insert into vendas (id, forma_pagamento, cliente_id, total, custo_total, canal, entrega, condicional_id)
+    values (p_id, p_forma, p_cliente, 0, 0, coalesce(p_canal, 'loja'), p_entrega, p_condicional);
   for it in select * from jsonb_array_elements(p_itens) loop
     falta := (it->>'quantidade')::integer;
     for l in select * from lotes

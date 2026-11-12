@@ -1,9 +1,9 @@
 // Service worker: permite instalar o app e abrir com internet ruim.
 // Sempre tenta buscar a versão NOVA dos arquivos primeiro (assim as atualizações chegam sozinhas);
 // só usa a cópia guardada quando está sem internet. Os dados (Supabase) nunca passam por aqui.
-const CACHE = "loja-web-v4";
+const CACHE = "loja-web-v6";
 const ARQUIVOS = ["./", "index.html", "icon.svg", "manifest.json", "versao.json", "js/app.js", "js/banco.js",
-  "js/servico.js", "js/regras.js", "js/flyer.js", "js/tema.js", "js/financas.js", "js/assistente.js", "js/config.js"];
+  "js/servico.js", "js/regras.js", "js/flyer.js", "js/tema.js", "js/financas.js", "js/assistente.js", "js/demanda.js", "js/config.js"];
 self.addEventListener("install", (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ARQUIVOS)).catch(() => {})); });
 self.addEventListener("activate", (e) => e.waitUntil(caches.keys().then((ks) =>
   Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())));

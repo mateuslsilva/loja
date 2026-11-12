@@ -4,7 +4,7 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 export const TABELAS = ["produtos", "variacoes", "lotes", "clientes", "vendas", "itens_venda",
-  "despesas", "sonhos", "aportes", "relampagos"];
+  "despesas", "sonhos", "aportes", "relampagos", "condicionais", "procuras"];
 
 export const CONFIG_PADRAO = {
   nome_loja: "Minha Loja", margem_minima_pct: 30, taxa_cartao_pct: 4, considerar_taxa_cartao: true,
@@ -80,9 +80,10 @@ export class BancoSupabase {
     if (error) throw new Error(error.message);
     return data;
   }
-  async registrarVenda({ id, forma, clienteId, desconto, itens }) {
+  async registrarVenda({ id, forma, clienteId, desconto, itens, canal = "loja", entrega = null, condicional = null }) {
     const { data, error } = await this.sb.rpc("registrar_venda", {
-      p_id: id, p_forma: forma, p_cliente: clienteId, p_desconto: desconto, p_itens: itens });
+      p_id: id, p_forma: forma, p_cliente: clienteId, p_desconto: desconto, p_itens: itens,
+      p_canal: canal, p_entrega: entrega, p_condicional: condicional });
     if (error) throw new Error(error.message);
     return data;
   }
@@ -151,7 +152,7 @@ class BancoLocal {
   }
   async remover(tabela, id) { this.e[tabela] = this.e[tabela].filter((x) => x.id !== id); await this._salvar(tabela); }
   async salvarConfig(campos) { Object.assign(this.e.config, campos); await this._gravar("config", this.e.config); return { ...this.e.config }; }
-  async registrarVenda({ id, forma, clienteId, desconto, itens }) {
+  async registrarVenda({ id, forma, clienteId, desconto, itens, canal = "loja", entrega = null, condicional = null }) {
     // mesma regra da função registrar_venda do Supabase (lotes mais antigos primeiro, tudo ou nada)
     const lotes = structuredClone(this.e.lotes), novos = [];
     let total = 0, custo = 0;
@@ -172,6 +173,7 @@ class BancoLocal {
     const taxa = ["credito", "debito"].includes(forma) ? Math.round(total * this.e.config.taxa_cartao_pct) / 100 : 0;
     this.e.lotes = lotes;
     this.e.vendas.push({ id, data: new Date().toISOString(), cliente_id: clienteId, forma_pagamento: forma,
+      canal, entrega, condicional_id: condicional,
       total, custo_total: Math.round(custo * 100) / 100, taxa_pagamento: taxa });
     this.e.itens_venda.push(...novos);
     await Promise.all(["lotes", "vendas", "itens_venda"].map((t) => this._salvar(t)));

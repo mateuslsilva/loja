@@ -74,6 +74,7 @@ no notebook: todos veem os mesmos produtos e vendas.
 
 Quem controla isso é o arquivo `versao.json`: toda atualização vem com um número novo nele.
 
+> Esta versão (6) trouxe `supabase/banco.sql` novo (tabela das procuras). **Rode o banco.sql de novo.**
 > Quando a atualização trouxer o arquivo `supabase/banco.sql` novo, rode ele de novo no
 > SQL Editor do Supabase (pode rodar quantas vezes quiser: só adiciona o que falta, não apaga dados).
 
@@ -123,6 +124,31 @@ Quem controla isso é o arquivo `versao.json`: toda atualização vem com um nú
   hoje?", "tem vestido preto M?", "quanto falta pra meta?", "o que está parado?", "melhores clientes",
   "quanto falta pra moto?". Roda dentro do app, sem custo. Entende perguntas sobre a loja; assuntos
   fora da loja ele não responde.
+
+- **Vender sem leitor**: o botão **+ Produtos** abre a lista do estoque com busca (nome, cor,
+  tamanho); ao digitar no campo de código, aparecem sugestões.
+- **Condicional**: a cliente leva as peças para provar; elas ficam reservadas no nome dela (não
+  aparecem como disponíveis). Na volta, marque o que ela ficou: só isso vira venda. O app gera a
+  mensagem de saída e o lembrete para o WhatsApp e avisa os atrasados.
+- **Venda na loja ou online**: na online são obrigatórios nome, celular e endereço de quem recebe
+  (CEP preenche a rua sozinho). O código de rastreio pode ir na hora ou depois, em **Entregas**;
+  o app gera a mensagem para o WhatsApp com o rastreio.
+- **Painel "De onde vêm as vendas"**: loja × online, mapa do Brasil por estado, cidades que mais
+  compram e vendas para fora do Brasil.
+- **Etiquetas para impressora térmica**: 40×25, 50×30, 60×40 mm, rolo de 3 colunas (33×22) ou A4.
+  Código de barras EAN-13 com margens de leitura (testado lendo a imagem na resolução de 203 dpi
+  das térmicas). Na impressão: tamanho do papel igual ao da etiqueta, margens "nenhuma", escala 100%.
+
+- **Ciclo da demanda** (o diferencial):
+  - **Procuraram e não tinha** (tela Vender, ou na busca de peças quando não acha): anota em 10 segundos
+    o que a cliente pediu (tipo, tamanho, cor) e, se ela quiser, o contato.
+  - **Radar de vendas perdidas** (tela Estoque): o que mais pedem e você não tem, e quanto deixou de vender.
+  - **Compra inteligente** (tela Estoque): diga quanto vai gastar no fornecedor e o app monta a lista
+    (tipo, tamanho, cor e quantidade) pelo que vende, pelo que pediram e pelo lucro de cada peça.
+    Mostra também o que **não comprar** (parado) e o que vale testar (pediram, mas você não trabalha).
+  - **Quem avisar**: ao cadastrar ou repor uma peça, o app mostra quem pediu aquela peça e as
+    clientes que vestem o tamanho e compram esse tipo de roupa, com a mensagem pronta no WhatsApp.
+  - No assistente: "o que comprar?" e "o que procuraram?".
 
 ## Limites desta versão
 - Os avisos de troca da promoção relâmpago aparecem com o app aberto (ou em segundo plano no

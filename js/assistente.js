@@ -58,6 +58,33 @@ const INTENCOES = [
   } },
   { id: "ajuda", re: /ajuda|o que (voce )?(sabe|faz|pode)|como (te )?usar|comandos/, f: async () => ({
     texto: "Posso responder coisas como:<br>• Quanto vendi hoje? / este mês?<br>• Qual meu lucro do mês?<br>• Quanto falta para a meta?<br>• Quanto preciso vender hoje?<br>• Tem vestido preto M?<br>• Quanto custa a calça pantalona?<br>• Qual peça mais vende?<br>• O que está parado?<br>• Quem são minhas melhores clientes?<br>• Quem faz aniversário este mês?<br>• Quanto falta para o meu sonho?" }) },
+  { id: "comprar", re: /o que comprar|comprar mais|lista de compra|repor|fornecedor|investir em (roupa|estoque|peca)/, f: async () => {
+    const c = await api("/compras");
+    if (!c.compras.length) return { texto: c.poucos_dados ? "Ainda tenho poucos dados. Registre vendas e as procuras (o que pediram e não tinha) que eu monto a lista de compras." : "Pelo que vende hoje, seu estoque está suficiente. 👌",
+      acoes: [{ rotulo: "Abrir compra inteligente", acao: "ir:estoque" }] };
+    return { texto: `Com ${brl(c.orcamento)}, eu compraria:<br>` + c.compras.slice(0, 6).map((x) => `• ${x.qtd}x ${x.nome_cat} ${x.tamanho}${x.cores.length ? " (" + x.cores.join("/") + ")" : ""} – ${brl(x.custo_total)}`).join("<br>") +
+      `<br>Vira ≈ ${brl(x_venda(c))} em vendas.${c.evitar.length ? "<br>Não compre: " + c.evitar.map((e) => `${e.nome_cat} ${e.tamanho}`).join(", ") + " (parados)." : ""}`,
+      acoes: [{ rotulo: "Ver lista completa", acao: "ir:estoque" }] };
+  } },
+  { id: "procuras", re: /procur|pediram|perdi|nao tinha|falt(a|ou) (no|em) estoque/, f: async () => {
+    const r = await api("/procuras");
+    if (!r.itens.length) return { texto: "Nenhuma procura registrada. Quando uma cliente pedir algo que você não tem, registre em Vender → \"Procuraram e não tinha\"." };
+    return { texto: `Nos últimos ${r.dias} dias pediram e não tinha (${brl(r.valor_perdido)} em vendas perdidas):<br>` +
+      r.itens.slice(0, 6).map((i) => `• ${i.nome_cat}${i.tamanho ? " " + i.tamanho : ""}: ${i.pedidos} pedido(s)${i.cores.length ? " – " + i.cores.join("/") : ""}`).join("<br>"),
+      acoes: [{ rotulo: "Ver radar", acao: "ir:estoque" }] };
+  } },
+  { id: "condicional", re: /condicional|condicionais|levou para (casa|provar)/, f: async () => {
+    const cs = (await api("/condicionais")).filter((c) => c.status === "aberta");
+    if (!cs.length) return { texto: "Nenhum condicional aberto agora." };
+    return { texto: `${cs.length} condicional(is) aberto(s):<br>` + cs.map((c) => `• ${c.cliente}: ${c.pecas} pç (${brl(c.total)}) – ${c.atrasada ? `<b>atrasado ${c.dias_atraso} dia(s)</b>` : c.vence_hoje ? "vence hoje" : "até " + c.prazo.slice(8, 10) + "/" + c.prazo.slice(5, 7)}`).join("<br>"),
+      acoes: [{ rotulo: "Ver condicionais", acao: "ir:vender" }] };
+  } },
+  { id: "entregas", re: /entrega|rastrei|correio|envio|enviar|postar|pedido/, f: async () => {
+    const es = await api("/entregas"), ag = es.filter((e) => e.status === "aguardando_envio"), env = es.filter((e) => e.status === "enviado");
+    if (!es.length) return { texto: "Nenhuma venda online registrada ainda." };
+    return { texto: `${ag.length} pedido(s) aguardando envio${ag.length ? ": " + ag.map((e) => `${e.nome} (${e.cidade}/${e.uf})`).join(", ") : ""}.<br>${env.length} enviado(s) a caminho.`,
+      acoes: [{ rotulo: "Ver entregas", acao: "ir:vender" }] };
+  } },
   { id: "mais_vendido", re: /mais vend|campea|sucesso|sai mais|vende mais|top/, f: async (q) => {
     const p = periodo(q).id === "hoje" && !/\bhoje\b/.test(q) ? { id: "mes", nome: "este mês" } : periodo(q);
     const d = await api("/painel?periodo=" + (p.id === "ontem" ? "7d" : p.id));
@@ -183,5 +210,7 @@ export async function perguntar(pergunta) {
     acoes: [{ rotulo: "Ajuda", acao: "perguntar:o que voce sabe" }] };
 }
 
-export const SUGESTOES = ["Quanto vendi hoje?", "Quanto falta para a meta?", "Quanto preciso vender hoje?", "Qual peça mais vende?",
+const x_venda = (c) => c.venda_prevista;
+
+export const SUGESTOES = ["O que comprar?", "O que procuraram?", "Quanto vendi hoje?", "Quanto falta para a meta?", "Condicionais abertos", "Entregas pendentes", "Quanto preciso vender hoje?", "Qual peça mais vende?",
   "O que está parado?", "Melhores clientes", "Lucro do mês"];
