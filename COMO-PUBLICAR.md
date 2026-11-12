@@ -64,7 +64,31 @@ no notebook: todos veem os mesmos produtos e vendas.
 
 ---
 
+## Como atualizar o app (o celular se atualiza sozinho)
+
+1. No GitHub, abra o repositório → **Add file → Upload files**.
+2. Arraste os arquivos novos que eu te mandar (eles **substituem** os antigos) → **Commit changes**.
+3. Em 1–2 minutos o GitHub publica. Quem estiver com o app aberto vê a faixa
+   **"Atualizando o app para a nova versão…"** e ele recarrega sozinho. Se a pessoa estiver no
+   meio de uma venda ou de um cadastro, aparece **"Toque aqui para atualizar"** (para não perder nada).
+
+Quem controla isso é o arquivo `versao.json`: toda atualização vem com um número novo nele.
+
+> Quando a atualização trouxer o arquivo `supabase/banco.sql` novo, rode ele de novo no
+> SQL Editor do Supabase (pode rodar quantas vezes quiser: só adiciona o que falta, não apaga dados).
+
+> ⚠️ Depois que você colocar os dados do Supabase no `js/config.js`, **não envie o config.js
+> de novo** nas próximas atualizações (senão ele volta para o modo demonstração).
+
 ## O que o app faz
+- **Cadastro da loja no 1º acesso** (como o Phibo): responsável (nome, WhatsApp, e-mail), loja
+  (nome, segmento, onde vende, CNPJ conferido, endereço com CEP automático), logo e metas.
+- **Logo e cores**: o app lê as cores da logo e se pinta sozinho (telas e flyers).
+  Dá para trocar a cor principal tocando nas cores encontradas.
+- **Painel completo**: faturamento, lucro, vendas, ticket médio, peças (com comparação com o
+  período anterior), meta do mês, vendas por dia, mais vendidos, formas de pagamento, resultado
+  por mês, tamanhos vendidos × estoque, estoque e dinheiro parado, peças paradas,
+  aniversariantes do mês e limite do MEI.
 - Cadastro em grade (cor × tamanho) com **código automático** (`VES-0001-PRE-M`) e código de barras.
 - Estoque **por lote**: reposição começa a contar os dias do zero; a venda baixa o lote mais antigo.
 - **Robô de promoção** (roda toda vez que o app abre): 35 dias → 10%, 50 → 20%, 65 → 30%,
@@ -74,7 +98,24 @@ no notebook: todos veem os mesmos produtos e vendas.
 - Vendas (Pix, dinheiro, débito, crédito, fiado), caixa do dia, painel com dinheiro parado e
   **limite do MEI**.
 
+- **Aba Dinheiro**:
+  - **Contas da loja**: aluguel/internet com valor fixo; energia/água com as 3 últimas contas
+    (o app faz a média, prevê a próxima e mostra se está subindo).
+  - **Termômetro do dia**: "a loja amanheceu devendo R$ X" (contas ÷ 30), quanto já cobriu e quanto
+    falta vender, com a margem real das vendas.
+  - **⚡ Salvar meu dia**: escolhe 3 peças de preço parecido e solta uma promoção relâmpago por vez
+    (20%, 30%, 50%), trocando a cada 2/3/4 horas se não vender; sempre com lucro mínimo.
+    Gera o flyer "RELÂMPAGO – só até as 15h".
+  - **Quanto preciso vender**: para pagar as contas, tirar o salário e guardar para os sonhos.
+  - **Meu dinheiro**: como usar o capital de giro (roupas, reserva, caixa) e como dividir a sobra
+    (reinvestir, reserva, salário, sonhos).
+  - **Meus sonhos**: quanto guardar por mês para chegar no prazo; no fechamento do mês o app sugere
+    quanto colocar em cada sonho.
+
 ## Limites desta versão
+- Os avisos de troca da promoção relâmpago aparecem com o app aberto (ou em segundo plano no
+  celular, se a pessoa permitir notificações). Se o app ficar fechado, a troca acontece assim que
+  alguém abrir o app.
 - **Postagem 100% automática no Instagram** não existe aqui: ela precisa de um servidor ligado
   e de guardar o token da loja em segredo. O backend Python (pasta `lojamei`) já faz isso e pode
   ser ligado depois.

@@ -94,17 +94,111 @@ details.ajuda ol{padding-left:20px;margin:8px 0 0}
 #telaLogin h1{font:600 26px "Fraunces",Georgia,serif;color:var(--vinho);margin:0 0 4px}
 #carregando{position:fixed;inset:0;background:var(--bg);z-index:25;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
 #avisoDemo{display:none;background:var(--laranja-bg);color:var(--laranja);font-size:13px;padding:8px 16px;text-align:center}
+/* ---- cabeçalho com logo */
+header{display:flex;align-items:center;gap:12px}
+#logoTopo{height:42px;max-width:110px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;display:none}
+/* ---- assistente de cadastro */
+#telaCadastro{position:fixed;inset:0;background:var(--bg);z-index:28;display:none;overflow:auto}
+#telaCadastro.on{display:block}
+.cad{max-width:560px;margin:0 auto;padding:20px 16px 110px}
+.cad h1{font:600 26px "Fraunces",Georgia,serif;color:var(--vinho);margin:8px 0 2px}
+.passos{display:flex;gap:6px;margin:14px 0 4px}.passos i{flex:1;height:6px;border-radius:6px;background:var(--rosa2)}
+.passos i.on{background:var(--vinho)}
+.etapa{display:none}.etapa.on{display:block}
+.cad-rodape{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linha);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;z-index:29}
+.cad-rodape .btn{flex:1}
+.obrig{color:var(--vermelho)}
+.erro-campo{color:var(--vermelho);font-size:12px;margin-top:4px;min-height:0}
+.logo-area{border:2px dashed var(--rosa2);border-radius:16px;padding:18px;text-align:center;background:#fff;cursor:pointer;display:block}
+.logo-area img{max-width:220px;max-height:120px;object-fit:contain;display:block;margin:0 auto 8px}
+.cores{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.cores button{width:46px;height:46px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--linha);cursor:pointer}
+.cores button.on{box-shadow:0 0 0 3px var(--tx)}
+.amostra{border-radius:14px;overflow:hidden;border:1px solid var(--linha);margin-top:12px}
+.amostra .a-top{background:var(--vinho);color:#fff;padding:12px;font:600 18px "Fraunces",Georgia,serif}
+.amostra .a-corpo{background:var(--bg);padding:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* ---- painel */
+.periodos{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (min-width:700px){.kpis{grid-template-columns:repeat(3,1fr)}}
+.valor{display:block;font:700 21px "DM Sans",system-ui,sans-serif;margin-top:2px;font-variant-numeric:tabular-nums}
+.delta{font-size:12px;font-weight:700;display:inline-flex;gap:3px;align-items:center;margin-top:4px}
+.delta.sobe{color:var(--verde)}.delta.desce{color:var(--vermelho)}.delta.igual{color:var(--tx2)}
+.tit-card{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.tit-card b{font-size:15px}.tit-card span{font-size:12px;color:var(--tx2)}
+.grafico{width:100%;display:block;overflow:visible}
+.grafico .grade{stroke:var(--linha);stroke-width:1}
+.grafico .eixo{fill:var(--tx2);font:19px "DM Sans",system-ui,sans-serif}
+.grafico .barra-g{fill:var(--vinho)}
+.grafico .alvo{fill:transparent;cursor:pointer}
+.grafico g:hover .barra-g,.grafico g.ativo .barra-g{fill:var(--vinho2)}
+#dica{position:fixed;z-index:40;background:var(--tx);color:#fff;font-size:12px;padding:6px 9px;border-radius:8px;pointer-events:none;display:none;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hbar{display:grid;grid-template-columns:86px 1fr auto;gap:8px;align-items:center;font-size:13px;padding:5px 0}
+.hbar .trilho{height:10px;background:var(--rosa);border-radius:6px;overflow:hidden}
+.hbar .trilho i{display:block;height:100%;background:var(--vinho);border-radius:0 4px 4px 0}
+.hbar .v{font-variant-numeric:tabular-nums;font-weight:700}
+.tabela{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.tabela th{font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--tx2);text-align:right;padding:6px 4px;border-bottom:1px solid var(--linha)}
+.tabela td{text-align:right;padding:7px 4px;border-bottom:1px solid var(--linha);white-space:nowrap}
+.tabela th:first-child,.tabela td:first-child{text-align:left}
+.tabela tr:last-child td{border-bottom:0}
+.neg{color:var(--vermelho)}
+.rank{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linha)}
+.rank:last-child{border:0}
+.rank .pos{width:22px;font-weight:700;color:var(--tx2);text-align:center}
+.rank img,.rank .semfoto{width:42px;height:52px;border-radius:8px;object-fit:cover;background:var(--rosa);flex:0 0 42px}
+.painel-grid{display:grid;gap:12px}
+@media (min-width:900px){.painel-grid{grid-template-columns:1fr 1fr}.painel-grid .largo{grid-column:1/-1}}
+@media (min-width:1100px){#t-painel{width:min(1080px,calc(100vw - 140px));margin-left:50%;transform:translateX(-50%)}}
+.painel-grid .card{margin:0}
+/* ---- dinheiro */
+.termo{background:var(--vinho);color:#fff;border-radius:16px;padding:16px;margin-bottom:12px}
+.termo .muted{color:#ffffffcc}
+.termo .big{color:#fff}
+.termo .trilho{height:12px;background:#ffffff33;border-radius:8px;overflow:hidden;margin:10px 0 6px}
+.termo .trilho i{display:block;height:100%;background:#fff;border-radius:8px}
+.termo .msg{font-size:15px;line-height:1.35;margin-top:8px}
+.termo .btn{background:#fff;color:var(--vinho);margin-top:12px}
+.mini-termo{display:flex;align-items:center;gap:10px;background:var(--rosa);border-radius:12px;padding:10px 12px;margin-bottom:12px;cursor:pointer}
+.mini-termo .trilho{flex:1;height:8px;background:#fff;border-radius:6px;overflow:hidden}
+.mini-termo .trilho i{display:block;height:100%;background:var(--vinho)}
+.mini-termo b{font-size:13px;color:var(--vinho);white-space:nowrap}
+.divisao{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.divisao div{background:#ffffff1f;border-radius:10px;padding:8px 10px;font-size:13px}
+.card .divisao div{background:var(--rosa);color:var(--tx)}
+.divisao b{display:block;font-size:16px}
+.conta{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--linha);cursor:pointer}
+.conta:last-child{border:0}
+.etapas .et{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--linha)}
+.etapas .et:last-child{border:0}
+.etapas img,.etapas .semfoto{width:48px;height:60px;border-radius:8px;object-fit:cover;background:var(--rosa);flex:0 0 48px}
+.st{font-size:12px;font-weight:700;border-radius:6px;padding:2px 7px;display:inline-block;margin-top:3px}
+.st.ativa{background:var(--laranja-bg);color:var(--laranja)}.st.vendida{background:var(--verde-bg);color:var(--verde)}
+.st.aguardando,.st.encerrada,.st.pulada,.st.nao_precisou{background:var(--rosa);color:var(--tx2)}
+.sonho{padding:12px 0;border-bottom:1px solid var(--linha)}.sonho:last-child{border:0}
+.sonho .emo{font-size:30px;line-height:1}
+.pcts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pcts input{text-align:center;padding:9px 4px}
+.pcts label{font-size:10px;text-align:center;margin:8px 0 4px}
+.capbar{display:flex;height:14px;border-radius:8px;overflow:hidden;margin:10px 0 6px;gap:2px}
+.capbar i{display:block;height:100%}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--tx2)}
+.leg span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.emojis{display:flex;gap:6px;flex-wrap:wrap}.emojis span{font-size:22px;padding:6px 8px;border-radius:10px;border:1px solid var(--linha);background:#fff;cursor:pointer}
+.emojis span.on{border-color:var(--vinho);background:var(--rosa)}
 .etq{display:inline-block;width:5cm;border:1px dashed #999;padding:4px;margin:2px;text-align:center;font-size:10px;font-family:Arial}
 .etq svg{width:100%;height:40px}
 </style>
 </head>
 <body>
-<header><h1 id="nomeLoja">Minha Loja</h1><small>Gestão da loja · BY: Mateus Lima</small></header>
+<header><img id="logoTopo" alt=""><div><h1 id="nomeLoja">Minha Loja</h1><small>Gestão da loja · BY: Mateus Lima</small></div></header>
 <div id="avisoDemo">Modo demonstração: os dados ficam só neste aparelho.</div>
+<div id="avisoVersao" style="display:none;background:var(--vinho2);color:#fff;font-size:13px;padding:9px 16px;text-align:center;cursor:pointer"></div>
 
 <main>
 <!-- ================= VENDER ================= -->
 <section id="t-vender" class="tela ativa">
+  <div id="miniTermo"></div>
   <h2>Nova venda</h2>
   <div class="card">
     <div class="lin">
@@ -146,8 +240,30 @@ details.ajuda ol{padding-left:20px;margin:8px 0 0}
 </section>
 
 <!-- ================= PAINEL ================= -->
+<section id="t-dinheiro" class="tela">
+  <div id="fechamento"></div>
+  <div id="termoHoje"></div>
+  <div id="relampagoBox"></div>
+  <h2>Contas da loja</h2>
+  <div class="card">
+    <div id="listaContas"></div>
+    <button class="btn sec" style="margin-top:10px" onclick="abrirConta()">+ Adicionar conta</button>
+    <div id="totalContas" style="margin-top:12px"></div>
+  </div>
+  <h2>Quanto preciso vender</h2>
+  <div class="card" id="quantoVender"></div>
+  <h2>Meu dinheiro</h2>
+  <div class="card" id="capitalBox"></div>
+  <h2>Meus sonhos</h2>
+  <div class="card" id="sonhosBox"></div>
+</section>
+
 <section id="t-painel" class="tela">
   <h2>Painel da loja</h2>
+  <div class="periodos chips" id="periodos">
+    <span class="chip" data-p="hoje">Hoje</span><span class="chip" data-p="7d">7 dias</span>
+    <span class="chip on" data-p="mes">Este mês</span><span class="chip" data-p="ano">Este ano</span>
+  </div>
   <div id="painel"></div>
 </section>
 
@@ -161,9 +277,21 @@ details.ajuda ol{padding-left:20px;margin:8px 0 0}
     <button class="btn" style="margin-top:12px" onclick="salvarCliente()">Cadastrar cliente</button>
   </div>
   <div class="card" id="listaCli"></div>
+  <h2>Minha loja</h2>
+  <div class="card">
+    <div class="lin" style="align-items:center">
+      <img id="cfLogoPrev" alt="" style="max-width:90px;max-height:60px;object-fit:contain;flex:0 0 auto;display:none">
+      <div id="cfResumoLoja" class="muted"></div>
+    </div>
+    <div class="acoes" style="margin-top:10px">
+      <button class="btn sec" onclick="abrirCadastroLoja(1)">Editar dados da loja</button>
+      <button class="btn sec" onclick="abrirCadastroLoja(3)">Logo e cores</button>
+    </div>
+  </div>
   <h2>Configurações</h2>
   <div class="card">
     <label>Nome da loja</label><input id="cfNome">
+    <label>Meta de vendas do mês (R$)</label><input id="cfMeta" type="number" inputmode="decimal" min="0" step="100">
     <div class="lin">
       <div><label>Margem mínima (%)</label><input id="cfMargem" type="number" inputmode="decimal"></div>
       <div><label>Taxa maquininha (%)</label><input id="cfTaxa" type="number" inputmode="decimal"></div>
@@ -190,6 +318,93 @@ details.ajuda ol{padding-left:20px;margin:8px 0 0}
   </div>
 </section>
 </main>
+
+<!-- ================= CADASTRO DA LOJA ================= -->
+<div id="telaCadastro"><div class="cad">
+  <div class="muted" id="cadEtapaTxt">Etapa 1 de 4</div>
+  <div class="passos"><i></i><i></i><i></i><i></i></div>
+
+  <section class="etapa" data-e="1">
+    <h1>Sobre você</h1>
+    <p class="muted" style="margin-top:0">Quem é a pessoa responsável pela loja.</p>
+    <label>Nome completo <span class="obrig">*</span></label><input id="rNome" autocomplete="name">
+    <label>WhatsApp com DDD <span class="obrig">*</span></label><input id="rZap" inputmode="tel" placeholder="(65) 99999-9999" autocomplete="tel">
+    <label>E-mail <span class="obrig">*</span></label><input id="rEmail" type="email" inputmode="email" autocomplete="email">
+    <label>Você é</label>
+    <div class="chips" id="rCargo"><span class="chip" data-v="Dona(o)">Dona(o)</span><span class="chip" data-v="Sócia(o)">Sócia(o)</span>
+      <span class="chip" data-v="Gerente">Gerente</span><span class="chip" data-v="Vendedora">Vendedora</span></div>
+    <div class="erro-campo" id="erro1"></div>
+  </section>
+
+  <section class="etapa" data-e="2">
+    <h1>Sua loja</h1>
+    <p class="muted" style="margin-top:0">Esses dados aparecem nos flyers e nos relatórios.</p>
+    <label>Nome da loja <span class="obrig">*</span></label><input id="lNome" placeholder="Ex.: La Closet">
+    <label>Segmento <span class="obrig">*</span></label>
+    <select id="lSeg"><option value="">Escolha…</option><option>Moda feminina</option><option>Moda masculina</option><option>Moda infantil</option>
+      <option>Moda praia</option><option>Moda fitness</option><option>Lingerie</option><option>Acessórios e semijoias</option>
+      <option>Calçados</option><option>Multimarcas</option><option>Outro</option></select>
+    <label>Onde você vende</label>
+    <div class="chips" id="lCanais"><span class="chip" data-v="Loja física">Loja física</span><span class="chip" data-v="Instagram">Instagram</span>
+      <span class="chip" data-v="WhatsApp">WhatsApp</span><span class="chip" data-v="Site">Site / loja virtual</span>
+      <span class="chip" data-v="Marketplace">Marketplace</span><span class="chip" data-v="Porta a porta">Sacoleira / porta a porta</span></div>
+    <div class="lin">
+      <div><label>@ do Instagram</label><input id="lInsta" placeholder="lacloset"></div>
+      <div><label>WhatsApp da loja</label><input id="lZap" inputmode="tel" placeholder="(65) 99999-9999"></div>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:14px;font-weight:500;color:var(--tx)">
+      <input type="checkbox" id="lMesmoZap" style="width:auto"> Mesmo WhatsApp do responsável</label>
+    <label>CNPJ (MEI) <span class="muted" style="text-transform:none">opcional</span></label><input id="lCnpj" inputmode="numeric" placeholder="00.000.000/0001-00">
+    <label>Razão social <span class="muted" style="text-transform:none">opcional</span></label><input id="lRazao">
+    <div class="lin">
+      <div style="flex:0 0 140px"><label>CEP</label><input id="lCep" inputmode="numeric" placeholder="00000-000"></div>
+      <div><label>Cidade</label><input id="lCidade"></div>
+      <div style="flex:0 0 64px"><label>UF</label><input id="lUf" maxlength="2" style="text-transform:uppercase"></div>
+    </div>
+    <label>Rua</label><input id="lRua">
+    <div class="lin">
+      <div style="flex:0 0 100px"><label>Número</label><input id="lNum"></div>
+      <div><label>Bairro</label><input id="lBairro"></div>
+    </div>
+    <div class="erro-campo" id="erro2"></div>
+  </section>
+
+  <section class="etapa" data-e="3">
+    <h1>Logo e cores</h1>
+    <p class="muted" style="margin-top:0">Envie a logo da loja: o app lê as cores dela e se pinta sozinho, inclusive os flyers.</p>
+    <label class="logo-area" for="lLogo"><img id="lLogoPrev" alt="" style="display:none">
+      <span id="lLogoTxt">📷 Toque para escolher a logo</span>
+      <input type="file" id="lLogo" accept="image/*" style="display:none" onchange="enviarLogoCadastro(this)"></label>
+    <div id="lCoresBox" style="display:none">
+      <label>Cores encontradas na logo (toque para escolher a principal)</label>
+      <div class="cores" id="lCores"></div>
+      <div class="amostra"><div class="a-top" id="amostraNome">Minha Loja</div>
+        <div class="a-corpo"><span class="btn peq">Botão</span><span class="btn sec peq">Secundário</span><span class="tag promo">-20%</span><span class="tag ok">lucro</span></div></div>
+    </div>
+    <div class="erro-campo" id="erro3"></div>
+  </section>
+
+  <section class="etapa" data-e="4">
+    <h1>Metas e regras</h1>
+    <p class="muted" style="margin-top:0">Dá para mudar depois em Configurações.</p>
+    <label>Meta de vendas por mês (R$)</label><input id="mMeta" type="number" inputmode="decimal" min="0" step="100" placeholder="Ex.: 8000">
+    <div class="lin">
+      <div><label>Margem mínima (%)</label><input id="mMargem" type="number" inputmode="decimal"></div>
+      <div><label>Taxa maquininha (%)</label><input id="mTaxa" type="number" inputmode="decimal"></div>
+    </div>
+    <label>Promoção automática começa com quantos dias?</label>
+    <select id="mDias"><option value="30:10,45:20,60:30">30 dias</option><option value="35:10,50:20,65:30">35 dias</option>
+      <option value="45:10,60:20,75:30">45 dias</option><option value="60:10,75:20,90:30">60 dias</option></select>
+    <p class="muted">A peça parada ganha 10% de desconto nesse dia, 20% depois de mais 15 dias e 30% depois de mais 15.
+      O preço nunca fica abaixo do custo + margem mínima.</p>
+    <div class="erro-campo" id="erro4"></div>
+  </section>
+</div>
+<div class="cad-rodape" id="cadRodape">
+  <button class="btn sec" id="cadVoltar" onclick="passoCadastro(-1)">Voltar</button>
+  <button class="btn" id="cadAvancar" onclick="passoCadastro(1)">Continuar</button>
+</div></div>
+<div id="dica"></div>
 
 <!-- ================= LOGIN ================= -->
 <div id="carregando">Carregando…</div>
@@ -223,6 +438,45 @@ details.ajuda ol{padding-left:20px;margin:8px 0 0}
   <button class="btn" style="margin-top:16px" onclick="salvarProduto()">Salvar produto</button>
 </div></div>
 
+<!-- ================= MODAL CONTA ================= -->
+<div class="modal" id="mConta"><div class="folha">
+  <div class="topo"><h2 style="margin:0" id="mContaTit">Nova conta</h2><button class="fechar" onclick="fechar('mConta')">✕</button></div>
+  <div class="chips" id="contaRapida" style="margin:6px 0 4px">
+    <span class="chip" data-n="Aluguel" data-t="fixa">Aluguel</span><span class="chip" data-n="Energia" data-t="media">Energia</span>
+    <span class="chip" data-n="Água" data-t="media">Água</span><span class="chip" data-n="Internet" data-t="fixa">Internet</span>
+    <span class="chip" data-n="Telefone" data-t="fixa">Telefone</span><span class="chip" data-n="DAS do MEI" data-t="fixa">DAS do MEI</span>
+    <span class="chip" data-n="Contador" data-t="fixa">Contador</span><span class="chip" data-n="Embalagens" data-t="media">Embalagens</span>
+    <span class="chip" data-n="Anúncios" data-t="media">Anúncios</span></div>
+  <label>Nome da conta</label><input id="ctNome" placeholder="Ex.: Aluguel">
+  <label>Como é o valor?</label>
+  <div class="chips" id="ctTipo"><span class="chip on" data-v="fixa">Sempre o mesmo</span><span class="chip" data-v="media">Muda todo mês</span></div>
+  <div id="ctFixa"><label>Valor por mês (R$)</label><input id="ctValor" type="number" inputmode="decimal" step="0.01"></div>
+  <div id="ctMedia" style="display:none"><label>Valor das 3 últimas contas (R$)</label>
+    <div class="lin"><input id="ctV1" type="number" inputmode="decimal" placeholder="1ª (mais antiga)"><input id="ctV2" type="number" inputmode="decimal" placeholder="2ª"><input id="ctV3" type="number" inputmode="decimal" placeholder="3ª (última)"></div>
+    <p class="muted" id="ctPrev">O app faz a média e prevê a próxima conta.</p></div>
+  <div class="lin" style="margin-top:14px"><button class="btn sec" id="ctExcluir" onclick="excluirConta()">Excluir</button><button class="btn" onclick="salvarConta()">Salvar</button></div>
+</div></div>
+
+<!-- ================= MODAL SALVAR MEU DIA ================= -->
+<div class="modal" id="mRelampago"><div class="folha">
+  <div class="topo"><h2 style="margin:0">⚡ Salvar meu dia</h2><button class="fechar" onclick="fechar('mRelampago')">✕</button></div>
+  <div id="relSugestao"></div>
+</div></div>
+
+<!-- ================= MODAL SONHO ================= -->
+<div class="modal" id="mSonho"><div class="folha">
+  <div class="topo"><h2 style="margin:0">Novo sonho</h2><button class="fechar" onclick="fechar('mSonho')">✕</button></div>
+  <label>Escolha um ícone</label>
+  <div class="emojis" id="soEmoji"><span class="on">🏍️</span><span>🚗</span><span>🏠</span><span>🎨</span><span>✈️</span><span>📱</span><span>💍</span><span>🎓</span><span>🛋️</span><span>⭐</span></div>
+  <label>Qual é o sonho?</label><input id="soNome" placeholder="Ex.: Moto Honda CG 160">
+  <div class="lin">
+    <div><label>Quanto custa (R$)</label><input id="soValor" type="number" inputmode="decimal" step="100"></div>
+    <div><label>Até quando?</label><input id="soPrazo" type="month"></div>
+  </div>
+  <p class="muted" id="soPrevia"></p>
+  <button class="btn" style="margin-top:8px" onclick="salvarSonho()">Guardar meu sonho</button>
+</div></div>
+
 <!-- ================= MODAL PRODUTO ================= -->
 <div class="modal" id="mProduto"><div class="folha" id="mProdutoCorpo"></div></div>
 
@@ -233,6 +487,7 @@ details.ajuda ol{padding-left:20px;margin:8px 0 0}
   <button class="ativa" data-t="vender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>Vender</button>
   <button data-t="estoque"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3 4 6l2 4 2-1v12h8V9l2 1 2-4-4-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3z"/></svg>Estoque</button>
   <button data-t="promo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12V3h9l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Promoções</button>
+  <button data-t="dinheiro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M16 12h2M2 10h20M6 6V4h12v2"/></svg>Dinheiro</button>
   <button data-t="painel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Painel</button>
   <button data-t="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Clientes</button>
 </nav>
@@ -262,7 +517,7 @@ function irPara(t){
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("ativa", b.dataset.t===t));
   document.querySelectorAll(".tela").forEach(s=>s.classList.toggle("ativa", s.id==="t-"+t));
   if (leitor && t!=="vender") pararLeitor();
-  ({vender:carregarCaixa, estoque:carregarEstoque, promo:carregarPromo, painel:carregarPainel, mais:carregarMais})[t]();
+  ({vender:carregarCaixa, estoque:carregarEstoque, promo:carregarPromo, dinheiro:carregarDinheiro, painel:carregarPainel, mais:carregarMais})[t]();
   window.scrollTo(0,0);
 }
 
@@ -305,11 +560,17 @@ async function finalizarVenda(){
     const r = await api("/vendas",{method:"POST", body:{forma_pagamento:forma, cliente_id: $("cliVenda").value || null,
       desconto_extra:Number($("descVenda").value||0), itens:carrinho.map(i=>({codigo:i.codigo, quantidade:i.qtd}))}});
     toast(`Venda registrada! ${brl(r.total)} · lucro ${brl(r.lucro)}${r.alerta?" · "+r.alerta:""}`, 4000);
+    for (const ev of r.relampago||[]) if (ev.tipo==="nova_etapa") setTimeout(()=>avisar("⚡ Próxima promoção relâmpago:", `${ev.item.nome} por ${brl(ev.item.preco_relampago)}.`), 4200);
     carrinho=[]; $("descVenda").value=0; renderCarrinho(); carregarCaixa();
   }catch(e){ toast(e.message); $("btnFinalizar").disabled=false; }
 }
 async function carregarCaixa(){
-  const [c, clis] = await Promise.all([api("/vendas"), api("/clientes")]);
+  const [c, clis, f] = await Promise.all([api("/vendas"), api("/clientes"), api("/financas")]);
+  const h=f.hoje;
+  $("miniTermo").innerHTML = f.contas_dia>0 ? `<div class="mini-termo" onclick="irPara('dinheiro')" title="Ver detalhes">
+      <span style="font-size:13px">Contas de hoje</span><span class="trilho"><i style="width:${Math.min(100,h.pct)}%"></i></span>
+      <b>${h.pct>=100?"pagas ✅":brl(h.coberto)+" de "+brl(h.custo_diario)}</b></div>`
+    : `<div class="mini-termo" onclick="irPara('dinheiro')"><span style="font-size:13px">💡 Cadastre as contas da loja (aluguel, luz…) para saber quanto vender por dia</span></div>`;
   $("cliVenda").innerHTML = '<option value="">— sem cliente —</option>' + clis.map(x=>`<option value="${x.cliente_id}">${x.nome}</option>`).join("");
   const formas = Object.entries(c.por_forma_pagamento).map(([k,v])=>`<span class="tag ok" style="margin:2px">${FORMAS[k]||k}: ${brl(v)}</span>`).join("");
   $("caixaDia").innerHTML = `<label style="margin-top:0">Caixa de hoje</label>
@@ -482,28 +743,331 @@ async function compartilhar(urlFeed, urlStory, idLegenda){
   toast("Flyer baixado e legenda copiada. Agora é só postar.", 3500);
 }
 
+// ---------- DINHEIRO
+let finAtual = null, contaEditando = null, sugestaoRel = null;
+const mesNome = k => { const [a,m]=k.split("-"); return ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][+m-1]+" de "+a; };
+const hora = iso => { const d=new Date(iso); return `${d.getHours()}h${d.getMinutes()?String(d.getMinutes()).padStart(2,"0"):""}`; };
+function blocoDivisao(d, claro){ return `<div class="divisao">
+  <div>🔁 Reinvestir em roupas<b>${brl(d.reinvestir)}</b></div><div>🛟 Reserva da loja<b>${brl(d.reserva)}</b></div>
+  <div>💰 Seu salário<b>${brl(d.salario)}</b></div><div>⭐ Seus sonhos<b>${brl(d.sonhos)}</b></div></div>`; }
+
+async function carregarDinheiro(){
+  const f = finAtual = await api("/financas"), h=f.hoje;
+  // fechamento do mês passado
+  const fc = f.fechamento;
+  $("fechamento").innerHTML = !fc ? "" : fc.positivo ? `<div class="card" style="border-color:var(--verde)">
+      <div class="tit-card"><b>🎉 ${mesNome(fc.mes)} fechou no azul!</b></div>
+      <p style="margin:0">Depois de pagar as contas da loja, sobraram <b>${brl(fc.sobra)}</b>. Sugestão de como dividir:</p>${blocoDivisao(fc.divisao)}
+      ${fc.sonhos.length?`<p class="muted">Quer já guardar a parte dos sonhos?</p>${fc.sonhos.map(x=>`<div class="lin" style="margin-top:6px"><span>${x.emoji||"⭐"} ${x.nome}</span>
+        <input type="number" inputmode="decimal" data-sonho="${x.id}" value="${x.valor.toFixed(2)}" style="flex:0 0 120px"></div>`).join("")}`:""}
+      <div class="lin" style="margin-top:12px"><button class="btn sec" onclick="fecharMes('${fc.mes}',false)">Agora não</button>
+        <button class="btn" onclick="fecharMes('${fc.mes}',true)">${fc.sonhos.length?"Guardar nos sonhos":"Entendi"}</button></div></div>`
+    : `<div class="card"><div class="tit-card"><b>${mesNome(fc.mes)} não fechou as contas</b></div>
+      <p style="margin:0">Faltaram <b>${brl(-fc.sobra)}</b> para pagar as contas da loja. Acontece! Este mês dá para virar:
+      venda pelo menos <b>${brl(f.meta.so_contas/30)}</b> por dia e use o ⚡ Salvar meu dia quando o movimento estiver fraco. 💪</p>
+      <button class="btn sec" style="margin-top:10px" onclick="fecharMes('${fc.mes}',false)">Bora!</button></div>`;
+  // termômetro de hoje
+  const semContas = f.contas_dia<=0;
+  $("termoHoje").innerHTML = `<div class="termo">
+    <div class="muted">${semContas?"Hoje":"Contas de hoje (aluguel, luz, água… ÷ 30)"}</div>
+    ${semContas?`<div class="msg">${h.mensagem}</div>`:`<div class="lin"><b class="big">${brl(h.lucro_hoje)}</b><span class="muted" style="text-align:right">de ${brl(h.custo_diario)} de lucro</span></div>
+    <div class="trilho"><i style="width:${Math.min(100,h.pct)}%"></i></div>
+    <div class="muted">Vendeu ${brl(h.vendas_hoje)} hoje · ${h.pct}% das contas do dia</div>
+    <div class="msg">${h.mensagem}</div>
+    ${h.falta>0?`<div class="msg">Faltam <b>${brl(h.falta)}</b> de lucro ≈ vender mais <b>${brl(h.venda_para_cobrir)}</b> (sua margem é ${f.margem.toLocaleString("pt-BR")}%).</div>`:""}
+    ${h.sobra>0?`<div class="msg">Hoje sobraram <b>${brl(h.sobra)}</b> depois das contas do dia. Separe assim:</div>${blocoDivisao(h.divisao_sobra)}`:""}
+    ${h.falta>0 && !f.relampago?`<button class="btn" onclick="abrirSalvarDia()">⚡ Salvar meu dia</button>`:""}`}
+  </div>`;
+  renderRelampago(f.relampago);
+  // contas
+  $("listaContas").innerHTML = f.despesas.length ? f.despesas.map(d=>`<div class="conta" onclick="abrirConta('${d.id}')">
+      <div><b>${d.nome}</b><div class="muted">${d.tipo==="media"?`média de ${d.valores.length} conta(s)${d.previsto.tendencia?" · "+({subindo:"↑ subindo",descendo:"↓ descendo","estável":"estável"})[d.previsto.tendencia]:""}`:"valor fixo"}</div></div>
+      <b>${brl(d.previsto.valor)}</b></div>`).join("") : '<p class="muted" style="margin:0">Nenhuma conta ainda. Comece pelo aluguel, energia, água e internet.</p>';
+  $("totalContas").innerHTML = f.contas_mes>0 ? `<div class="lin"><span class="muted">Total por mês</span><b style="text-align:right">${brl(f.contas_mes)}</b></div>
+    <div class="lin"><span class="muted">Por dia (÷ 30)</span><b style="text-align:right">${brl(f.contas_dia)}</b></div>
+    <p class="muted" style="margin-bottom:0">A loja "acorda devendo" <b>${brl(f.contas_dia)}</b> todo dia. Como parte de cada venda é o valor que você pagou na peça,
+      para sobrar ${brl(f.contas_dia)} é preciso vender cerca de <b>${brl(f.venda_minima_dia)}</b> por dia (margem de ${f.margem.toLocaleString("pt-BR")}%${f.margem_fonte!=="vendas"?", estimada pelo estoque":""}).</p>` : "";
+  // quanto vender
+  const mt=f.meta;
+  $("quantoVender").innerHTML = `<label style="margin-top:0">Quanto você quer tirar de salário por mês? (R$)</label>
+    <div class="lin"><input id="dnSalario" type="number" inputmode="decimal" step="100" value="${f.salario_desejado||""}" placeholder="Ex.: 1500"><button class="btn peq" style="flex:0 0 auto" onclick="salvarSalario()">Calcular</button></div>
+    <table class="tabela" style="margin-top:12px">
+      <tr><td>Só para pagar as contas</td><td><b>${brl(mt.so_contas)}</b>/mês</td></tr>
+      <tr><td>Contas + salário${finAtual.sonhos.some(s=>!s.concluido&&s.plano.por_mes)?" + sonhos":""} + reinvestir</td><td><b>${brl(mt.com_salario)}</b>/mês</td></tr>
+      <tr><td>Isso dá por dia</td><td><b>${brl(mt.por_dia)}</b></td></tr></table>
+    ${mt.sobra_necessaria>0?`<p class="muted">Com isso, depois das contas sobram ${brl(mt.sobra_necessaria)} por mês, divididos assim:</p>${blocoDivisao(mt.divisao)}`:""}
+    <p class="muted" style="margin-bottom:0">Este mês até agora: vendeu <b>${brl(f.mes.vendas)}</b>, lucro bruto ${brl(f.mes.lucro_bruto)}, contas do período ${brl(f.mes.contas_ate_hoje)}
+      → <b class="${f.mes.resultado<0?"neg":""}">${f.mes.resultado<0?"faltam ":"sobrou "}${brl(Math.abs(f.mes.resultado))}</b>.
+      ${f.contas_mes>0?`No ritmo atual o mês fecha ${f.mes.projecao>=0?"com sobra de":"faltando"} <b>${brl(Math.abs(f.mes.projecao))}</b>.`:""}</p>`;
+  // capital
+  const cp=f.capital, pc=f.percentuais;
+  $("capitalBox").innerHTML = `<label style="margin-top:0">Quanto dinheiro você tem para trabalhar? (capital de giro, R$)</label>
+    <div class="lin"><input id="dnCapital" type="number" inputmode="decimal" step="100" value="${f.capital_inicial||""}" placeholder="Ex.: 4000"><button class="btn peq" style="flex:0 0 auto" onclick="salvarCapital()">Ver plano</button></div>
+    ${cp?`<div class="capbar"><i style="flex:${cp.estoque};background:var(--vinho)"></i><i style="flex:${cp.reserva};background:var(--laranja)"></i><i style="flex:${cp.caixa||0.0001};background:var(--rosa2)"></i></div>
+      <div class="leg"><span style="--c:var(--vinho)">Roupas ${brl(cp.estoque)}</span><span style="--c:var(--laranja)">Reserva p/ contas ${brl(cp.reserva)}</span><span style="--c:var(--rosa2)">Caixa ${brl(cp.caixa)}</span></div>
+      <ol style="padding-left:20px;margin:12px 0 0;line-height:1.45">
+        <li><b>Compre ${brl(cp.estoque)} em roupas.</b> Com sua marcação média (${cp.markup.toLocaleString("pt-BR")}×), vendendo tudo isso vira <b>${brl(cp.simulacao.venda_total)}</b>.</li>
+        <li><b>Guarde ${brl(cp.reserva)} para as contas</b>${cp.meses_reserva?` (≈ ${cp.meses_reserva.toLocaleString("pt-BR")} mês(es) de aluguel, luz…)`:""}: assim um mês fraco não te aperta.</li>
+        <li><b>Deixe ${brl(cp.caixa)} no caixa</b> para troco e imprevistos.</li>
+        <li>A cada venda, <b>o valor que você pagou na peça volta para comprar roupa nova</b> (${brl(cp.simulacao.volta_para_estoque)} no total). Só o lucro (${brl(cp.simulacao.lucro_bruto)}) paga as contas, o seu salário e os sonhos.</li></ol>`
+      : '<p class="muted" style="margin-bottom:0">Informe o valor para ver como dividir entre roupas, reserva e caixa.</p>'}
+    <label style="margin-top:16px">Como dividir o que sobra depois das contas (%)</label>
+    <div class="pcts"><div><label>Reinvestir</label><input id="pcR" type="number" value="${pc.pct_reinvestir}"></div><div><label>Reserva</label><input id="pcV" type="number" value="${pc.pct_reserva}"></div>
+      <div><label>Salário</label><input id="pcS" type="number" value="${pc.pct_salario}"></div><div><label>Sonhos</label><input id="pcD" type="number" value="${pc.pct_sonhos}"></div></div>
+    <button class="btn sec" style="margin-top:10px" onclick="salvarPercentuais()">Salvar divisão</button>`;
+  // sonhos
+  $("sonhosBox").innerHTML = (f.sonhos.length ? f.sonhos.map(s=>{ const p=s.plano;
+    return `<div class="sonho"><div class="lin" style="align-items:flex-start"><span class="emo" style="flex:0 0 auto">${s.emoji||"⭐"}</span>
+      <div style="flex:1"><b>${s.nome}</b>${s.concluido?' <span class="tag ok">conquistado! 🎉</span>':""}<div class="muted">${brl(s.guardado)} de ${brl(s.valor)}${s.prazo?` · até ${s.prazo.slice(5,7)}/${s.prazo.slice(0,4)}`:""}</div>
+      <div class="barra"><i style="width:${p.pct}%"></i></div>
+      ${s.concluido?"":`<div class="muted">${p.por_mes?`Guarde <b>${brl(p.por_mes)}/mês</b> (≈ ${brl(p.por_dia)} por dia) para chegar no prazo.`:""}
+        ${p.ritmo_mes>0?` No ritmo atual você junta ${brl(p.ritmo_mes)}/mês: chega ${p.meses_no_ritmo?`em ${p.meses_no_ritmo} mes(es)`:"—"}${p.no_prazo===true?" ✅ dentro do prazo":""}.`:" Assim que a loja tiver sobra, o app separa uma parte para cá."}
+        ${p.pct_sonhos_necessario?` <b>Para chegar no prazo:</b> mude a parte dos sonhos para <b>${p.pct_sonhos_necessario}%</b> da sobra (em "Meu dinheiro")${p.vender_a_mais>0?` ou venda mais ${brl(p.vender_a_mais)} por mês`:""}. 💪`
+          : p.vender_a_mais>0?` <b>Vendendo mais ${brl(p.vender_a_mais)} por mês</b>, você chega no prazo. 💪`:""}</div>`}</div></div>
+      <div class="lin" style="margin-top:8px">${s.concluido?"":`<button class="btn peq" onclick="guardarSonho('${s.id}')">Guardar dinheiro</button>`}
+        <button class="btn sec peq" onclick="excluirSonho('${s.id}')">Excluir</button></div></div>`; }).join("")
+    : '<p class="muted" style="margin-top:0">Para que você está trabalhando? Uma moto, pintar a casa, uma viagem… Cadastre e o app mostra quanto guardar e separa parte da sobra para ele.</p>')
+    + `<button class="btn" style="margin-top:10px" onclick="abrirSonho()">+ Novo sonho</button>`;
+}
+async function fecharMes(mes, guardar){
+  const sonhos = guardar ? [...document.querySelectorAll("#fechamento [data-sonho]")].map(i=>({id:i.dataset.sonho, valor:Number(i.value)||0})) : [];
+  await api("/financas/dividir",{method:"POST",body:{mes, sonhos}}); if(sonhos.some(x=>x.valor>0)) toast("Guardado nos seus sonhos! ⭐");
+  carregarDinheiro();
+}
+async function salvarSalario(){ await api("/config",{method:"PUT",body:{salario_desejado:Number($("dnSalario").value)||0}}); carregarDinheiro(); }
+async function salvarCapital(){ await api("/config",{method:"PUT",body:{capital_inicial:Number($("dnCapital").value)||0}}); carregarDinheiro(); }
+async function salvarPercentuais(){
+  const v=["pcR","pcV","pcS","pcD"].map(i=>Math.max(0,Number($(i).value)||0)), t=v.reduce((a,b)=>a+b,0);
+  if (t!==100) return toast(`A soma precisa dar 100% (está ${t}%)`);
+  await api("/config",{method:"PUT",body:{pct_reinvestir:v[0],pct_reserva:v[1],pct_salario:v[2],pct_sonhos:v[3]}}); toast("Divisão salva"); carregarDinheiro();
+}
+// --- contas
+$("ctTipo").onclick = e => { const v=e.target.dataset.v; if(!v) return; tipoConta(v); };
+function tipoConta(v){ $("ctTipo").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.dataset.v===v)); $("ctFixa").style.display=v==="fixa"?"block":"none"; $("ctMedia").style.display=v==="media"?"block":"none"; prevConta(); }
+$("contaRapida").onclick = e => { const n=e.target.dataset.n; if(!n) return; $("ctNome").value=n; tipoConta(e.target.dataset.t); };
+["ctV1","ctV2","ctV3"].forEach(i=>$(i).addEventListener("input",prevConta));
+function prevConta(){ const vs=["ctV1","ctV2","ctV3"].map(i=>Number($(i).value)).filter(v=>v>0);
+  $("ctPrev").innerHTML = vs.length ? `Próxima conta deve vir perto de <b>${brl(vs.reduce((a,b)=>a+b,0)/vs.length)}</b> (média de ${vs.length}).` : "O app faz a média e prevê a próxima conta."; }
+function abrirConta(id){
+  contaEditando = id ? finAtual.despesas.find(d=>d.id===id) : null; const d=contaEditando;
+  $("mContaTit").textContent = d ? "Editar conta" : "Nova conta"; $("ctExcluir").style.display = d ? "block" : "none";
+  $("contaRapida").style.display = d ? "none" : "flex";
+  $("ctNome").value=d?.nome||""; $("ctValor").value=d?.tipo==="fixa"?d.valor:"";
+  const vs=d?.valores||[]; ["ctV1","ctV2","ctV3"].forEach((i,k)=>$(i).value=vs[k]??"");
+  tipoConta(d?.tipo||"fixa"); $("mConta").classList.add("on");
+}
+async function salvarConta(){
+  const tipo=$("ctTipo").querySelector(".chip.on").dataset.v;
+  const body={nome:$("ctNome").value, tipo, valor:Number($("ctValor").value)||0, valores:["ctV1","ctV2","ctV3"].map(i=>Number($(i).value)).filter(v=>v>0)};
+  try{ await api(contaEditando?`/despesas/${contaEditando.id}`:"/despesas",{method:contaEditando?"PUT":"POST",body}); fechar("mConta"); toast("Conta salva"); carregarDinheiro(); }
+  catch(e){ toast(e.message); }
+}
+async function excluirConta(){ if(!confirm("Excluir esta conta?")) return; await api(`/despesas/${contaEditando.id}`,{method:"DELETE"}); fechar("mConta"); carregarDinheiro(); }
+// --- sonhos
+$("soEmoji").onclick = e => { if(e.target.tagName!=="SPAN") return; $("soEmoji").querySelectorAll("span").forEach(x=>x.classList.toggle("on",x===e.target)); };
+["soValor","soPrazo"].forEach(i=>$(i).addEventListener("input",()=>{ const v=Number($("soValor").value), p=$("soPrazo").value; if(!v||!p) return $("soPrevia").textContent="";
+  const hoje=new Date(), meses=Math.max(1,(+p.slice(0,4)*12+ +p.slice(5,7)-1)-(hoje.getFullYear()*12+hoje.getMonth()));
+  $("soPrevia").innerHTML=`Para chegar lá: guardar <b>${brl(v/meses)}</b> por mês durante ${meses} mes(es) (≈ ${brl(v/meses/30)} por dia).`; }));
+function abrirSonho(){ ["soNome","soValor","soPrazo"].forEach(i=>$(i).value=""); $("soPrevia").textContent=""; $("mSonho").classList.add("on"); }
+async function salvarSonho(){
+  const p=$("soPrazo").value;
+  try{ await api("/sonhos",{method:"POST",body:{nome:$("soNome").value, valor:Number($("soValor").value), prazo:p?p+"-01":null,
+      emoji:$("soEmoji").querySelector(".on")?.textContent}}); fechar("mSonho"); toast("Sonho guardado! Agora é trabalhar por ele ⭐"); carregarDinheiro(); }
+  catch(e){ toast(e.message); }
+}
+async function guardarSonho(id){
+  const v = prompt("Quanto você está guardando agora para este sonho? (R$)"); if(!v) return;
+  const r = await api(`/sonhos/${id}/aporte`,{method:"POST",body:{valor:Number(v.replace(",","."))}});
+  toast(r.conquistou ? `🎉 Parabéns! Você conquistou: ${r.conquistou}!` : "Guardado! Cada real te deixa mais perto ⭐", 4000); carregarDinheiro();
+}
+async function excluirSonho(id){ if(!confirm("Excluir este sonho?")) return; await api(`/sonhos/${id}`,{method:"DELETE"}); carregarDinheiro(); }
+// --- salvar meu dia
+async function abrirSalvarDia(){
+  $("relSugestao").innerHTML='<p class="muted">Procurando as melhores peças no seu estoque…</p>'; $("mRelampago").classList.add("on");
+  const s = sugestaoRel = await api("/relampago/sugestao");
+  if (!s.itens.length) { $("relSugestao").innerHTML='<p>Não achei peças com margem para promoção relâmpago agora. Cadastre mais peças ou revise os preços.</p>'; return; }
+  const total = s.itens.reduce((t,i)=>t+i.lucro,0);
+  $("relSugestao").innerHTML = `<p style="margin-top:0">Faltam <b>${brl(s.falta_hoje)}</b> de lucro hoje. Separei 3 peças de preço parecido. Uma promoção por vez:
+      se a peça não vender em <b><span id="relH">${s.horas}</span> horas</b>, entra a próxima com desconto maior. Todas ainda dão lucro.</p>
+    <div class="etapas">${s.itens.map(i=>`<div class="et">${i.foto?`<img src="${i.foto}" alt="">`:'<span class="semfoto"></span>'}
+      <div style="flex:1"><b>${i.etapa}ª · ${i.nome}</b><div class="muted">${i.cor} · ${i.tamanho} · ${i.dias} dias na loja</div>
+      <div><span class="preco-de">${brl(i.preco)}</span><b>${brl(i.preco_relampago)}</b> <span class="tag promo">-${i.desconto_pct}%</span></div>
+      <div class="muted">lucro ${brl(i.lucro)} · cobre ${i.cobre_pct}% do que falta hoje${i.no_piso?" · no limite da margem":""}</div></div></div>`).join("")}</div>
+    <label>Tempo de cada promoção</label>
+    <div class="chips" id="relHoras">${[2,3,4].map(h=>`<span class="chip ${h===s.horas?"on":""}" data-h="${h}">${h} horas</span>`).join("")}</div>
+    <p class="muted">Se as 3 venderem: lucro de <b>${brl(total)}</b>. Vou te avisar a cada troca para você divulgar.</p>
+    <button class="btn" onclick="comecarRelampago()">⚡ Começar agora</button>`;
+  $("relHoras").onclick = e => { const h=+e.target.dataset.h; if(!h) return; s.horas=h; $("relH").textContent=h; $("relHoras").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",+c.dataset.h===h)); };
+}
+async function comecarRelampago(){
+  try{
+    await api("/relampago",{method:"POST",body:{itens:sugestaoRel.itens, horas:sugestaoRel.horas}});
+    fechar("mRelampago"); toast("Promoção relâmpago no ar! Divulgue a 1ª peça agora ⚡", 4000);
+    if ("Notification" in window && Notification.permission==="default") Notification.requestPermission().catch(()=>{});
+    carregarDinheiro();
+  }catch(e){ toast(e.message); }
+}
+function renderRelampago(r){
+  if (!r) { $("relampagoBox").innerHTML=""; return; }
+  const nomes={ativa:"no ar",aguardando:"aguardando",vendida:"vendida ✅",encerrada:"não vendeu",pulada:"pulada",nao_precisou:"não precisou"};
+  $("relampagoBox").innerHTML = `<div class="card"><div class="tit-card"><b>⚡ Promoção relâmpago de hoje</b><span>${r.horas}h cada</span></div>
+    <div class="etapas">${r.itens.map(i=>`<div class="et">${i.foto?`<img src="${i.foto}" alt="">`:'<span class="semfoto"></span>'}
+      <div style="flex:1"><b>${i.etapa}ª · ${i.nome}</b> <span class="muted">${i.cor} · ${i.tamanho}</span>
+      <div><span class="preco-de">${brl(i.preco_antes)}</span><b>${brl(i.preco_relampago)}</b> · lucro ${brl(i.lucro)}</div>
+      <span class="st ${i.status}">${nomes[i.status]||i.status}${i.status==="ativa"?` até ${hora(i.fim)}`:""}</span></div>
+      ${i.status==="ativa"?`<button class="btn peq" style="flex:0 0 auto" onclick="divulgarRelampago('${i.produto_id}')">Divulgar</button>`:""}</div>`).join("")}</div>
+    <div id="relFlyer"></div>
+    <button class="btn sec" style="margin-top:8px" onclick="cancelarRelampago()">Encerrar promoção relâmpago</button></div>`;
+}
+async function divulgarRelampago(pid){ fazerFlyer(pid, "relampago", "relFlyer"); }
+async function cancelarRelampago(){ if(!confirm("Encerrar a promoção relâmpago? Os preços voltam ao normal.")) return; await api("/relampago/cancelar",{method:"POST"}); carregarDinheiro(); }
+// --- aviso a cada troca de etapa (confere a cada minuto com o app aberto)
+async function avisar(titulo, texto){
+  toast(titulo+" "+texto, 6000);
+  try{ if ("Notification" in window && Notification.permission==="granted") (await navigator.serviceWorker.ready).showNotification(titulo,{body:texto, icon:"icon.svg", tag:"relampago"}); }catch(_){}
+}
+async function conferirRelampago(){
+  if (!window.lojaApi) return;
+  try{
+    const r = await api("/relampago/verificar",{method:"POST"});
+    for (const ev of r.eventos||[]) {
+      if (ev.tipo==="nova_etapa") avisar("⚡ Nova promoção relâmpago!", `${ev.item.nome} por ${brl(ev.item.preco_relampago)} até ${hora(ev.item.fim)}. Toque em Divulgar.`);
+      if (ev.tipo==="vendida") avisar("✅ Vendeu!", `${ev.item.nome} saiu na promoção relâmpago.`);
+      if (ev.tipo==="dia_salvo") avisar("🎉 Dia salvo!", "As contas de hoje estão pagas.");
+      if (ev.tipo==="acabou") avisar("Promoção relâmpago encerrada", "As 3 etapas terminaram. Amanhã tem mais!");
+    }
+    if (r.eventos?.length && document.querySelector("#t-dinheiro.ativa")) carregarDinheiro();
+  }catch(_){}
+}
+setInterval(conferirRelampago, 60000);
+
 // ---------- PAINEL
+let periodoPainel = "mes";
+$("periodos").onclick = e => { const p=e.target.dataset.p; if(!p) return; periodoPainel=p;
+  document.querySelectorAll("#periodos .chip").forEach(c=>c.classList.toggle("on", c.dataset.p===p)); carregarPainel(); };
+const num = v => Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const brlCurto = v => v>=10000 ? "R$ "+(v/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil" : brl(v);
+function delta(v, inverso){
+  if (v===null) return '<span class="delta igual">novo</span>';
+  if (v===0) return '<span class="delta igual">= igual</span>';
+  const sobe = v>0, bom = inverso ? !sobe : sobe;
+  return `<span class="delta ${bom?"sobe":"desce"}">${sobe?"▲":"▼"} ${Math.abs(v).toLocaleString("pt-BR")}%</span>`;
+}
+function graficoBarras(serie, fmt=brl){
+  const W=600, H=200, mt=16, mb=32, ml=4, mr=104, max=Math.max(...serie.map(s=>s.valor), 1);
+  const passo=(W-ml-mr)/serie.length, larg=Math.max(4, Math.min(34, passo*0.62)), h=H-mt-mb;
+  const nice = (()=>{ const p=10**Math.floor(Math.log10(max)); return Math.ceil(max/p)*p; })();
+  const y = v => mt + h - (v/nice)*h;
+  const cada = Math.ceil(serie.length/6);
+  let out = `<svg class="grafico" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de vendas">`;
+  for (const f of [0.5,1]) out += `<line class="grade" x1="0" x2="${W-mr+6}" y1="${y(nice*f)}" y2="${y(nice*f)}"/><text class="eixo" x="${W}" y="${y(nice*f)+4}" text-anchor="end">${brlCurto(nice*f)}</text>`;
+  out += `<line class="grade" x1="0" x2="${W-mr+6}" y1="${y(0)}" y2="${y(0)}"/>`;
+  serie.forEach((s,i)=>{
+    const cx = ml + passo*i + passo/2, x = cx-larg/2, alt = Math.max(s.valor>0?3:0, y(0)-y(s.valor)), r=Math.min(4, larg/2, alt);
+    const yt=y(0)-alt;
+    const path = alt>0 ? `M${x},${y(0)} V${yt+r} Q${x},${yt} ${x+r},${yt} H${x+larg-r} Q${x+larg},${yt} ${x+larg},${yt+r} V${y(0)} Z` : "";
+    out += `<g data-tip="${s.rotulo}: ${fmt(s.valor)}"><rect class="alvo" x="${ml+passo*i}" y="${mt}" width="${passo}" height="${h+mb}"/>${path?`<path class="barra-g" d="${path}"/>`:""}
+      ${((i%cada===0 && serie.length-1-i>=cada) || i===serie.length-1)?`<text class="eixo" x="${cx}" y="${H-8}" text-anchor="middle"${s.hoje?' font-weight="700"':''}>${s.rotulo}</text>`:""}</g>`;
+  });
+  return out+"</svg>";
+}
+function barrasH(lista, fmt=v=>v){
+  const max = Math.max(...lista.map(l=>l.valor), 1);
+  return lista.map(l=>`<div class="hbar"><span>${l.rotulo}</span><span class="trilho"><i style="width:${Math.max(2,l.valor/max*100)}%"></i></span><span class="v">${fmt(l.valor)}</span></div>`).join("");
+}
+// dica (tooltip) dos gráficos: passar o mouse ou tocar na barra
+document.addEventListener("pointerover", e => mostrarDica(e)); document.addEventListener("click", e => mostrarDica(e));
+function mostrarDica(e){
+  const g = e.target.closest?.("[data-tip]"), d=$("dica");
+  document.querySelectorAll(".grafico g.ativo").forEach(x=>x!==g && x.classList.remove("ativo"));
+  if(!g){ d.style.display="none"; return; }
+  g.classList.add("ativo"); d.textContent=g.dataset.tip; d.style.display="block";
+  const r=g.getBoundingClientRect(); d.style.left=Math.max(8, Math.min(innerWidth-d.offsetWidth-8, r.left+r.width/2-d.offsetWidth/2))+"px"; d.style.top=(r.top-36)+"px";
+}
 async function carregarPainel(){
-  const p = await api("/painel"); const m=p.mei;
-  $("painel").innerHTML = `<div class="grid2">
-    <div class="kpi"><span class="muted">Peças em estoque</span><b>${p.pecas_em_estoque}</b></div>
-    <div class="kpi"><span class="muted">Em promoção</span><b>${p.pecas_em_promocao}</b></div>
-    <div class="kpi"><span class="muted">Estoque (pago)</span><b>${brl(p.valor_estoque_custo)}</b></div>
-    <div class="kpi"><span class="muted">Estoque (venda)</span><b>${brl(p.valor_estoque_venda)}</b></div></div>
-    <div class="card" style="margin-top:12px"><label style="margin-top:0">Dinheiro parado</label>
-      <b class="big" style="color:var(--laranja)">${brl(p.dinheiro_parado)}</b>
-      <div class="muted">${p.pecas_paradas} peça(s) com mais de ${p.dias_para_considerar_parada} dias na loja</div></div>
-    <div class="card"><label style="margin-top:0">Limite do MEI ${m.ano}</label>
-      <div class="lin"><b>${brl(m.faturado)}</b><span class="muted" style="text-align:right">de ${brl(m.limite)}</span></div>
-      <div class="barra"><i style="width:${Math.min(m.uso_pct,100)}%;${m.uso_pct>=80?"background:var(--vermelho)":""}"></i></div>
-      <div class="muted">${m.uso_pct}% usado · projeção do ano ${brl(m.projecao_ano)}</div>
-      ${m.alerta?`<p style="color:var(--vermelho);font-weight:700">${m.alerta}</p>`:""}</div>`;
+  const [p, fin] = await Promise.all([api("/painel?periodo="+periodoPainel), api("/financas")]), a=p.atual, c=p.comparacao, m=p.mei, e=p.estoque;
+  const contas = fin.contas_mes;
+  const nomeP = {hoje:"Vendas dos últimos 7 dias", "7d":"Vendas por dia", mes:"Vendas por dia do mês", ano:"Vendas por mês"}[p.periodo];
+  const meta = p.meta ? `<div class="card"><div class="tit-card"><b>Meta do mês</b><span>${p.meta.dias_restantes} dia(s) restante(s)</span></div>
+      <div class="lin"><b class="big">${brl(p.meta.vendido)}</b><span class="muted" style="text-align:right">de ${brl(p.meta.valor)}</span></div>
+      <div class="barra"><i style="width:${Math.min(p.meta.pct,100)}%"></i></div>
+      <div class="muted">${p.meta.pct}% da meta${p.meta.falta>0?` · faltam <b>${brl(p.meta.falta)}</b> (≈ ${brl(p.meta.por_dia)} por dia)`:" · <b>meta batida! 🎉</b>"}</div>
+      <div class="muted">No ritmo atual o mês fecha em <b>${brl(p.meta.ritmo)}</b>.</div></div>`
+    : `<div class="card"><div class="tit-card"><b>Meta do mês</b></div><p class="muted" style="margin:0 0 8px">Defina uma meta para acompanhar quanto falta vender por dia.</p>
+      <button class="btn sec peq" onclick="irPara('mais')">Definir meta</button></div>`;
+  const formas = Object.entries(p.formas).sort((x,y)=>y[1]-x[1]).map(([k,v])=>({rotulo:FORMAS[k]||k, valor:v}));
+  const tamVend = new Map(p.vendas_por_tamanho.map(x=>[x.rotulo,x.valor])), tamEst = new Map(e.por_tamanho.map(x=>[x.rotulo,x.valor]));
+  const tams = [...new Set([...tamVend.keys(), ...tamEst.keys()])];
+  const ordemT = ["PP","P","M","G","GG","XG","XGG","U","34","36","38","40","42","44","46","48","50"];
+  tams.sort((x,y)=>(ordemT.indexOf(x)+1||99)-(ordemT.indexOf(y)+1||99));
+  $("painel").innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><span class="muted">Faturamento</span><span class="valor">${brl(a.faturamento)}</span>${delta(c.faturamento)}</div>
+      <div class="kpi"><span class="muted">Lucro</span><span class="valor">${brl(a.lucro)}</span>${delta(c.lucro)} <span class="muted" style="font-size:12px">margem ${a.margem}%</span></div>
+      <div class="kpi"><span class="muted">Vendas</span><span class="valor">${a.vendas}</span>${delta(c.vendas)}</div>
+      <div class="kpi"><span class="muted">Ticket médio</span><span class="valor">${brl(a.ticket)}</span>${delta(c.ticket)}</div>
+      <div class="kpi"><span class="muted">Peças vendidas</span><span class="valor">${a.pecas}</span>${delta(c.pecas)}</div>
+      <div class="kpi"><span class="muted">Peças por venda</span><span class="valor">${a.pecas_por_venda.toLocaleString("pt-BR")}</span></div>
+    </div>
+    <p class="muted" style="font-size:12px;margin:6px 0 12px">Setas comparam com ${p.comparado_com}.</p>
+    <div class="painel-grid">
+      ${meta}
+      <div class="card"><div class="tit-card"><b>${nomeP}</b><span>toque nas barras</span></div>${graficoBarras(p.serie)}</div>
+      <div class="card"><div class="tit-card"><b>Mais vendidos</b><span>no período</span></div>
+        ${p.mais_vendidos.length ? p.mais_vendidos.map((x,i)=>`<div class="rank"><span class="pos">${i+1}º</span>${x.foto?`<img src="${x.foto}" alt="">`:'<span class="semfoto"></span>'}
+          <div style="flex:1"><b>${x.nome}</b><div class="muted">${x.qtd} pç · lucro ${brl(x.lucro)}</div></div><b>${brl(x.faturamento)}</b></div>`).join("")
+          : '<p class="muted">Nenhuma venda no período.</p>'}</div>
+      <div class="card"><div class="tit-card"><b>Formas de pagamento</b><span>no período</span></div>
+        ${formas.length ? barrasH(formas, brl) : '<p class="muted">Nenhuma venda no período.</p>'}
+        ${p.fiado>0?`<p class="muted" style="margin-bottom:0">No fiado: <b>${brl(p.fiado)}</b></p>`:""}</div>
+      <div class="card largo"><div class="tit-card"><b>Resultado por mês</b><span>últimos 6 meses</span></div>
+        <div style="overflow-x:auto"><table class="tabela"><tr><th>Mês</th><th>Vendas</th><th>Custo peças</th><th>Taxas</th><th>Lucro bruto</th>${contas?"<th>Contas</th><th>Sobrou</th>":""}</tr>
+        ${(()=>{ const prim=p.dre.findIndex(d=>d.faturamento>0), ult=p.dre.length-1, hojeD=new Date().getDate();
+          return p.dre.map((d,i)=>{ const antes = prim<0 || i<prim;
+            const ct = i===ult ? Math.min(contas, contas/30*hojeD) : contas;
+            return `<tr><td>${d.rotulo}${i===ult?"*":""}</td>${antes?`<td colspan="${contas?6:4}" style="text-align:center" class="muted">sem vendas registradas</td>`
+              :`<td>${num(d.faturamento)}</td><td>${num(d.custo)}</td><td>${num(d.taxas)}</td><td class="${d.lucro<0?"neg":""}">${contas?num(d.lucro):`<b>${num(d.lucro)}</b>`}</td>
+              ${contas?`<td>${num(ct)}</td><td class="${d.lucro-ct<0?"neg":""}"><b>${num(d.lucro-ct)}</b></td>`:""}`}</tr>`; }).join(""); })()}</table></div>
+        <p class="muted" style="font-size:12px;margin:6px 0 0">* mês atual: contas proporcionais aos dias que já passaram.</p>
+        <p class="muted" style="font-size:12px;margin:6px 0 0">Valores em R$.</p>
+        <p class="muted" style="font-size:12px;margin-bottom:0">${contas?`Sobrou = lucro bruto − contas fixas da loja (${brl(contas)}/mês, pelos valores cadastrados hoje).`
+          :`Lucro bruto = vendas − custo das peças − taxas. <a href="#" onclick="irPara('dinheiro');return false" style="color:var(--vinho)">Cadastre as contas da loja</a> para ver quanto sobra de verdade.`}</p></div>
+      <div class="card"><div class="tit-card"><b>Tamanhos: vendido × estoque</b><span>para saber o que comprar</span></div>
+        ${tams.length ? `<table class="tabela"><tr><th>Tam.</th><th>Vendido</th><th>Em estoque</th></tr>
+          ${tams.map(t=>`<tr><td><b>${t}</b></td><td>${tamVend.get(t)||0}</td><td>${tamEst.get(t)||0}</td></tr>`).join("")}</table>` : '<p class="muted">Sem dados ainda.</p>'}</div>
+      <div class="card"><div class="tit-card"><b>Estoque</b><span>agora</span></div>
+        <div class="kpis" style="grid-template-columns:1fr 1fr">
+          <div><span class="muted">Peças</span><span class="valor">${e.pecas}</span></div>
+          <div><span class="muted">Em promoção</span><span class="valor">${e.em_promocao}</span></div>
+          <div><span class="muted">Valor pago</span><span class="valor">${brl(e.custo)}</span></div>
+          <div><span class="muted">Valor de venda</span><span class="valor">${brl(e.venda)}</span></div></div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--linha)"><span class="muted">Dinheiro parado (+${e.dias_alerta} dias)</span>
+          <span class="valor" style="color:var(--laranja)">${brl(e.dinheiro_parado)}</span><span class="muted">${e.pecas_paradas} peça(s)</span></div></div>
+      <div class="card"><div class="tit-card"><b>Peças paradas há mais tempo</b><span><a href="#" onclick="irPara('promo');return false" style="color:var(--vinho)">ver promoções</a></span></div>
+        ${p.encalhados.length ? p.encalhados.map(x=>`<div class="rank">${x.foto?`<img src="${x.foto}" alt="">`:'<span class="semfoto"></span>'}
+          <div style="flex:1"><b>${x.nome}</b><div class="muted">${x.cor} · ${x.tamanho} · ${x.qtd} pç</div></div>
+          <div style="text-align:right"><b>${x.dias} dias</b><div class="muted">${brl(x.preco)}${x.em_promocao?" (promo)":""}</div></div></div>`).join("")
+          : '<p class="muted">Nenhuma peça parada. Estoque girando! 🎉</p>'}</div>
+      <div class="card"><div class="tit-card"><b>Aniversariantes do mês</b><span>${p.aniversariantes.length} cliente(s)</span></div>
+        ${p.aniversariantes.length ? p.aniversariantes.map(x=>`<div class="item"><div><b>${x.nome}</b><div class="muted">dia ${x.dia}${x.hoje?" · <b>é hoje! 🎂</b>":""}</div></div>
+          ${x.whatsapp?`<a class="btn peq" style="text-decoration:none;flex:0 0 auto" target="_blank" href="https://wa.me/55${x.whatsapp.replace(/\D/g,"")}?text=${encodeURIComponent(`Oi, ${x.nome.split(" ")[0]}! 🎉 Feliz aniversário! A ${$("nomeLoja").textContent} preparou um presente: passa aqui pra ganhar um desconto especial 💖`)}">Parabenizar</a>`:""}</div>`).join("")
+          : '<p class="muted">Nenhum aniversário este mês. Cadastre a data de aniversário das clientes.</p>'}</div>
+      <div class="card"><div class="tit-card"><b>Limite do MEI ${m.ano}</b><span>R$ 81 mil/ano</span></div>
+        <div class="lin"><b>${brl(m.faturado)}</b><span class="muted" style="text-align:right">de ${brl(m.limite)}</span></div>
+        <div class="barra"><i style="width:${Math.min(m.uso_pct,100)}%;${m.uso_pct>=80?"background:var(--vermelho)":""}"></i></div>
+        <div class="muted">${m.uso_pct}% usado · projeção do ano ${brl(m.projecao_ano)}</div>
+        ${m.alerta?`<p style="color:var(--vermelho);font-weight:700;margin-bottom:0">⚠️ ${m.alerta}</p>`:""}</div>
+    </div>`;
 }
 
 // ---------- CLIENTES / CONFIG
 async function carregarMais(){
   const [cs, cf] = await Promise.all([api("/clientes"), api("/config")]);
   $("listaCli").innerHTML = cs.length ? cs.map(c=>`<div class="item"><b>${c.nome}</b><span class="muted">${c.whatsapp||""}</span></div>`).join("") : '<div class="vazio">Nenhuma cliente cadastrada.</div>';
+  $("cfMeta").value = cf.meta_mensal || "";
+  $("cfLogoPrev").style.display = cf.logo_url ? "block" : "none"; if (cf.logo_url) $("cfLogoPrev").src = cf.logo_url;
+  $("cfResumoLoja").innerHTML = `<b style="color:var(--tx)">${cf.nome_loja}</b>${cf.loja_segmento?" · "+cf.loja_segmento:""}<br>
+    ${cf.responsavel_nome?"Responsável: "+cf.responsavel_nome:""}${cf.cidade?"<br>"+cf.cidade+(cf.uf?"/"+cf.uf:""):""}`;
   $("cfNome").value=cf.nome_loja; $("cfMargem").value=cf.margem_minima_pct; $("cfTaxa").value=cf.taxa_cartao_pct; $("cfEscada").value=cf.escada_promocao;
   cfgAtual = cf;
   $("cfArroba").value=cf.instagram_arroba||""; $("cfZapLoja").value=cf.whatsapp_loja||"";
@@ -519,11 +1083,137 @@ async function salvarCliente(){
 }
 async function salvarConfig(){
   const body = {nome_loja:$("cfNome").value, margem_minima_pct:Number($("cfMargem").value),
-      taxa_cartao_pct:Number($("cfTaxa").value), escada_promocao:$("cfEscada").value,
+      taxa_cartao_pct:Number($("cfTaxa").value), escada_promocao:$("cfEscada").value, meta_mensal:Number($("cfMeta").value)||0,
       instagram_arroba:$("cfArroba").value, whatsapp_loja:$("cfZapLoja").value};
   try{ const c = await api("/config",{method:"PUT",body});
-    $("nomeLoja").textContent=c.nome_loja; document.title=c.nome_loja; toast("Configurações salvas"); carregarMais(); }
+    aplicarMarca(c); toast("Configurações salvas"); carregarMais(); }
   catch(e){ toast(e.message); }
+}
+
+// ---------- CADASTRO DA LOJA (assistente)
+let etapaCad = 1, modoEdicao = false, coresLogo = [];
+const soDig = v => String(v||"").replace(/\D/g,"");
+function mascaraZap(v){ const d=soDig(v).slice(0,11); if(d.length<=2) return d; if(d.length<=6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+  if(d.length<=10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`; return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`; }
+function mascaraCnpj(v){ const d=soDig(v).slice(0,14); return d.replace(/^(\d{2})(\d)/,"$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3").replace(/\.(\d{3})(\d)/,".$1/$2").replace(/(\d{4})(\d)/,"$1-$2"); }
+function mascaraCep(v){ const d=soDig(v).slice(0,8); return d.length>5 ? d.slice(0,5)+"-"+d.slice(5) : d; }
+function cnpjValido(c){ c=soDig(c); if(c.length!==14 || /^(\d)\1+$/.test(c)) return false;
+  const dv = n => { let s=0, p=n-7; for(let i=0;i<n;i++){ s+= +c[i]*p--; if(p<2) p=9; } const r=s%11; return r<2?0:11-r; };
+  return dv(12)===+c[12] && dv(13)===+c[13]; }
+[["rZap",mascaraZap],["lZap",mascaraZap],["lCnpj",mascaraCnpj],["lCep",mascaraCep]].forEach(([id,f])=>$(id).addEventListener("input",e=>{e.target.value=f(e.target.value);}));
+$("lMesmoZap").onchange = e => { if(e.target.checked) $("lZap").value = $("rZap").value; };
+$("lCep").addEventListener("input", async e => {
+  const cep = soDig(e.target.value); if (cep.length!==8) return;
+  try{ const r = await (await fetch(`https://viacep.com.br/ws/${cep}/json/`)).json();
+    if(r.erro) return toast("CEP não encontrado");
+    $("lRua").value=r.logradouro||""; $("lBairro").value=r.bairro||""; $("lCidade").value=r.localidade||""; $("lUf").value=r.uf||""; $("lNum").focus();
+  }catch(_){ /* sem internet: preenche na mão */ }
+});
+function chipsUnico(id){ $(id).onclick = e => { const v=e.target.dataset.v; if(!v) return; $(id).querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", c===e.target)); }; }
+function chipsMulti(id){ $(id).onclick = e => { if(e.target.dataset.v) e.target.classList.toggle("on"); }; }
+chipsUnico("rCargo"); chipsMulti("lCanais");
+const valorChips = id => [...$(id).querySelectorAll(".chip.on")].map(c=>c.dataset.v);
+const marcarChips = (id, vals) => $(id).querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", vals.includes(c.dataset.v)));
+
+async function abrirCadastroLoja(etapa=1){
+  const c = await api("/config");
+  modoEdicao = !!c.cadastro_completo;
+  $("rNome").value=c.responsavel_nome||""; $("rZap").value=mascaraZap(c.responsavel_whatsapp); $("rEmail").value=c.responsavel_email||(window.lojaUsuario?.email?.includes("@")?window.lojaUsuario.email:"");
+  marcarChips("rCargo", [c.responsavel_cargo||""]);
+  $("lNome").value = c.nome_loja==="Minha Loja" && !c.cadastro_completo ? "" : c.nome_loja; $("lSeg").value=c.loja_segmento||"";
+  marcarChips("lCanais", (c.loja_canais||"").split(",").filter(Boolean)); $("lInsta").value=c.instagram_arroba||""; $("lZap").value=mascaraZap(c.whatsapp_loja);
+  $("lCnpj").value=mascaraCnpj(c.loja_cnpj); $("lRazao").value=c.loja_razao_social||""; $("lCep").value=mascaraCep(c.cep);
+  $("lRua").value=c.endereco||""; $("lNum").value=c.numero||""; $("lBairro").value=c.bairro||""; $("lCidade").value=c.cidade||""; $("lUf").value=c.uf||"";
+  $("mMeta").value=c.meta_mensal||""; $("mMargem").value=c.margem_minima_pct; $("mTaxa").value=c.taxa_cartao_pct;
+  if ([...$("mDias").options].some(o=>o.value===c.escada_promocao)) $("mDias").value=c.escada_promocao;
+  else { const o=new Option("Personalizada ("+c.escada_promocao+")", c.escada_promocao); $("mDias").add(o); $("mDias").value=c.escada_promocao; }
+  coresLogo = [c.cor_primaria, c.cor_secundaria].filter(Boolean);
+  mostrarLogo(c.logo_url, coresLogo, c.cor_primaria);
+  $("telaCadastro").classList.add("on"); mostrarEtapa(etapa);
+}
+function mostrarEtapa(n){
+  etapaCad=n; document.querySelectorAll("#telaCadastro .etapa").forEach(e=>e.classList.toggle("on", +e.dataset.e===n));
+  document.querySelectorAll(".passos i").forEach((p,i)=>p.classList.toggle("on", i<n));
+  $("cadEtapaTxt").textContent = `Etapa ${n} de 4`;
+  $("cadVoltar").textContent = n===1 ? (modoEdicao?"Fechar":"Sair") : "Voltar";
+  $("cadAvancar").textContent = n===4 ? (modoEdicao?"Salvar":"Concluir e começar") : (n===3 && !$("lLogoPrev").src.startsWith("http") && !$("lLogoPrev").src.startsWith("blob") ? "Pular por enquanto" : "Continuar");
+  $("telaCadastro").scrollTop=0;
+}
+function validarEtapa(n){
+  const erro = (m) => { $("erro"+n).textContent=m; return false; }; $("erro"+n).textContent="";
+  if (n===1){
+    if ($("rNome").value.trim().split(/\s+/).length<2) return erro("Informe o nome completo.");
+    if (soDig($("rZap").value).length<10) return erro("Informe o WhatsApp com DDD.");
+    if (!/^\S+@\S+\.\S+$/.test($("rEmail").value.trim())) return erro("Informe um e-mail válido.");
+  }
+  if (n===2){
+    if (!$("lNome").value.trim()) return erro("Informe o nome da loja.");
+    if (!$("lSeg").value) return erro("Escolha o segmento.");
+    if ($("lCnpj").value && !cnpjValido($("lCnpj").value)) return erro("CNPJ inválido. Confira os números (ou deixe em branco).");
+  }
+  return true;
+}
+function dadosEtapa(n){
+  if (n===1) return {responsavel_nome:$("rNome").value.trim(), responsavel_whatsapp:$("rZap").value, responsavel_email:$("rEmail").value.trim(),
+    responsavel_cargo:valorChips("rCargo")[0]||null};
+  if (n===2) return {nome_loja:$("lNome").value.trim(), loja_segmento:$("lSeg").value, loja_canais:valorChips("lCanais").join(","),
+    instagram_arroba:$("lInsta").value, whatsapp_loja:$("lZap").value, loja_cnpj:$("lCnpj").value, loja_razao_social:$("lRazao").value.trim()||null,
+    cep:$("lCep").value, endereco:$("lRua").value.trim()||null, numero:$("lNum").value.trim()||null, bairro:$("lBairro").value.trim()||null,
+    cidade:$("lCidade").value.trim()||null, uf:$("lUf").value.trim().toUpperCase()||null};
+  if (n===4) return {meta_mensal:Number($("mMeta").value)||0, margem_minima_pct:Number($("mMargem").value)||0,
+    taxa_cartao_pct:Number($("mTaxa").value)||0, escada_promocao:$("mDias").value};
+  return {};
+}
+async function passoCadastro(dir){
+  if (dir<0){
+    if (etapaCad===1){ if (modoEdicao) { $("telaCadastro").classList.remove("on"); return; }
+      if (confirm("Sair? Você pode terminar o cadastro depois.")) { $("telaCadastro").classList.remove("on"); } return; }
+    return mostrarEtapa(etapaCad-1);
+  }
+  if (!validarEtapa(etapaCad)) return;
+  const btn=$("cadAvancar"); btn.disabled=true;
+  try{
+    const dados = dadosEtapa(etapaCad);
+    if (etapaCad===4) dados.cadastro_completo = true;
+    const c = Object.keys(dados).length ? await api("/config",{method:"PUT",body:dados}) : await api("/config");
+    aplicarMarca(c);
+    if (etapaCad===4){ $("telaCadastro").classList.remove("on"); toast(modoEdicao?"Dados da loja salvos":"Tudo pronto! Bem-vinda à "+c.nome_loja+" 💖", 3500);
+      document.querySelector("nav button.ativa")?.click(); }
+    else mostrarEtapa(etapaCad+1);
+  }catch(e){ $("erro"+etapaCad).textContent=e.message; }
+  finally{ btn.disabled=false; }
+}
+function mostrarLogo(url, cores, escolhida){
+  $("lLogoPrev").style.display = url ? "block" : "none"; if (url) $("lLogoPrev").src=url; else $("lLogoPrev").removeAttribute("src");
+  $("lLogoTxt").textContent = url ? "Trocar logo" : "📷 Toque para escolher a logo";
+  $("lCoresBox").style.display = cores.length ? "block" : "none";
+  $("lCores").innerHTML = cores.map(c=>`<button type="button" style="background:${c}" class="${c===escolhida?"on":""}" data-c="${c}" aria-label="cor ${c}"></button>`).join("");
+  $("amostraNome").textContent = $("lNome").value || $("nomeLoja").textContent;
+}
+async function enviarLogoCadastro(input){
+  const f=input.files[0]; if(!f) return; $("erro3").textContent=""; $("lLogoTxt").textContent="Lendo as cores da logo…";
+  try{
+    const fd=new FormData(); fd.append("arquivo", f);
+    const c = await api("/config/logo",{method:"POST", body:fd});
+    coresLogo = c.cores_da_logo.length ? c.cores_da_logo : [];
+    mostrarLogo(c.logo_url, coresLogo, c.cor_primaria); aplicarMarca(c); mostrarEtapa(3);
+    toast("Pronto! O app ficou com as cores da sua logo", 3000);
+  }catch(e){ $("erro3").textContent=e.message; $("lLogoTxt").textContent="📷 Toque para escolher a logo"; }
+  input.value="";
+}
+$("lCores").onclick = async e => {
+  const cor=e.target.dataset.c; if(!cor) return;
+  const sec = coresLogo.find(x=>x!==cor) || null;
+  const c = await api("/config",{method:"PUT",body:{cor_primaria:cor, cor_secundaria:sec}});
+  mostrarLogo(c.logo_url, coresLogo, cor); aplicarMarca(c);
+};
+
+// ---------- marca (logo + cores) no app todo
+function aplicarMarca(c){
+  window.lojaTema?.(c.cor_primaria, c.cor_secundaria);
+  $("nomeLoja").textContent=c.nome_loja; document.title=c.nome_loja;
+  $("logoTopo").style.display = c.logo_url ? "block" : "none"; if (c.logo_url) $("logoTopo").src=c.logo_url;
+  try{ localStorage.setItem("loja_marca", JSON.stringify({p:c.cor_primaria, s:c.cor_secundaria, nome:c.nome_loja})); }catch(_){}
 }
 
 // ---------- login e início
@@ -533,12 +1223,14 @@ async function fazerLogin(nova){
   $("lgMsg").textContent = nova ? "Criando conta…" : "Entrando…";
   try{ await window.lojaEntrar(email, senha, nova); }catch(e){ $("lgMsg").textContent = e.message; }
 }
+window.lojaOcupado = () => carrinho.length>0 || document.querySelector(".modal.on, #telaCadastro.on") !== null;
 async function sairDaConta(){ if(confirm("Sair da conta neste aparelho?")) await window.lojaSair(); }
 window.addEventListener("loja-pronta", async () => {
   const c = await api("/config");
-  $("nomeLoja").textContent=c.nome_loja; document.title=c.nome_loja;
+  aplicarMarca(c);
   $("avisoDemo").style.display = c.modo==="demo" ? "block" : "none";
   irPara("vender");
+  if (!c.cadastro_completo) abrirCadastroLoja(1);   // primeiro acesso: cadastro da loja
 });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>

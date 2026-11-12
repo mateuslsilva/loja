@@ -122,7 +122,9 @@ export function formatarZap(n) {
 
 export function legenda(dados) {
   const tams = dados.tamanhos.join(", "), cores = dados.cores.join(", ");
-  const topo = dados.tipo === "promo"
+  const topo = dados.tipo === "relampago"
+    ? `⚡ PROMOÇÃO RELÂMPAGO – só até as ${dados.ate}!\n\n${dados.nome}: de ${brl(dados.preco_de)} por apenas ${brl(dados.preco_por)} (${dados.desconto_pct}% OFF)\nPeças limitadas: quem chamar primeiro leva!`
+    : dados.tipo === "promo"
     ? `🔥 PROMOÇÃO: ${dados.nome}\n\nDe ${brl(dados.preco_de)} por apenas ${brl(dados.preco_por)} (${dados.desconto_pct}% OFF)`
     : `✨ NOVIDADE: ${dados.nome}\n\nPor ${brl(dados.preco_por)}`;
   const zap = dados.whatsapp ? `\n📲 WhatsApp ${formatarZap(dados.whatsapp)}` : "";

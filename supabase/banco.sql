@@ -21,6 +21,38 @@ create table if not exists config (
   atualizado_em timestamptz not null default now()
 );
 
+-- campos do cadastro da loja, logo, cores e metas (versão 2)
+alter table config add column if not exists cadastro_completo boolean not null default false;
+alter table config add column if not exists responsavel_nome text;
+alter table config add column if not exists responsavel_whatsapp text;
+alter table config add column if not exists responsavel_email text;
+alter table config add column if not exists responsavel_cargo text;
+alter table config add column if not exists loja_razao_social text;
+alter table config add column if not exists loja_cnpj text;
+alter table config add column if not exists loja_segmento text;
+alter table config add column if not exists loja_canais text;
+alter table config add column if not exists cep text;
+alter table config add column if not exists endereco text;
+alter table config add column if not exists numero text;
+alter table config add column if not exists bairro text;
+alter table config add column if not exists cidade text;
+alter table config add column if not exists uf text;
+alter table config add column if not exists logo text;
+alter table config add column if not exists cor_primaria text;
+alter table config add column if not exists cor_secundaria text;
+alter table config add column if not exists meta_mensal double precision not null default 0;
+-- dinheiro: capital, salário, divisão do lucro e promoção relâmpago (versão 3)
+alter table config add column if not exists capital_inicial double precision not null default 0;
+alter table config add column if not exists salario_desejado double precision not null default 0;
+alter table config add column if not exists pct_reinvestir double precision not null default 30;
+alter table config add column if not exists pct_reserva double precision not null default 10;
+alter table config add column if not exists pct_salario double precision not null default 50;
+alter table config add column if not exists pct_sonhos double precision not null default 10;
+alter table config add column if not exists relampago_horas integer not null default 3;
+alter table config add column if not exists relampago_margem_min double precision not null default 15;
+alter table config add column if not exists relampago_descontos text not null default '20,30,50';
+alter table config add column if not exists ultimo_mes_dividido text;
+
 -- ---------- produtos (o modelo: "Vestido midi alça")
 create table if not exists produtos (
   id uuid primary key,
@@ -62,6 +94,52 @@ create table if not exists lotes (
   desconto_pct double precision not null default 0,
   promo_no_piso boolean not null default false,
   promo_desde date
+);
+
+alter table lotes add column if not exists relampago_ate timestamptz;  -- preço relâmpago vale até
+
+-- ---------- contas fixas da loja (aluguel, energia, água, internet…)
+create table if not exists despesas (
+  id uuid primary key,
+  owner_id uuid not null default auth.uid() references auth.users on delete cascade,
+  nome text not null,
+  tipo text not null default 'fixa' check (tipo in ('fixa','media')),  -- media = média das 3 últimas contas
+  valor double precision not null default 0,
+  valores jsonb not null default '[]'::jsonb,
+  ordem integer not null default 0,
+  criado_em timestamptz not null default now()
+);
+
+-- ---------- sonhos e dinheiro guardado para eles
+create table if not exists sonhos (
+  id uuid primary key,
+  owner_id uuid not null default auth.uid() references auth.users on delete cascade,
+  nome text not null,
+  emoji text,
+  valor double precision not null check (valor > 0),
+  prazo date,
+  guardado double precision not null default 0,
+  concluido boolean not null default false,
+  criado_em timestamptz not null default now()
+);
+create table if not exists aportes (
+  id uuid primary key,
+  owner_id uuid not null default auth.uid() references auth.users on delete cascade,
+  sonho_id uuid not null references sonhos on delete cascade,
+  valor double precision not null,
+  data timestamptz not null default now(),
+  origem text
+);
+
+-- ---------- "salvar meu dia": promoções relâmpago em etapas
+create table if not exists relampagos (
+  id uuid primary key,
+  owner_id uuid not null default auth.uid() references auth.users on delete cascade,
+  data date not null default current_date,
+  horas integer not null default 3,
+  itens jsonb not null,
+  status text not null default 'ativo',
+  criado_em timestamptz not null default now()
 );
 
 -- ---------- clientes
@@ -106,7 +184,7 @@ create index if not exists idx_itens_venda on itens_venda (venda_id);
 do $$
 declare t text;
 begin
-  foreach t in array array['config','produtos','variacoes','lotes','clientes','vendas','itens_venda'] loop
+  foreach t in array array['config','produtos','variacoes','lotes','clientes','vendas','itens_venda','despesas','sonhos','aportes','relampagos'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists dono on %I', t);
     execute format('create policy dono on %I for all to authenticated

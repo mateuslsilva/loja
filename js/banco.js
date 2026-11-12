@@ -3,11 +3,18 @@
 //   - Demonstração: tudo guardado no próprio aparelho (IndexedDB)
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
-export const TABELAS = ["produtos", "variacoes", "lotes", "clientes", "vendas", "itens_venda"];
+export const TABELAS = ["produtos", "variacoes", "lotes", "clientes", "vendas", "itens_venda",
+  "despesas", "sonhos", "aportes", "relampagos"];
 
 export const CONFIG_PADRAO = {
   nome_loja: "Minha Loja", margem_minima_pct: 30, taxa_cartao_pct: 4, considerar_taxa_cartao: true,
   escada_promocao: "35:10,50:20,65:30", limite_mei_anual: 81000, instagram_arroba: null, whatsapp_loja: null,
+  cadastro_completo: false, responsavel_nome: null, responsavel_whatsapp: null, responsavel_email: null,
+  responsavel_cargo: null, loja_razao_social: null, loja_cnpj: null, loja_segmento: null, loja_canais: null,
+  cep: null, endereco: null, numero: null, bairro: null, cidade: null, uf: null, logo: null,
+  cor_primaria: null, cor_secundaria: null, meta_mensal: 0,
+  capital_inicial: 0, salario_desejado: 0, pct_reinvestir: 30, pct_reserva: 10, pct_salario: 50, pct_sonhos: 10,
+  relampago_horas: 3, relampago_margem_min: 15, relampago_descontos: "20,30,50", ultimo_mes_dividido: null,
 };
 
 export const novoId = () => (crypto.randomUUID ? crypto.randomUUID()
@@ -63,6 +70,10 @@ export class BancoSupabase {
     const { error } = await this.sb.from(tabela).update(campos).eq("id", id);
     if (error) throw new Error(error.message);
   }
+  async remover(tabela, id) {
+    const { error } = await this.sb.from(tabela).delete().eq("id", id);
+    if (error) throw new Error(error.message);
+  }
   async salvarConfig(campos) {
     const { data, error } = await this.sb.from("config").update({ ...campos, atualizado_em: new Date().toISOString() })
       .eq("owner_id", (await this.usuario()).id).select().single();
@@ -75,9 +86,10 @@ export class BancoSupabase {
     if (error) throw new Error(error.message);
     return data;
   }
-  async enviarFoto(produtoId, blob) {
-    const caminho = `${(await this.usuario()).id}/${produtoId}_${Date.now()}.jpg`;
-    const { error } = await this.sb.storage.from("fotos").upload(caminho, blob, { contentType: "image/jpeg", upsert: true });
+  async enviarFoto(prefixo, blob) {
+    const ext = blob.type === "image/png" ? "png" : "jpg";
+    const caminho = `${(await this.usuario()).id}/${prefixo}_${Date.now()}.${ext}`;
+    const { error } = await this.sb.storage.from("fotos").upload(caminho, blob, { contentType: blob.type || "image/jpeg", upsert: true });
     if (error) throw new Error(error.message);
     return caminho;
   }
@@ -137,6 +149,7 @@ class BancoLocal {
     const l = this.e[tabela].find((x) => x.id === id); if (l) Object.assign(l, campos);
     await this._salvar(tabela);
   }
+  async remover(tabela, id) { this.e[tabela] = this.e[tabela].filter((x) => x.id !== id); await this._salvar(tabela); }
   async salvarConfig(campos) { Object.assign(this.e.config, campos); await this._gravar("config", this.e.config); return { ...this.e.config }; }
   async registrarVenda({ id, forma, clienteId, desconto, itens }) {
     // mesma regra da função registrar_venda do Supabase (lotes mais antigos primeiro, tudo ou nada)
@@ -164,8 +177,8 @@ class BancoLocal {
     await Promise.all(["lotes", "vendas", "itens_venda"].map((t) => this._salvar(t)));
     return { venda_id: id, total, custo: Math.round(custo * 100) / 100, taxa_maquininha: taxa };
   }
-  async enviarFoto(produtoId, blob) {
-    const caminho = `demo/${produtoId}_${Date.now()}.jpg`;
+  async enviarFoto(prefixo, blob) {
+    const caminho = `demo/${prefixo}_${Date.now()}.${blob.type === "image/png" ? "png" : "jpg"}`;
     await this._gravar("foto:" + caminho, blob);
     this.fotos.set(caminho, URL.createObjectURL(blob));
     return caminho;

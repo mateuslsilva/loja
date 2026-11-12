@@ -1,8 +1,10 @@
 // Gera o flyer (JPEG) no próprio aparelho, com o mesmo layout da versão Python.
 //   feed  -> 1080 x 1350   |   story -> 1080 x 1920
 import { brl, formatarZap } from "./regras.js";
+import { coresFlyer } from "./tema.js";
 
-const VINHO = "#7a2e4d", ROSA = "#f6e7ec", CREME = "#faf6f4", TEXTO = "#2a1d22", CINZA = "#7d6b72", LARANJA = "#d66e20";
+// cores da loja (vêm da logo); trocadas a cada flyer gerado
+let VINHO, ROSA, CREME, TEXTO, CINZA, LARANJA;
 const TAMANHOS = { feed: [1080, 1350], story: [1080, 1920] };
 const FAMILIA = { titulo: ["Fraunces", 700], texto: ["DM Sans", 400], negrito: ["DM Sans", 700] };
 
@@ -101,9 +103,9 @@ function chips(ctx, x, y, itens, largMax, alt = 62) {
 }
 
 function textos(ctx, tx, ty, tw, d, formato) {
-  const promo = d.tipo === "promo";
+  const promo = d.tipo !== "novidade";
   if (formato === "feed") {
-    ty = pilula(ctx, tx, ty, promo ? "PROMOÇÃO" : "NOVIDADE") + 26;
+    ty = pilula(ctx, tx, ty, d.selo || (promo ? "PROMOÇÃO" : "NOVIDADE")) + 26;
     fonte(ctx, "titulo", 54);
     for (const linha of quebrar(ctx, d.nome, tw)) { escrever(ctx, linha, tx, ty, TEXTO); ty += 64; }
     ty += 26;
@@ -144,13 +146,20 @@ function textos(ctx, tx, ty, tw, d, formato) {
 /** Retorna um Blob JPEG com o flyer. */
 export async function gerarFlyer(d, formato = "feed") {
   await carregarFontes();
-  const [W, H] = TAMANHOS[formato], M = 60, rodape = 110, promo = d.tipo === "promo";
+  ({ VINHO, ROSA, CREME, TEXTO, CINZA, LARANJA } = coresFlyer(d.cor_primaria, d.cor_secundaria));
+  const [W, H] = TAMANHOS[formato], M = 60, rodape = 110, promo = d.tipo !== "novidade";
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const ctx = cv.getContext("2d"); ctx.fillStyle = CREME; ctx.fillRect(0, 0, W, H);
-  const img = await carregarImagem(d.foto);
+  const [img, logo] = await Promise.all([carregarImagem(d.foto), carregarImagem(d.logo)]);
 
-  // topo
-  caber(ctx, d.loja, "titulo", 50, 620); escrever(ctx, d.loja, M, formato === "feed" ? 48 : 110, VINHO);
+  // topo: logo da loja (ou o nome, se não tiver logo)
+  const topo = formato === "feed" ? 30 : 92;
+  if (logo) {
+    const k = Math.min(420 / logo.width, 100 / logo.height);
+    ctx.drawImage(logo, M, topo - 6 + (100 - logo.height * k) / 2, logo.width * k, logo.height * k);
+  } else {
+    caber(ctx, d.loja, "titulo", 50, 620); escrever(ctx, d.loja, M, topo + 18, VINHO);
+  }
   if (d.arroba) {
     fonte(ctx, "texto", 30); const a = "@" + d.arroba.replace(/^@/, "");
     escrever(ctx, a, W - M - larg(ctx, a), formato === "feed" ? 62 : 124, CINZA);
@@ -170,13 +179,13 @@ export async function gerarFlyer(d, formato = "feed") {
     const fx = M, fy = 200, fw = W - 2 * M, fh = 980;
     desenharFoto(ctx, img, fx, fy, fw, fh, 44);
     if (promo && d.desconto_pct) selo(ctx, fx + fw - 120, fy + 120, 110, d.desconto_pct);
-    pilula(ctx, fx + 30, fy + 30, promo ? "PROMOÇÃO" : "NOVIDADE", 32);
+    pilula(ctx, fx + 30, fy + 30, d.selo || (promo ? "PROMOÇÃO" : "NOVIDADE"), 32);
     textos(ctx, M, fy + fh + 40, W - 2 * M, d, formato);
   }
 
   // rodapé
   ctx.fillStyle = VINHO; ctx.fillRect(0, H - rodape, W, rodape);
-  const chamada = promo ? "Peças limitadas · chama no direct!" : "Chegou! Chama no direct e garanta a sua";
+  const chamada = d.chamada || (promo ? "Peças limitadas · chama no direct!" : "Chegou! Chama no direct e garanta a sua");
   caber(ctx, chamada, "negrito", 36, W - 2 * M - (d.whatsapp ? 330 : 0));
   ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(chamada, M, H - rodape / 2);
   if (d.whatsapp) {

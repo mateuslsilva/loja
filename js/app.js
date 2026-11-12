@@ -1,9 +1,36 @@
 // Inicialização: escolhe o banco (Supabase ou demonstração), faz login e libera as telas.
 import { criarBanco } from "./banco.js";
 import { api, iniciarServico } from "./servico.js";
+import { aplicarTema } from "./tema.js";
 
 const $ = (id) => document.getElementById(id);
 let banco;
+
+// ---------- cores da loja já na abertura (antes de carregar os dados)
+window.lojaTema = aplicarTema;
+try { const m = JSON.parse(localStorage.getItem("loja_marca") || "null"); if (m?.p) aplicarTema(m.p, m.s); } catch { /* sem cache */ }
+
+// ---------- atualização automática: quando um arquivo novo sobe no GitHub, o app se atualiza sozinho
+let versaoAtual = null;
+async function lerVersao() {
+  try { return (await (await fetch("versao.json?t=" + Date.now(), { cache: "no-store" })).json()).versao; } catch { return null; }
+}
+async function conferirAtualizacao() {
+  const v = await lerVersao();
+  if (!v) return;
+  if (versaoAtual === null) { versaoAtual = v; return; }
+  if (v === versaoAtual) return;
+  const reg = await navigator.serviceWorker?.getRegistration();
+  await reg?.update().catch(() => {});
+  const ocupado = window.lojaOcupado?.();
+  const aviso = $("avisoVersao");
+  aviso.style.display = "block";
+  if (ocupado) { aviso.textContent = "Nova versão do app disponível. Toque aqui para atualizar."; aviso.onclick = () => location.reload(); }
+  else { aviso.textContent = "Atualizando o app para a nova versão…"; setTimeout(() => location.reload(), 1200); }
+}
+conferirAtualizacao();
+setInterval(conferirAtualizacao, 3 * 60 * 1000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") conferirAtualizacao(); });
 
 async function abrir() {
   $("carregando").style.display = "flex";
