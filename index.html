@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Minha Loja</title>
+<meta name="theme-color" content="#7a2e4d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --vinho:#7a2e4d; --vinho2:#5c1f38; --rosa:#f6e7ec; --rosa2:#efd3dc;
+  --bg:#faf6f4; --card:#fff; --tx:#2a1d22; --tx2:#7d6b72; --linha:#eadfe2;
+  --verde:#2f7d5b; --verde-bg:#e3f2ea; --laranja:#b8621b; --laranja-bg:#fbeee0; --vermelho:#b3261e;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 "DM Sans",system-ui,sans-serif;padding-bottom:84px}
+header{background:var(--vinho);color:#fff;padding:14px 16px calc(14px) ;position:sticky;top:0;z-index:5;
+  padding-top:max(14px,env(safe-area-inset-top))}
+header h1{margin:0;font:600 21px "Fraunces",Georgia,serif;letter-spacing:.2px}
+header small{opacity:.75;font-size:12px}
+main{max-width:760px;margin:0 auto;padding:16px}
+.tela{display:none}.tela.ativa{display:block}
+h2{font:600 19px "Fraunces",serif;margin:4px 0 12px}
+.card{background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:12px;font-weight:700;color:var(--tx2);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--linha);border-radius:10px;font:inherit;background:#fff;color:var(--tx)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--rosa2);border-color:var(--vinho)}
+.lin{display:flex;gap:8px;align-items:center}.lin>*{flex:1}
+.btn{border:0;border-radius:12px;padding:12px 16px;font:700 15px "DM Sans",system-ui,sans-serif;cursor:pointer;background:var(--vinho);color:#fff;width:100%}
+.btn.sec{background:var(--rosa);color:var(--vinho)}
+.btn.peq{width:auto;padding:8px 12px;font-size:13px}
+.btn:disabled{opacity:.45}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--linha);background:#fff;border-radius:999px;padding:7px 12px;font-size:14px;cursor:pointer;user-select:none}
+.chip.on{background:var(--vinho);border-color:var(--vinho);color:#fff}
+.tag{display:inline-block;border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700}
+.tag.promo{background:var(--laranja-bg);color:var(--laranja)}
+.tag.ok{background:var(--verde-bg);color:var(--verde)}
+.tag.piso{background:#fde3e1;color:var(--vermelho)}
+.muted{color:var(--tx2);font-size:13px}
+.preco-de{text-decoration:line-through;color:var(--tx2);font-size:13px;margin-right:4px}
+.big{font:700 26px "DM Sans",system-ui,sans-serif}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:12px}
+.kpi b{display:block;font-size:20px;margin-top:2px}
+.barra{height:10px;background:var(--rosa);border-radius:9px;overflow:hidden;margin:8px 0 4px}
+.barra i{display:block;height:100%;background:var(--vinho)}
+.item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--linha)}
+.item:last-child{border:0}
+.qtd{display:flex;align-items:center;gap:6px}
+.qtd button{width:30px;height:30px;border-radius:8px;border:1px solid var(--linha);background:#fff;font-size:17px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);display:flex;z-index:6;
+  padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:9px 0 10px;font:500 11px "DM Sans",system-ui,sans-serif;color:var(--tx2);cursor:pointer}
+nav button svg{display:block;margin:0 auto 3px;width:23px;height:23px}
+nav button.ativa{color:var(--vinho);font-weight:700}
+.matriz{width:100%;border-collapse:collapse;margin-top:8px}
+.matriz th,.matriz td{padding:5px;text-align:center;font-size:13px}
+.matriz td input{width:56px;padding:7px;text-align:center}
+.matriz th:first-child,.matriz td:first-child{text-align:left}
+.fab{position:fixed;right:16px;bottom:96px;width:56px;height:56px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:30px;box-shadow:0 6px 16px #7a2e4d55;z-index:4}
+.modal{position:fixed;inset:0;background:#2a1d2266;display:none;align-items:flex-end;justify-content:center;z-index:10}
+.modal.on{display:flex}
+.modal .folha{background:var(--bg);width:100%;max-width:760px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px 28px}
+.modal .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.fechar{border:0;background:var(--rosa);color:var(--vinho);border-radius:50%;width:34px;height:34px;font-size:18px}
+#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--tx);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;display:none;z-index:20;max-width:90%;text-align:center}
+#leitor{border-radius:12px;overflow:hidden;margin-top:10px}
+.var-lin{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed var(--linha)}
+pre.texto{white-space:pre-wrap;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:12px;font:14px "DM Sans",system-ui,sans-serif;margin:8px 0}
+.vazio{text-align:center;color:var(--tx2);padding:30px 10px}
+@media (min-width:900px){ body{padding-bottom:0;padding-left:96px} nav{top:0;bottom:0;right:auto;width:96px;flex-direction:column;justify-content:center;border-top:0;border-right:1px solid var(--linha)} nav button{flex:none;padding:14px 0} .fab{bottom:24px} header{padding-left:16px}}
+@media print{ body *{visibility:hidden} #etiquetas,#etiquetas *{visibility:visible} #etiquetas{position:absolute;left:0;top:0} }
+.foto-prod{width:100%;max-height:340px;object-fit:cover;border-radius:14px;display:block;background:var(--rosa)}
+.foto-mini{width:64px;height:80px;object-fit:cover;border-radius:10px;background:var(--rosa);flex:0 0 64px}
+.flyers{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.flyers img{width:100%;border-radius:10px;border:1px solid var(--linha);display:block}
+.acoes{display:flex;flex-wrap:wrap;gap:6px}.acoes .btn{flex:1 1 140px}
+.status{font-size:12px;font-weight:700}.status.postado{color:var(--verde)}.status.erro{color:var(--vermelho)}.status.gerado{color:var(--tx2)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--linha);margin-top:10px}
+.switch input{width:46px;height:26px;accent-color:var(--vinho)}
+details.ajuda{background:var(--rosa);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:14px}
+details.ajuda summary{font-weight:700;color:var(--vinho);cursor:pointer}
+details.ajuda ol{padding-left:20px;margin:8px 0 0}
+.foto-box{display:flex;gap:12px;align-items:center}
+.foto-box img{width:84px;height:104px;object-fit:cover;border-radius:10px;background:var(--rosa)}
+#telaLogin{position:fixed;inset:0;background:var(--vinho);z-index:30;display:none;align-items:center;justify-content:center;padding:20px}
+#telaLogin.on{display:flex}
+#telaLogin .caixa{background:var(--bg);border-radius:18px;padding:22px;width:100%;max-width:380px}
+#telaLogin h1{font:600 26px "Fraunces",Georgia,serif;color:var(--vinho);margin:0 0 4px}
+#carregando{position:fixed;inset:0;background:var(--bg);z-index:25;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+#avisoDemo{display:none;background:var(--laranja-bg);color:var(--laranja);font-size:13px;padding:8px 16px;text-align:center}
+.etq{display:inline-block;width:5cm;border:1px dashed #999;padding:4px;margin:2px;text-align:center;font-size:10px;font-family:Arial}
+.etq svg{width:100%;height:40px}
+</style>
+</head>
+<body>
+<header><h1 id="nomeLoja">Minha Loja</h1><small>Gestão da loja · BY: Mateus Lima</small></header>
+<div id="avisoDemo">Modo demonstração: os dados ficam só neste aparelho.</div>
+
+<main>
+<!-- ================= VENDER ================= -->
+<section id="t-vender" class="tela ativa">
+  <h2>Nova venda</h2>
+  <div class="card">
+    <div class="lin">
+      <input id="codVenda" placeholder="Código da peça ou código de barras" autocomplete="off" style="flex:3">
+      <button class="btn peq" style="flex:0 0 52px;font-size:20px" onclick="addVenda()">+</button>
+    </div>
+    <button class="btn sec" style="margin-top:8px" onclick="abrirLeitor()">📷 Ler código com a câmera</button>
+    <div id="leitor"></div>
+  </div>
+  <div class="card" id="carrinho"><div class="vazio">Nenhuma peça na venda ainda.</div></div>
+  <div class="card">
+    <label>Forma de pagamento</label>
+    <div class="chips" id="formas"></div>
+    <label>Cliente (opcional)</label>
+    <select id="cliVenda"><option value="">— sem cliente —</option></select>
+    <label>Desconto no caixa (R$)</label>
+    <input id="descVenda" type="number" inputmode="decimal" min="0" step="0.01" value="0" oninput="renderCarrinho()">
+    <div class="lin" style="margin-top:14px"><span class="muted">Total</span><span class="big" id="totalVenda" style="text-align:right">R$ 0,00</span></div>
+    <button class="btn" style="margin-top:12px" id="btnFinalizar" onclick="finalizarVenda()" disabled>Finalizar venda</button>
+  </div>
+  <div class="card" id="caixaDia"></div>
+</section>
+
+<!-- ================= ESTOQUE ================= -->
+<section id="t-estoque" class="tela">
+  <h2>Estoque</h2>
+  <input id="buscaEst" placeholder="Buscar produto…" oninput="carregarEstoque()">
+  <div id="listaEst" style="margin-top:12px"></div>
+  <button class="fab" onclick="abrirCadastro()" title="Cadastrar produto">+</button>
+</section>
+
+<!-- ================= PROMOÇÕES ================= -->
+<section id="t-promo" class="tela">
+  <h2>Peças paradas em promoção</h2>
+  <button class="btn sec" onclick="rodarRobo()">🤖 Atualizar promoções agora</button>
+  <div id="listaPromo" style="margin-top:12px"></div>
+  <div id="redesPromo"></div>
+  <div id="divulga"></div>
+</section>
+
+<!-- ================= PAINEL ================= -->
+<section id="t-painel" class="tela">
+  <h2>Painel da loja</h2>
+  <div id="painel"></div>
+</section>
+
+<!-- ================= MAIS ================= -->
+<section id="t-mais" class="tela">
+  <h2>Clientes</h2>
+  <div class="card">
+    <label>Nome</label><input id="cNome">
+    <div class="lin"><div><label>WhatsApp</label><input id="cZap" inputmode="tel" placeholder="65999990000"></div>
+    <div><label>Aniversário</label><input id="cNiver" type="date"></div></div>
+    <button class="btn" style="margin-top:12px" onclick="salvarCliente()">Cadastrar cliente</button>
+  </div>
+  <div class="card" id="listaCli"></div>
+  <h2>Configurações</h2>
+  <div class="card">
+    <label>Nome da loja</label><input id="cfNome">
+    <div class="lin">
+      <div><label>Margem mínima (%)</label><input id="cfMargem" type="number" inputmode="decimal"></div>
+      <div><label>Taxa maquininha (%)</label><input id="cfTaxa" type="number" inputmode="decimal"></div>
+    </div>
+    <label>Escada de promoção (dias:desconto%)</label><input id="cfEscada" placeholder="35:10,50:20,65:30">
+    <p class="muted">Ex.: com 35 dias, 10% off; com 50 dias, 20%; com 65 dias, 30%. O preço nunca fica abaixo do custo + margem mínima.</p>
+    <button class="btn" onclick="salvarConfig()">Salvar configurações</button>
+  </div>
+  <h2>Redes sociais</h2>
+  <div class="card">
+    <div class="lin">
+      <div><label>@ do Instagram</label><input id="cfArroba" placeholder="lacloset"></div>
+      <div><label>WhatsApp da loja</label><input id="cfZapLoja" inputmode="tel" placeholder="65999990000"></div>
+    </div>
+    <p class="muted">Aparecem nos flyers.</p>
+    <button class="btn" style="margin-top:12px" onclick="salvarConfig()">Salvar</button>
+    <p class="muted" style="margin-bottom:0">Os flyers são gerados no próprio celular. Para postar, use "Compartilhar" na aba Promoções:
+      ele abre o Instagram, o TikTok ou o WhatsApp já com a imagem.</p>
+  </div>
+  <h2>Conta</h2>
+  <div class="card">
+    <div id="infoConta" class="muted"></div>
+    <button class="btn sec" style="margin-top:10px" id="btnSair" onclick="sairDaConta()">Sair da conta</button>
+  </div>
+</section>
+</main>
+
+<!-- ================= LOGIN ================= -->
+<div id="carregando">Carregando…</div>
+<div id="telaLogin"><div class="caixa">
+  <h1>Gestão da Loja</h1><p class="muted" style="margin-top:0">Entre com a conta da loja</p>
+  <label>E-mail</label><input id="lgEmail" type="email" autocomplete="username" inputmode="email">
+  <label>Senha</label><input id="lgSenha" type="password" autocomplete="current-password">
+  <button class="btn" style="margin-top:16px" onclick="fazerLogin(false)">Entrar</button>
+  <button class="btn sec" style="margin-top:8px" onclick="fazerLogin(true)">Criar conta</button>
+  <p class="muted" id="lgMsg" style="margin-bottom:0"></p>
+</div></div>
+
+<!-- ================= MODAL CADASTRO ================= -->
+<div class="modal" id="mCadastro"><div class="folha">
+  <div class="topo"><h2 style="margin:0">Cadastrar produto</h2><button class="fechar" onclick="fechar('mCadastro')">✕</button></div>
+  <label>Foto da peça</label>
+  <div class="foto-box"><img id="pFotoPrev" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=">
+    <div style="flex:1"><input id="pFoto" type="file" accept="image/*" onchange="previewFoto()" style="padding:8px">
+    <p class="muted" style="margin:4px 0 0">Foto em pé (retrato), com a peça inteira. Ela vai para o flyer.</p></div></div>
+  <label>Nome da peça</label><input id="pNome" placeholder="Ex.: Vestido midi alça">
+  <label>Categoria</label><select id="pCat"></select>
+  <div class="lin">
+    <div><label>Valor pago (R$)</label><input id="pCusto" type="number" inputmode="decimal" step="0.01" oninput="calcMargem()"></div>
+    <div><label>Preço de venda (R$)</label><input id="pPreco" type="number" inputmode="decimal" step="0.01" oninput="calcMargem()"></div>
+  </div>
+  <div id="pMargem" class="muted" style="margin-top:6px"></div>
+  <label>Data de entrada</label><input id="pData" type="date">
+  <label>Cores (separe por vírgula)</label><input id="pCores" placeholder="Preto, Vermelho, Off white" oninput="renderMatriz()">
+  <label>Tamanhos</label><div class="chips" id="pTams"></div>
+  <div id="pMatriz"></div>
+  <button class="btn" style="margin-top:16px" onclick="salvarProduto()">Salvar produto</button>
+</div></div>
+
+<!-- ================= MODAL PRODUTO ================= -->
+<div class="modal" id="mProduto"><div class="folha" id="mProdutoCorpo"></div></div>
+
+<div id="etiquetas"></div>
+<div id="toast"></div>
+
+<nav>
+  <button class="ativa" data-t="vender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>Vender</button>
+  <button data-t="estoque"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3 4 6l2 4 2-1v12h8V9l2 1 2-4-4-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3z"/></svg>Estoque</button>
+  <button data-t="promo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12V3h9l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Promoções</button>
+  <button data-t="painel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Painel</button>
+  <button data-t="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Clientes</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script>
+const TAMANHOS = ["PP","P","M","G","GG","XG","U","36","38","40","42","44","46"];
+const FORMAS = {pix:"Pix",dinheiro:"Dinheiro",debito:"Débito",credito:"Crédito",fiado:"Fiado"};
+const $ = id => document.getElementById(id);
+const brl = v => "R$ " + Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const hoje = () => new Date().toISOString().slice(0,10);
+let carrinho = [], forma = "pix", tamsSel = new Set(["P","M","G"]), leitor = null;
+
+const api = (url, opt) => window.lojaApi(url, opt);  // definido pelo módulo js/app.js
+async function enviarFoto(produtoId, arquivo){
+  const fd = new FormData(); fd.append("arquivo", arquivo);
+  return api(`/produtos/${produtoId}/foto`, {method:"POST", body:fd});
+}
+function previewFoto(){ const f=$("pFoto").files[0]; if(f) $("pFotoPrev").src = URL.createObjectURL(f); }
+function toast(msg, ms=2600){ const t=$("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",ms); }
+function fechar(id){ $(id).classList.remove("on"); }
+
+// ---------- navegação
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => irPara(b.dataset.t));
+function irPara(t){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("ativa", b.dataset.t===t));
+  document.querySelectorAll(".tela").forEach(s=>s.classList.toggle("ativa", s.id==="t-"+t));
+  if (leitor && t!=="vender") pararLeitor();
+  ({vender:carregarCaixa, estoque:carregarEstoque, promo:carregarPromo, painel:carregarPainel, mais:carregarMais})[t]();
+  window.scrollTo(0,0);
+}
+
+// ---------- VENDER
+$("formas").innerHTML = Object.entries(FORMAS).map(([k,v])=>`<span class="chip ${k===forma?"on":""}" data-f="${k}">${v}</span>`).join("");
+$("formas").onclick = e => { const f=e.target.dataset.f; if(!f) return; forma=f;
+  document.querySelectorAll("#formas .chip").forEach(c=>c.classList.toggle("on", c.dataset.f===f)); };
+$("codVenda").addEventListener("keydown", e => { if (e.key==="Enter") addVenda(); });
+
+async function addVenda(codigo){
+  codigo = (codigo || $("codVenda").value).trim(); if(!codigo) return;
+  try {
+    const p = await api("/pecas/"+encodeURIComponent(codigo));
+    const ja = carrinho.find(i=>i.codigo===p.codigo);
+    const noCarrinho = ja ? ja.qtd : 0;
+    if (p.quantidade <= noCarrinho) return toast(`Sem estoque de ${p.codigo}`);
+    if (ja) ja.qtd++; else carrinho.push({codigo:p.codigo, nome:p.produto, cor:p.cor, tam:p.tamanho, lotes:p.lotes, qtd:1});
+    $("codVenda").value=""; renderCarrinho(); toast("Adicionado: "+p.produto+" "+p.cor+" "+p.tamanho, 1500);
+  } catch(e){ toast(e.message); }
+}
+function precoItem(i){ // soma usando lotes mais antigos primeiro (igual ao servidor)
+  let falta=i.qtd, tot=0; for (const l of i.lotes){ const q=Math.min(falta,l.quantidade); tot+=q*l.preco_atual; falta-=q; if(!falta) break; } return tot;
+}
+function renderCarrinho(){
+  const c=$("carrinho");
+  if(!carrinho.length){ c.innerHTML='<div class="vazio">Nenhuma peça na venda ainda.</div>'; $("totalVenda").textContent=brl(0); $("btnFinalizar").disabled=true; return; }
+  c.innerHTML = carrinho.map((i,k)=>{ const promo=i.lotes[0]?.preco_promocional;
+    return `<div class="item"><div><b>${i.nome}</b><div class="muted">${i.cor} · ${i.tam} · ${i.codigo}</div>
+      ${promo?'<span class="tag promo">promoção</span>':''}</div>
+      <div style="text-align:right"><div><b>${brl(precoItem(i))}</b></div>
+      <div class="qtd" style="justify-content:flex-end;margin-top:4px"><button onclick="mudaQtd(${k},-1)">−</button>${i.qtd}<button onclick="mudaQtd(${k},1)">+</button></div></div></div>`;}).join("");
+  const tot = carrinho.reduce((s,i)=>s+precoItem(i),0) - Number($("descVenda").value||0);
+  $("totalVenda").textContent = brl(Math.max(tot,0)); $("btnFinalizar").disabled=false;
+}
+function mudaQtd(k,d){ const i=carrinho[k]; const est=i.lotes.reduce((s,l)=>s+l.quantidade,0);
+  i.qtd+=d; if(i.qtd>est){i.qtd=est; toast("Estoque máximo atingido");} if(i.qtd<=0) carrinho.splice(k,1); renderCarrinho(); }
+async function finalizarVenda(){
+  $("btnFinalizar").disabled=true;
+  try{
+    const r = await api("/vendas",{method:"POST", body:{forma_pagamento:forma, cliente_id: $("cliVenda").value || null,
+      desconto_extra:Number($("descVenda").value||0), itens:carrinho.map(i=>({codigo:i.codigo, quantidade:i.qtd}))}});
+    toast(`Venda registrada! ${brl(r.total)} · lucro ${brl(r.lucro)}${r.alerta?" · "+r.alerta:""}`, 4000);
+    carrinho=[]; $("descVenda").value=0; renderCarrinho(); carregarCaixa();
+  }catch(e){ toast(e.message); $("btnFinalizar").disabled=false; }
+}
+async function carregarCaixa(){
+  const [c, clis] = await Promise.all([api("/vendas"), api("/clientes")]);
+  $("cliVenda").innerHTML = '<option value="">— sem cliente —</option>' + clis.map(x=>`<option value="${x.cliente_id}">${x.nome}</option>`).join("");
+  const formas = Object.entries(c.por_forma_pagamento).map(([k,v])=>`<span class="tag ok" style="margin:2px">${FORMAS[k]||k}: ${brl(v)}</span>`).join("");
+  $("caixaDia").innerHTML = `<label style="margin-top:0">Caixa de hoje</label>
+    <div class="lin"><div><b class="big">${brl(c.total)}</b><div class="muted">${c.quantidade_vendas} venda(s) · lucro ${brl(c.lucro)}</div></div></div>
+    <div style="margin-top:6px">${formas}</div>`;
+}
+function abrirLeitor(){
+  if (leitor) return pararLeitor();
+  if (!window.Html5Qrcode) return toast("Leitor indisponível sem internet");
+  leitor = new Html5Qrcode("leitor");
+  leitor.start({facingMode:"environment"}, {fps:10, qrbox:{width:260,height:120}},
+    txt => { pararLeitor(); addVenda(txt); }).catch(()=>{ toast("Não consegui abrir a câmera (o app precisa estar em https)"); leitor=null; });
+}
+function pararLeitor(){ if(leitor){ leitor.stop().catch(()=>{}); leitor=null; $("leitor").innerHTML=""; } }
+
+// ---------- ESTOQUE
+async function carregarEstoque(){
+  const b=$("buscaEst").value; const ps = await api("/produtos"+(b?"?busca="+encodeURIComponent(b):""));
+  if(!ps.length){ $("listaEst").innerHTML='<div class="vazio">Nenhum produto ainda.<br>Toque no + para cadastrar.</div>'; return; }
+  $("listaEst").innerHTML = ps.map(p=>{
+    const promo = p.variacoes.some(v=>v.lotes.some(l=>l.preco_promocional));
+    const preco = Math.min(...p.variacoes.flatMap(v=>v.lotes.map(l=>l.preco_atual)).concat([Infinity]));
+    const grade = p.variacoes.filter(v=>v.quantidade>0).map(v=>`<span class="chip" style="padding:3px 9px;font-size:12px">${v.cor} ${v.tamanho}: <b>${v.quantidade}</b></span>`).join("");
+    return `<div class="card" onclick="abrirProduto('${p.produto_id}')" style="cursor:pointer">
+      <div class="lin"><div><b>${p.nome}</b><div class="muted">${p.codigo} · ${p.categoria}</div></div>
+      <div style="text-align:right;flex:0 0 auto"><b>${p.quantidade_total} pç</b><div class="muted">${isFinite(preco)?"a partir de "+brl(preco):"sem estoque"}</div></div></div>
+      <div class="chips" style="margin-top:8px">${grade||'<span class="muted">Esgotado</span>'}</div>
+      ${promo?'<div style="margin-top:8px"><span class="tag promo">tem peça em promoção</span></div>':''}</div>`;}).join("");
+}
+async function abrirProduto(id){
+  const p = await api("/produtos/"+id);
+  const temPromo = p.variacoes.some(v=>v.lotes.some(l=>l.preco_promocional));
+  $("mProdutoCorpo").innerHTML = `<div class="topo"><div><h2 style="margin:0">${p.nome}</h2><div class="muted">${p.codigo} · ${p.categoria}</div></div><button class="fechar" onclick="fechar('mProduto')">✕</button></div>
+    <div class="card">
+      ${p.foto?`<img class="foto-prod" src="${p.foto}" alt="${p.nome}">`:'<div class="vazio" style="padding:16px">Sem foto ainda. A foto é usada no flyer das redes sociais.</div>'}
+      <label class="btn sec" style="display:block;text-align:center;margin-top:10px;text-transform:none;letter-spacing:0;font-size:15px;color:var(--vinho)">📷 ${p.foto?"Trocar foto":"Adicionar foto"}
+        <input type="file" accept="image/*" style="display:none" onchange="trocarFoto('${p.produto_id}', this)"></label>
+      <div class="acoes" style="margin-top:8px">
+        ${temPromo?`<button class="btn" onclick="fazerFlyer('${p.produto_id}','promo')">Flyer de promoção</button>`:""}
+        <button class="btn ${temPromo?"sec":""}" onclick="fazerFlyer('${p.produto_id}','novidade')">Flyer de novidade</button>
+      </div>
+      <div id="flyerProd"></div>
+    </div>
+    ${p.variacoes.map(v=>`<div class="card"><div class="lin"><div><b>${v.cor} · ${v.tamanho}</b><div class="muted">${v.codigo} · ${v.codigo_barras}</div></div>
+      <div style="flex:0 0 auto"><b>${v.quantidade} pç</b></div></div>
+      ${v.lotes.map(l=>`<div class="var-lin"><div class="muted">${l.quantidade} pç · ${l.dias_em_loja} dias na loja<br>custo ${brl(l.custo)} · margem ${l.margem_pct}%</div>
+        <div style="text-align:right">${l.preco_promocional?`<span class="preco-de">${brl(l.preco_venda)}</span><b>${brl(l.preco_promocional)}</b><br><span class="tag ${l.promo_no_piso?"piso":"promo"}">${l.promo_no_piso?"no limite da margem":"-"+l.desconto_pct+"%"}</span>`:`<b>${brl(l.preco_venda)}</b>`}</div></div>`).join("")}
+      <div class="lin" style="margin-top:10px"><button class="btn sec peq" onclick="repor('${v.codigo}')">Repor estoque</button>
+      <button class="btn sec peq" onclick="etiquetas('${v.codigo_barras}','${p.nome.replace(/'/g,"")}','${v.cor} ${v.tamanho}',${v.lotes[0]?.preco_atual||0},${v.quantidade||1})">Imprimir etiquetas</button></div></div>`).join("")}`;
+  $("mProduto").classList.add("on");
+}
+async function repor(codigo){
+  const qtd = prompt("Quantas peças chegaram?"); if(!qtd) return;
+  const custo = prompt("Valor pago por peça (R$)?"); if(!custo) return;
+  try{ await api("/estoque/entrada",{method:"POST",body:{codigo, quantidade:Number(qtd), custo:Number(custo.replace(",","."))}});
+    toast("Estoque reposto"); fechar("mProduto"); carregarEstoque(); }catch(e){ toast(e.message); }
+}
+function etiquetas(barras, nome, var_, preco, qtd){
+  const n = Number(prompt("Quantas etiquetas?", qtd)); if(!n) return;
+  $("etiquetas").innerHTML = Array.from({length:n},()=>`<div class="etq"><b>${nome}</b><br>${var_} · ${brl(preco)}<svg class="bc"></svg></div>`).join("");
+  document.querySelectorAll("#etiquetas .bc").forEach(s=>JsBarcode(s, barras, {format:"EAN13", height:36, fontSize:11, margin:0}));
+  setTimeout(()=>window.print(), 200);
+}
+
+// ---------- CADASTRO
+async function abrirCadastro(){
+  const cats = await api("/categorias");
+  $("pCat").innerHTML = Object.entries(cats).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
+  ["pNome","pCusto","pPreco","pCores","pFoto"].forEach(i=>$(i).value=""); $("pFotoPrev").src="data:image/gif;base64,R0lGODlhAQABAAAAACw="; $("pData").value=hoje(); $("pMargem").textContent="";
+  renderTams(); renderMatriz(); $("mCadastro").classList.add("on");
+}
+function renderTams(){
+  $("pTams").innerHTML = TAMANHOS.map(t=>`<span class="chip ${tamsSel.has(t)?"on":""}" data-t="${t}">${t}</span>`).join("");
+}
+$("pTams").onclick = e => { const t=e.target.dataset.t; if(!t) return; tamsSel.has(t)?tamsSel.delete(t):tamsSel.add(t); renderTams(); renderMatriz(); };
+function calcMargem(){
+  const c=Number($("pCusto").value), p=Number($("pPreco").value);
+  $("pMargem").innerHTML = c&&p ? (p<=c ? '<span style="color:var(--vermelho)">Preço menor que o custo!</span>'
+    : `Lucro por peça: <b>${brl(p-c)}</b> · margem <b>${((p-c)/p*100).toFixed(0)}%</b> · marcação ${(p/c).toFixed(2)}x`) : "";
+}
+function renderMatriz(){
+  const cores = $("pCores").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const tams = TAMANHOS.filter(t=>tamsSel.has(t));
+  if(!cores.length || !tams.length){ $("pMatriz").innerHTML='<p class="muted">Digite as cores e escolha os tamanhos para preencher as quantidades.</p>'; return; }
+  const ant = {}; document.querySelectorAll("#pMatriz input").forEach(i=>ant[i.dataset.k]=i.value);
+  $("pMatriz").innerHTML = `<label>Quantidade por cor e tamanho</label><div style="overflow-x:auto"><table class="matriz"><tr><th></th>${tams.map(t=>`<th>${t}</th>`).join("")}</tr>
+    ${cores.map(c=>`<tr><td><b>${c}</b></td>${tams.map(t=>{const k=c+"|"+t; return `<td><input type="number" inputmode="numeric" min="0" data-k="${k}" value="${ant[k]??""}" placeholder="0"></td>`;}).join("")}</tr>`).join("")}</table></div>`;
+}
+async function salvarProduto(){
+  const grade = [...document.querySelectorAll("#pMatriz input")].filter(i=>Number(i.value)>0)
+    .map(i=>{const [cor,tamanho]=i.dataset.k.split("|"); return {cor,tamanho,quantidade:Number(i.value)};});
+  if(!$("pNome").value) return toast("Informe o nome da peça");
+  if(!grade.length) return toast("Preencha a quantidade de pelo menos uma cor/tamanho");
+  try{
+    const p = await api("/produtos",{method:"POST",body:{nome:$("pNome").value, categoria:$("pCat").value,
+      custo:Number($("pCusto").value), preco_venda:Number($("pPreco").value), data_entrada:$("pData").value||null, grade}});
+    if ($("pFoto").files[0]) await enviarFoto(p.produto_id, $("pFoto").files[0]);
+    fechar("mCadastro"); toast(`Cadastrado! Código ${p.codigo} com ${p.variacoes.length} variações`, 3500);
+    carregarEstoque(); abrirProduto(p.produto_id);
+  }catch(e){ toast(e.message); }
+}
+
+// ---------- PROMOÇÕES
+async function carregarPromo(){
+  const [ps, d, cf] = await Promise.all([api("/promocoes"), api("/promocoes/divulgacao"), api("/config")]);
+  cfgAtual = cf;
+  const prods = {}; ps.forEach(p=>{ (prods[p.produto_id] ??= {nome:p.produto, foto:p.foto, itens:[]}).itens.push(p); });
+  const redes = Object.entries(prods).map(([id,g])=>{ const menor = Math.min(...g.itens.map(i=>i.preco_promocional));
+    return `<div class="card"><div class="lin" style="align-items:flex-start">
+      ${g.foto?`<img class="foto-mini" src="${g.foto}" alt="">`:'<div class="foto-mini" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--tx2);text-align:center">sem foto</div>'}
+      <div style="flex:1"><b>${g.nome}</b><div class="muted">${g.itens.map(i=>i.cor+" "+i.tamanho).join(" · ")}</div>
+      <div>a partir de <b>${brl(menor)}</b></div></div></div>
+      <button class="btn" style="margin-top:10px" onclick="fazerFlyer('${id}','promo','fl${id}')">🎨 Criar flyer para as redes</button>
+      <div id="fl${id}"></div></div>`; }).join("");
+  $("redesPromo").innerHTML = ps.length ? `<h2 style="margin-top:20px">Divulgar nas redes</h2>${redes}` : "";
+  $("listaPromo").innerHTML = ps.length ? ps.map(p=>`<div class="card"><div class="lin">
+      <div><b>${p.produto}</b><div class="muted">${p.cor} · ${p.tamanho} · ${p.quantidade} pç · <b>${p.dias_em_loja} dias</b> na loja</div></div>
+      <div style="text-align:right;flex:0 0 auto"><span class="preco-de">${brl(p.preco_cheio)}</span><br><b style="font-size:18px">${brl(p.preco_promocional)}</b></div></div>
+      <div style="margin-top:6px"><span class="tag ${p.no_limite_da_margem?"piso":"promo"}">${p.no_limite_da_margem?"no limite da margem: pense em kit/bazar":"-"+p.desconto_pct+"%"}</span>
+      <span class="tag ok">lucro ainda ${brl(p.lucro_unit)}/pç</span></div></div>`).join("")
+    : '<div class="vazio">Nenhuma peça parada. Tudo girando! 🎉</div>';
+  if(!ps.length){ $("divulga").innerHTML=""; return; }
+  $("divulga").innerHTML = `<div class="card"><label style="margin-top:0">Post com todas as promoções (só texto)</label>
+    <pre class="texto" id="txtInsta">${d.instagram}</pre><button class="btn sec" onclick="copiar('txtInsta')">Copiar texto</button></div>
+    <div class="card"><label style="margin-top:0">Avisar clientes no WhatsApp</label>
+    ${d.clientes_para_avisar.length ? d.clientes_para_avisar.map(c=>`<div class="item"><div><b>${c.nome}</b><div class="muted">${c.whatsapp}</div></div>
+      <a class="btn peq" style="text-decoration:none;flex:0 0 auto" target="_blank" href="https://wa.me/55${c.whatsapp.replace(/\D/g,"")}?text=${encodeURIComponent(c.mensagem)}">Enviar</a></div>`).join("")
+      : '<p class="muted">Ainda nenhuma cliente comprou esses tamanhos. Escolha a cliente na hora da venda para o app aprender.</p>'}</div>`;
+}
+async function rodarRobo(){ toast("Robô trabalhando…", 8000); const r = await api("/promocoes/rodar",{method:"POST"});
+  const post = r.postagens.filter(p=>p.formato==="feed");
+  toast(`${r.novas_ou_atualizadas.length} promoção(ões) nova(s) ou atualizada(s)`, 3500); carregarPromo(); }
+function copiar(id){ navigator.clipboard.writeText($(id).textContent).then(()=>toast("Copiado! É só colar no Instagram")); }
+
+// ---------- FLYERS / REDES
+let cfgAtual = {};
+async function trocarFoto(id, input){
+  if(!input.files[0]) return; toast("Enviando foto…");
+  try{ await enviarFoto(id, input.files[0]); toast("Foto salva"); abrirProduto(id); carregarEstoque(); }catch(e){ toast(e.message); }
+}
+function blocoFlyer(lista, produtoId, tipo, alvo){
+  const feed = lista.find(x=>x.formato==="feed"), story = lista.find(x=>x.formato==="story");
+  const id = "leg"+produtoId+tipo;
+  $(alvo).innerHTML = `<div class="flyers">${[feed,story].filter(Boolean).map(x=>`<a href="${x.url}" target="_blank"><img src="${x.url}" alt="flyer ${x.formato}"></a>`).join("")}</div>
+    <pre class="texto" id="${id}" style="max-height:120px;overflow:auto">${(feed||story).legenda}</pre>
+    <div class="acoes">
+      <button class="btn" onclick="compartilhar('${feed?.url||""}','${story?.url||""}','${id}')">📤 Compartilhar</button>
+      <button class="btn sec" onclick="copiar('${id}')">Copiar legenda</button>
+    </div>
+    <p class="muted" style="margin:6px 0 0">No celular, "Compartilhar" abre Instagram, TikTok ou WhatsApp já com o flyer. A legenda vai copiada.</p>`;
+}
+async function fazerFlyer(produtoId, tipo, alvo="flyerProd"){
+  $(alvo).innerHTML = '<p class="muted">Gerando flyer…</p>';
+  try{ const lista = await api(`/produtos/${produtoId}/flyer`, {method:"POST", body:{tipo}}); blocoFlyer(lista, produtoId, tipo, alvo); }
+  catch(e){ $(alvo).innerHTML=""; toast(e.message); }
+}
+async function compartilhar(urlFeed, urlStory, idLegenda){
+  const legenda = $(idLegenda)?.textContent || "";
+  try{ await navigator.clipboard.writeText(legenda); }catch(e){}
+  const urls = [urlFeed, urlStory].filter(Boolean);
+  try{
+    const arquivos = await Promise.all(urls.map(async (u,i)=>{ const b = await (await fetch(u)).blob();
+      return new File([b], i? "flyer-story.jpg":"flyer-feed.jpg", {type:"image/jpeg"}); }));
+    if (navigator.canShare && navigator.canShare({files:arquivos})) {
+      await navigator.share({files:arquivos, text:legenda});
+      return toast("Legenda copiada: é só colar no post");
+    }
+  }catch(e){ if (e.name==="AbortError") return; }
+  urls.forEach((u,i)=>{ const a=document.createElement("a"); a.href=u; a.download=i?"flyer-story.jpg":"flyer-feed.jpg"; a.click(); });
+  toast("Flyer baixado e legenda copiada. Agora é só postar.", 3500);
+}
+
+// ---------- PAINEL
+async function carregarPainel(){
+  const p = await api("/painel"); const m=p.mei;
+  $("painel").innerHTML = `<div class="grid2">
+    <div class="kpi"><span class="muted">Peças em estoque</span><b>${p.pecas_em_estoque}</b></div>
+    <div class="kpi"><span class="muted">Em promoção</span><b>${p.pecas_em_promocao}</b></div>
+    <div class="kpi"><span class="muted">Estoque (pago)</span><b>${brl(p.valor_estoque_custo)}</b></div>
+    <div class="kpi"><span class="muted">Estoque (venda)</span><b>${brl(p.valor_estoque_venda)}</b></div></div>
+    <div class="card" style="margin-top:12px"><label style="margin-top:0">Dinheiro parado</label>
+      <b class="big" style="color:var(--laranja)">${brl(p.dinheiro_parado)}</b>
+      <div class="muted">${p.pecas_paradas} peça(s) com mais de ${p.dias_para_considerar_parada} dias na loja</div></div>
+    <div class="card"><label style="margin-top:0">Limite do MEI ${m.ano}</label>
+      <div class="lin"><b>${brl(m.faturado)}</b><span class="muted" style="text-align:right">de ${brl(m.limite)}</span></div>
+      <div class="barra"><i style="width:${Math.min(m.uso_pct,100)}%;${m.uso_pct>=80?"background:var(--vermelho)":""}"></i></div>
+      <div class="muted">${m.uso_pct}% usado · projeção do ano ${brl(m.projecao_ano)}</div>
+      ${m.alerta?`<p style="color:var(--vermelho);font-weight:700">${m.alerta}</p>`:""}</div>`;
+}
+
+// ---------- CLIENTES / CONFIG
+async function carregarMais(){
+  const [cs, cf] = await Promise.all([api("/clientes"), api("/config")]);
+  $("listaCli").innerHTML = cs.length ? cs.map(c=>`<div class="item"><b>${c.nome}</b><span class="muted">${c.whatsapp||""}</span></div>`).join("") : '<div class="vazio">Nenhuma cliente cadastrada.</div>';
+  $("cfNome").value=cf.nome_loja; $("cfMargem").value=cf.margem_minima_pct; $("cfTaxa").value=cf.taxa_cartao_pct; $("cfEscada").value=cf.escada_promocao;
+  cfgAtual = cf;
+  $("cfArroba").value=cf.instagram_arroba||""; $("cfZapLoja").value=cf.whatsapp_loja||"";
+  const u = window.lojaUsuario || {};
+  $("infoConta").innerHTML = cf.modo==="demo" ? "Modo demonstração: os dados ficam só neste aparelho. Configure o Supabase para usar no celular e no notebook juntos."
+    : `Conectada como <b>${u.email||""}</b>. Os dados ficam na nuvem e aparecem em qualquer aparelho com esse login.`;
+  $("btnSair").style.display = cf.modo==="demo" ? "none" : "block";
+}
+async function salvarCliente(){
+  if(!$("cNome").value) return toast("Informe o nome");
+  await api("/clientes",{method:"POST",body:{nome:$("cNome").value, whatsapp:$("cZap").value||null, aniversario:$("cNiver").value||null}});
+  ["cNome","cZap","cNiver"].forEach(i=>$(i).value=""); toast("Cliente cadastrada"); carregarMais();
+}
+async function salvarConfig(){
+  const body = {nome_loja:$("cfNome").value, margem_minima_pct:Number($("cfMargem").value),
+      taxa_cartao_pct:Number($("cfTaxa").value), escada_promocao:$("cfEscada").value,
+      instagram_arroba:$("cfArroba").value, whatsapp_loja:$("cfZapLoja").value};
+  try{ const c = await api("/config",{method:"PUT",body});
+    $("nomeLoja").textContent=c.nome_loja; document.title=c.nome_loja; toast("Configurações salvas"); carregarMais(); }
+  catch(e){ toast(e.message); }
+}
+
+// ---------- login e início
+async function fazerLogin(nova){
+  const email=$("lgEmail").value.trim(), senha=$("lgSenha").value;
+  if(!email || !senha) { $("lgMsg").textContent="Preencha e-mail e senha."; return; }
+  $("lgMsg").textContent = nova ? "Criando conta…" : "Entrando…";
+  try{ await window.lojaEntrar(email, senha, nova); }catch(e){ $("lgMsg").textContent = e.message; }
+}
+async function sairDaConta(){ if(confirm("Sair da conta neste aparelho?")) await window.lojaSair(); }
+window.addEventListener("loja-pronta", async () => {
+  const c = await api("/config");
+  $("nomeLoja").textContent=c.nome_loja; document.title=c.nome_loja;
+  $("avisoDemo").style.display = c.modo==="demo" ? "block" : "none";
+  irPara("vender");
+});
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
