@@ -74,7 +74,7 @@ no notebook: todos veem os mesmos produtos e vendas.
 
 Quem controla isso é o arquivo `versao.json`: toda atualização vem com um número novo nele.
 
-> Esta versão (6) trouxe `supabase/banco.sql` novo (tabela das procuras). **Rode o banco.sql de novo.**
+> A versão 7 trouxe `supabase/banco.sql` novo (parcelas/acréscimo, etiquetas numeradas e apagar produto). **Rode o banco.sql de novo.**
 > Quando a atualização trouxer o arquivo `supabase/banco.sql` novo, rode ele de novo no
 > SQL Editor do Supabase (pode rodar quantas vezes quiser: só adiciona o que falta, não apaga dados).
 
@@ -149,6 +149,24 @@ Quem controla isso é o arquivo `versao.json`: toda atualização vem com um nú
   - **Quem avisar**: ao cadastrar ou repor uma peça, o app mostra quem pediu aquela peça e as
     clientes que vestem o tamanho e compram esse tipo de roupa, com a mensagem pronta no WhatsApp.
   - No assistente: "o que comprar?" e "o que procuraram?".
+
+- **Cartão parcelado**: no Crédito escolha 1x a 12x (opcional, padrão 1x). O app usa a taxa daquela
+  parcela, mostra quanto você recebe e, se marcar **Repassar a taxa para a cliente**, calcula o acréscimo
+  sozinho. Também tem o campo **Acréscimo** ao lado do Desconto. As taxas da sua maquininha ficam em
+  **Clientes/Mais → Maquininha de cartão** (débito e crédito de 1x a 12x). ⚠️ As que vêm no app são
+  exemplos: troque pelas da sua maquininha.
+- **Apagar do estoque**: no produto, 🗑️ ao lado de cada cor/tamanho tira peças (cadastro a mais, perda,
+  defeito) e **Apagar este produto** tira tudo. Se a peça já foi vendida, ela some do estoque mas as
+  vendas continuam no histórico e no painel.
+- **Etiquetas numeradas em sequência** (1, 2, 3…): no 1º cadastro o app pergunta se a loja já tinha
+  etiquetas. Ex.: última = 5968 → a próxima peça nova é 5969. No cadastro escolha **Peça nova** (pega o
+  próximo número) ou **Já tinha na loja** (digite o número que já está na roupa). Depois de salvar, já abre
+  a impressão das etiquetas com o número em destaque. No caixa dá para digitar só o número (ex.: 4120).
+  Mudar a sequência: **Configurações → Etiquetas**.
+- **Código de barras com o número da etiqueta no final**: cada cor/tamanho ganha 2 dígitos na frente
+  e o número da etiqueta no final. Ex.: etiqueta 5969 → `015969` (Preto M), `025969` (Preto G).
+  Vale para peça nova e para peça antiga (ex.: 4120 → `014120`). Impresso em Code 128 (lê em qualquer
+  leitor e na câmera). Na tela **Estoque**, o botão **📷 Ler etiqueta** abre a peça na hora.
 
 ## Limites desta versão
 - Os avisos de troca da promoção relâmpago aparecem com o app aberto (ou em segundo plano no

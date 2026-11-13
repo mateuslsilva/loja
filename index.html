@@ -69,6 +69,24 @@ nav button.ativa{color:var(--vinho);font-weight:700;background:var(--rosa)}
 .fab{position:fixed;right:16px;bottom:108px;width:56px;height:56px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:30px;box-shadow:0 6px 16px #7a2e4d55;z-index:4}
 .modal{position:fixed;inset:0;background:#2a1d2266;display:none;align-items:flex-end;justify-content:center;z-index:10}
 .modal.on{display:flex}
+.box-cartao{margin-top:10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--vinho) 5%,#fff);border:1px solid var(--linha)}
+.parc{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:6px}
+.parc span{border:1px solid var(--linha);background:#fff;border-radius:10px;text-align:center;padding:7px 0;font-weight:700;font-size:14px;cursor:pointer}
+.parc span small{display:block;font-weight:500;font-size:10.5px;color:var(--tx2)}
+.parc span.on{background:var(--vinho);border-color:var(--vinho);color:#fff}.parc span.on small{color:#fff;opacity:.85}
+.taxa-info{font-size:13.5px;color:var(--tx2);margin-top:8px;line-height:1.45}
+.taxa-info b{color:var(--tx)}
+.chk{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:14px;font-weight:600}
+.chk input{width:20px;height:20px;accent-color:var(--vinho)}
+.origem{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.origem button{border:1.5px solid var(--linha);background:#fff;border-radius:14px;padding:11px 10px;text-align:left;cursor:pointer;font:inherit;color:var(--tx)}
+.origem button b{display:block;font-size:15px}.origem button span{font-size:12.5px;color:var(--tx2)}
+.origem button.on{border-color:var(--vinho);background:color-mix(in srgb,var(--vinho) 7%,#fff);box-shadow:inset 0 0 0 1px var(--vinho)}
+.num-etq{display:flex;align-items:center;gap:12px;margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--rosa)}
+.num-etq .n{font:800 26px "DM Sans",system-ui,sans-serif;color:var(--vinho);letter-spacing:.5px}
+.lixo{border:0;background:#fff1ef;color:#b3261e;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}
+.grade-taxas{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grade-taxas label{margin:0;font-size:12px}.grade-taxas input{padding:8px}
 #mMsg{z-index:12}#mAvisar{z-index:11}
 .modal .folha{background:var(--bg);width:100%;max-width:760px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px 28px}
 .modal .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
@@ -295,7 +313,7 @@ details.conquistas summary::-webkit-details-marker{display:none}
 .ia-in svg{width:20px;height:20px}
 .etq{box-sizing:border-box;overflow:hidden;text-align:center;font-family:Arial,Helvetica,sans-serif;color:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;line-height:1.05}
 .etq .e-loja{font-weight:700;letter-spacing:.2px}.etq .e-nome{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.etq .e-var{white-space:nowrap}.etq .e-preco{font-weight:700}
+.etq .e-var{white-space:nowrap}.etq .e-preco{font-weight:700}.etq .e-num{font-weight:800;font-size:1.25em;margin-right:.25em}
 .etq svg{display:block;width:100%}
 .linha-etq{display:flex;box-sizing:border-box}
 .prev-etq{display:flex;justify-content:center;padding:14px;background:repeating-conic-gradient(#f3f0f1 0 25%,#fff 0 50%) 0 0/16px 16px;border-radius:12px;margin-top:10px}
@@ -353,6 +371,12 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   <div class="card">
     <label>Forma de pagamento</label>
     <div class="chips" id="formas"></div>
+    <div class="box-cartao" id="boxCartao" style="display:none">
+      <div id="boxParcelas"><b style="font-size:14px">Parcelas</b> <span class="muted" style="font-size:12.5px">(opcional: se não escolher, é 1x)</span>
+        <div class="parc" id="parcelas"></div></div>
+      <div class="taxa-info" id="taxaInfo"></div>
+      <label class="chk"><input type="checkbox" id="repasse"> Repassar a taxa para a cliente (vira acréscimo)</label>
+    </div>
     <label>Tipo de venda</label>
     <div class="seg" id="tipoVenda"><span class="on" data-v="avulsa">Venda avulsa</span><span data-v="cliente">Para cliente</span></div>
     <div id="boxCliente" style="display:none;margin-top:8px">
@@ -380,8 +404,10 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
       <label>Complemento</label><input id="enCompl" placeholder="Apto, bloco, referência…">
       <label>Código de rastreio</label><input id="enRastreio" placeholder="Ex.: AA123456789BR (pode colocar depois)" style="text-transform:uppercase">
     </div>
-    <label>Desconto no caixa (R$)</label>
-    <input id="descVenda" type="number" inputmode="decimal" min="0" step="0.01" value="0" oninput="renderCarrinho()">
+    <div class="lin">
+      <div><label>Desconto (R$)</label><input id="descVenda" type="number" inputmode="decimal" min="0" step="0.01" value="0" oninput="renderCarrinho()"></div>
+      <div><label>Acréscimo (R$)</label><input id="acrVenda" type="number" inputmode="decimal" min="0" step="0.01" value="0" oninput="$('repasse').checked=false;renderCarrinho()"></div>
+    </div>
     <div class="lin" style="margin-top:14px"><span class="muted">Total</span><span class="big" id="totalVenda" style="text-align:right">R$ 0,00</span></div>
     <button class="btn" style="margin-top:12px" id="btnFinalizar" onclick="finalizarVenda()" disabled>Finalizar venda</button>
     <button class="btn sec" style="margin-top:8px" id="btnCond" onclick="abrirCondicional()" disabled>🧺 Cliente vai levar no condicional</button>
@@ -395,7 +421,9 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
 <section id="t-estoque" class="tela">
   <h2>Estoque</h2>
   <div id="demanda"></div>
-  <input id="buscaEst" placeholder="Buscar produto…" oninput="carregarEstoque()">
+  <div class="lin"><input id="buscaEst" placeholder="Buscar: nome ou nº da etiqueta" oninput="carregarEstoque()">
+    <button class="btn sec peq" style="flex:0 0 auto;width:auto" onclick="abrirLeitor('leitorEst', acharPorCodigo)">📷 Ler etiqueta</button></div>
+  <div id="leitorEst"></div>
   <div id="listaEst" style="margin-top:12px"></div>
   <button class="fab" onclick="abrirCadastro()" title="Cadastrar produto">+</button>
 </section>
@@ -464,11 +492,26 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
     <label>Meta de vendas do mês (R$)</label><input id="cfMeta" type="number" inputmode="decimal" min="0" step="100">
     <div class="lin">
       <div><label>Margem mínima (%)</label><input id="cfMargem" type="number" inputmode="decimal"></div>
-      <div><label>Taxa maquininha (%)</label><input id="cfTaxa" type="number" inputmode="decimal"></div>
+      <div><label>Taxa crédito 1x (%)</label><input id="cfTaxa" type="number" inputmode="decimal"></div>
     </div>
     <label>Escada de promoção (dias:desconto%)</label><input id="cfEscada" placeholder="35:10,50:20,65:30">
     <p class="muted">Ex.: com 35 dias, 10% off; com 50 dias, 20%; com 65 dias, 30%. O preço nunca fica abaixo do custo + margem mínima.</p>
     <button class="btn" onclick="salvarConfig()">Salvar configurações</button>
+  </div>
+  <h2>Maquininha de cartão</h2>
+  <div class="card">
+    <p class="muted" style="margin-top:0">Coloque as taxas da SUA maquininha (estão no app ou no contrato dela). O app usa para calcular o lucro de cada venda e o acréscimo quando você repassa a taxa para a cliente.</p>
+    <label>Débito (%)</label><input id="cfTaxaDeb" type="number" inputmode="decimal" step="0.01" style="max-width:140px">
+    <label>Crédito por parcela (%)</label>
+    <div class="grade-taxas" id="cfTaxasCred"></div>
+    <button class="btn" style="margin-top:12px" onclick="salvarTaxas()">Salvar taxas</button>
+  </div>
+  <h2>Etiquetas</h2>
+  <div class="card">
+    <div class="num-etq" style="margin-top:0"><div><div class="muted" style="font-size:12px">Próxima peça nova</div><div class="n" id="cfProxEtq">–</div></div></div>
+    <label>Número da última etiqueta já usada</label>
+    <div class="lin"><input id="cfUltEtq" inputmode="numeric" placeholder="Ex.: 5968"><button class="btn peq" style="flex:0 0 auto;width:auto" onclick="salvarInicioEtq($('cfUltEtq').value).then(carregarMais)">Salvar</button></div>
+    <p class="muted">A numeração sempre sobe: 1, 2, 3… Se a loja já tinha etiquetas, coloque a última (ex.: 5968) e a próxima peça nova será 5969. Peças antigas mantêm o número delas (escolha "Já tinha na loja" no cadastro).</p>
   </div>
   <h2>Redes sociais</h2>
   <div class="card">
@@ -567,6 +610,12 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
       <option value="45:10,60:20,75:30">45 dias</option><option value="60:10,75:20,90:30">60 dias</option></select>
     <p class="muted">A peça parada ganha 10% de desconto nesse dia, 20% depois de mais 15 dias e 30% depois de mais 15.
       O preço nunca fica abaixo do custo + margem mínima.</p>
+    <label>Etiquetas das roupas</label>
+    <div class="origem" id="mEtqModo">
+      <button type="button" class="on" data-o="zero"><b>Começar do 1</b><span>1, 2, 3… em ordem</span></button>
+      <button type="button" data-o="continuar"><b>Já tenho etiquetas</b><span>Continuar do meu número</span></button>
+    </div>
+    <div id="mEtqBox" style="display:none"><label>Número da última etiqueta usada</label><input id="mEtqUlt" inputmode="numeric" placeholder="Ex.: 5968"></div>
     <div class="erro-campo" id="erro4"></div>
   </section>
 </div>
@@ -594,6 +643,15 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   <div class="foto-box"><img id="pFotoPrev" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=">
     <div style="flex:1"><input id="pFoto" type="file" accept="image/*" onchange="previewFoto()" style="padding:8px">
     <p class="muted" style="margin:4px 0 0">Foto em pé (retrato), com a peça inteira. Ela vai para o flyer.</p></div></div>
+  <label>Essa peça é…</label>
+  <div class="origem" id="pOrigem">
+    <button type="button" class="on" data-o="nova"><b>🆕 Peça nova</b><span>Ganha o próximo número de etiqueta</span></button>
+    <button type="button" data-o="antiga"><b>🏷️ Já tinha na loja</b><span>Já tem etiqueta: digite o número dela</span></button>
+  </div>
+  <div class="num-etq" id="pNumNova"><div><div class="muted" style="font-size:12px">Etiqueta desta peça</div><div class="n" id="pProxEtq">–</div></div>
+    <button type="button" class="btn sec peq" style="margin-left:auto;width:auto" onclick="mudarInicioEtq()">Mudar sequência</button></div>
+  <div id="pNumAntiga" style="display:none"><label>Número da etiqueta que já está na roupa</label>
+    <input id="pEtqAntiga" inputmode="numeric" placeholder="Ex.: 5968" oninput="this.value=this.value.replace(/\D/g,'')"></div>
   <label>Nome da peça</label><input id="pNome" placeholder="Ex.: Vestido midi alça">
   <label>Categoria</label><select id="pCat"></select>
   <div class="lin">
@@ -605,6 +663,7 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   <label>Cores (separe por vírgula)</label><input id="pCores" placeholder="Preto, Vermelho, Off white" oninput="renderMatriz()">
   <label>Tamanhos</label><div class="chips" id="pTams"></div>
   <div id="pMatriz"></div>
+  <label class="chk"><input type="checkbox" id="pImprimir" checked> Abrir as etiquetas para imprimir depois de salvar</label>
   <button class="btn" style="margin-top:16px" onclick="salvarProduto()">Salvar produto</button>
 </div></div>
 
@@ -777,7 +836,7 @@ document.querySelectorAll("nav button").forEach(b => b.onclick = () => irPara(b.
 function irPara(t){
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("ativa", b.dataset.t===t));
   document.querySelectorAll(".tela").forEach(s=>s.classList.toggle("ativa", s.id==="t-"+t));
-  if (leitor && t!=="vender") pararLeitor();
+  if (leitor) pararLeitor();
   ({vender:carregarCaixa, estoque:carregarEstoque, promo:carregarPromo, dinheiro:carregarDinheiro, painel:carregarPainel, mais:carregarMais})[t]();
   window.scrollTo(0,0);
 }
@@ -1057,7 +1116,42 @@ function ouvir(){
 // ---------- VENDER
 $("formas").innerHTML = Object.entries(FORMAS).map(([k,v])=>`<span class="chip ${k===forma?"on":""}" data-f="${k}">${v}</span>`).join("");
 $("formas").onclick = e => { const f=e.target.dataset.f; if(!f) return; forma=f;
-  document.querySelectorAll("#formas .chip").forEach(c=>c.classList.toggle("on", c.dataset.f===f)); };
+  document.querySelectorAll("#formas .chip").forEach(c=>c.classList.toggle("on", c.dataset.f===f));
+  if (f!=="credito") parcelas=1;
+  if (!["credito","debito"].includes(f) && $("repasse").checked) { $("repasse").checked=false; $("acrVenda").value=0; }
+  renderCarrinho(); };
+// ---------- cartão: parcelas, taxa da maquininha e acréscimo
+let parcelas = 1, taxasLoja = null;
+async function pegarTaxas(){ try{ taxasLoja = (await api("/config")).taxas; }catch(_){} }
+function taxaAgora(){
+  if (!taxasLoja) return 0;
+  if (forma==="debito") return Number(taxasLoja.debito)||0;
+  if (forma!=="credito") return 0;
+  const c = taxasLoja.credito; if (c[parcelas]!=null) return Number(c[parcelas]);
+  const ks = Object.keys(c).map(Number).filter(k=>k<=parcelas).sort((a,b)=>b-a); return ks.length ? Number(c[ks[0]]) : 0;
+}
+const pctTxt = v => (Math.round(v*100)/100).toLocaleString("pt-BR") + "%";
+function renderCartao(base){
+  const cartao = ["credito","debito"].includes(forma);
+  $("boxCartao").style.display = cartao ? "block" : "none"; if (!cartao) return;
+  $("boxParcelas").style.display = forma==="credito" ? "block" : "none";
+  const repasse = (b, p) => p>0 && p<100 && b>0 ? Math.ceil((b/(1-p/100) - b)*100 - 1e-6)/100 : 0;
+  const pct = taxaAgora();
+  if ($("repasse").checked) $("acrVenda").value = repasse(base, pct).toFixed(2);
+  if (forma==="credito") {
+    const guardado = parcelas;
+    $("parcelas").innerHTML = Array.from({length:12},(_,i)=>i+1).map(n=>{
+      parcelas = n; const tot = $("repasse").checked ? base + repasse(base, taxaAgora()) : base + Number($("acrVenda").value||0);
+      return `<span data-n="${n}" class="${n===guardado?"on":""}">${n}x<small>${tot>0?brl(tot/n).replace("R$","").trim():""}</small></span>`; }).join("");
+    parcelas = guardado;
+  }
+  const total = Math.max(0, base + Number($("acrVenda").value||0)), taxa = Math.round(total*pct)/100;
+  $("taxaInfo").innerHTML = `Taxa da maquininha ${forma==="credito"?"em "+parcelas+"x":"no débito"}: <b>${pctTxt(pct)}</b> = ${brl(taxa)}<br>
+    Você recebe <b>${brl(total-taxa)}</b>${forma==="credito"&&parcelas>1?` · a cliente paga ${parcelas}x de <b>${brl(total/parcelas)}</b>`:""}
+    <br><span style="font-size:12px">Taxas em Mais → Configurações.</span>`;
+}
+$("parcelas").onclick = e => { const n=+e.target.closest("[data-n]")?.dataset.n; if(!n) return; parcelas=n; renderCarrinho(); };
+$("repasse").onchange = () => { if(!$("repasse").checked) $("acrVenda").value=0; renderCarrinho(); };
 $("codVenda").addEventListener("keydown", e => { if (e.key==="Enter") addVenda(); });
 
 async function addVenda(codigo){
@@ -1080,13 +1174,15 @@ function precoItem(i){ // soma usando lotes mais antigos primeiro (igual ao serv
 }
 function renderCarrinho(){
   const c=$("carrinho");
-  if(!carrinho.length){ c.innerHTML='<div class="vazio">Nenhuma peça na venda ainda.<br><span style="font-size:13px">Toque em <b>+ Produtos</b>, digite o nome ou leia o código.</span></div>'; $("totalVenda").textContent=brl(0); $("btnFinalizar").disabled=true; $("btnCond").disabled=true; return; }
+  if(!carrinho.length){ c.innerHTML='<div class="vazio">Nenhuma peça na venda ainda.<br><span style="font-size:13px">Toque em <b>+ Produtos</b>, digite o nome ou leia o código.</span></div>'; $("totalVenda").textContent=brl(0); $("btnFinalizar").disabled=true; $("btnCond").disabled=true; renderCartao(0); return; }
   c.innerHTML = carrinho.map((i,k)=>{ const promo=i.lotes[0]?.preco_promocional;
     return `<div class="item"><div><b>${i.nome}</b><div class="muted">${i.cor} · ${i.tam} · ${i.codigo}</div>
       ${promo?'<span class="tag promo">promoção</span>':''}</div>
       <div style="text-align:right"><div><b>${brl(precoItem(i))}</b></div>
       <div class="qtd" style="justify-content:flex-end;margin-top:4px"><button onclick="mudaQtd(${k},-1)">−</button>${i.qtd}<button onclick="mudaQtd(${k},1)">+</button></div></div></div>`;}).join("");
-  const tot = carrinho.reduce((s,i)=>s+precoItem(i),0) - Number($("descVenda").value||0);
+  const base = Math.max(0, carrinho.reduce((s,i)=>s+precoItem(i),0) - Number($("descVenda").value||0));
+  renderCartao(base);
+  const tot = base + Number($("acrVenda").value||0);
   $("totalVenda").textContent = brl(Math.max(tot,0)); $("btnFinalizar").disabled=false; $("btnCond").disabled=false;
 }
 function mudaQtd(k,d){ const i=carrinho[k]; const est=i.disp ?? i.lotes.reduce((s,l)=>s+l.quantidade,0);
@@ -1096,20 +1192,21 @@ async function finalizarVenda(){
   try{
     if (tipoVenda==="cliente" && !$("cliVenda").value) { $("btnFinalizar").disabled=false; return toast("Escolha a cliente ou mude para Venda avulsa"); }
     const r = await api("/vendas",{method:"POST", body:{forma_pagamento:forma, cliente_id: tipoVenda==="cliente" ? $("cliVenda").value : null,
-      desconto_extra:Number($("descVenda").value||0), itens:carrinho.map(i=>({codigo:i.codigo, quantidade:i.qtd})),
+      desconto_extra:Number($("descVenda").value||0), acrescimo:Number($("acrVenda").value||0), parcelas,
+      itens:carrinho.map(i=>({codigo:i.codigo, quantidade:i.qtd})),
       canal: canalVenda, entrega: canalVenda==="online" ? dadosEntrega() : null}});
     if (r.entrega) setTimeout(()=>mostrarMsg(r.entrega.rastreio?"📦 Pedido enviado":"📦 Pedido registrado", r.entrega.mensagem, r.entrega.telefone,
       r.entrega.rastreio?"":`<p class="muted" style="margin-top:0">Quando postar, informe o código de rastreio em <b>Entregas</b> (aqui na tela Vender) e o app gera a mensagem com o rastreio.</p>`), 400);
-    toast(`Venda registrada! ${brl(r.total)} · lucro ${brl(r.lucro)}${r.alerta?" · "+r.alerta:""}`, 4000);
+    toast(`Venda registrada! ${brl(r.total)}${r.parcelas>1?` em ${r.parcelas}x`:""} · lucro ${brl(r.lucro)}${r.alerta?" · "+r.alerta:""}`, 4000);
     for (const ev of r.relampago||[]) if (ev.tipo==="nova_etapa") setTimeout(()=>avisar("⚡ Próxima promoção relâmpago:", `${ev.item.nome} por ${brl(ev.item.preco_relampago)}.`), 4200);
-    carrinho=[]; $("descVenda").value=0; renderCarrinho(); carregarCaixa();
+    carrinho=[]; $("descVenda").value=0; $("acrVenda").value=0; $("repasse").checked=false; parcelas=1; renderCarrinho(); carregarCaixa();
     $("tipoVenda").querySelector('[data-v="avulsa"]').click(); $("cliVenda").value="";
     if (canalVenda==="online") { ["enNome","enTel","enCep","enCidade","enUf","enRua","enNum","enBairro","enCompl","enRastreio"].forEach(i=>$(i).value=""); $("enPais").value="Brasil";
       $("canalVenda").querySelector('[data-v="loja"]').click(); }
   }catch(e){ toast(e.message); $("btnFinalizar").disabled=false; }
 }
 async function carregarCaixa(){
-  const [c, clis] = await Promise.all([api("/vendas"), api("/clientes")]);
+  const [c, clis] = await Promise.all([api("/vendas"), api("/clientes"), pegarTaxas()]);
   carregarPulso(); carregarOperacoes();
   const escolhida = $("cliVenda").value;
   $("cliVenda").innerHTML = '<option value="">Escolha a cliente…</option>' + clis.map(x=>`<option value="${x.cliente_id}">${x.nome}</option>`).join("");
@@ -1119,14 +1216,23 @@ async function carregarCaixa(){
     <div class="lin"><div><b class="big">${brl(c.total)}</b><div class="muted">${c.quantidade_vendas} venda(s) · lucro ${brl(c.lucro)}</div></div></div>
     <div style="margin-top:6px">${formas}</div>`;
 }
-function abrirLeitor(){
+let alvoLeitor = "leitor";
+function abrirLeitor(alvo="leitor", aoLer=txt=>addVenda(txt)){
   if (leitor) return pararLeitor();
   if (!window.Html5Qrcode) return toast("Leitor indisponível sem internet");
-  leitor = new Html5Qrcode("leitor");
+  alvoLeitor = alvo; leitor = new Html5Qrcode(alvo);
   leitor.start({facingMode:"environment"}, {fps:10, qrbox:{width:260,height:120}},
-    txt => { pararLeitor(); addVenda(txt); }).catch(()=>{ toast("Não consegui abrir a câmera (o app precisa estar em https)"); leitor=null; });
+    txt => { pararLeitor(); aoLer(txt.trim()); }).catch(()=>{ toast("Não consegui abrir a câmera (o app precisa estar em https)"); leitor=null; });
 }
-function pararLeitor(){ if(leitor){ leitor.stop().catch(()=>{}); leitor=null; $("leitor").innerHTML=""; } }
+function pararLeitor(){ if(leitor){ leitor.stop().catch(()=>{}); leitor=null; $(alvoLeitor).innerHTML=""; } }
+/** Estoque: lê a etiqueta com a câmera e abre a peça. */
+async function acharPorCodigo(txt){
+  const ps = await api("/buscar?q="+encodeURIComponent(txt));
+  const p = ps.find(x=>x.variacoes.some(v=>v.codigo_barras===txt || v.codigo===txt.toUpperCase())) || ps[0];
+  if (!p) return toast(`Nenhuma peça com o código ${txt}`);
+  await abrirProduto(p.produto_id);
+  const v = prodAtual.variacoes.find(x=>x.codigo_barras===txt); if (v) toast(`${v.cor} ${v.tamanho}: ${v.disponivel} disponível(is)`);
+}
 
 // ---------- ESTOQUE
 async function carregarEstoque(){
@@ -1143,10 +1249,14 @@ async function carregarEstoque(){
       <div class="chips" style="margin-top:8px">${grade||'<span class="muted">Esgotado</span>'}</div>
       ${promo?'<div style="margin-top:8px"><span class="tag promo">tem peça em promoção</span></div>':''}</div>`;}).join("");
 }
+let prodAtual = null;
+const itensEtq = (p, k=null) => (k==null ? p.variacoes : [p.variacoes[k]]).map(v=>({nome:p.nome, etiqueta:p.etiqueta, variacao:v.cor+" "+v.tamanho,
+  codigo:v.codigo, barras:v.codigo_barras, preco:v.lotes[0]?.preco_atual||0, qtd:k==null ? v.quantidade : (v.quantidade||1)}));
 async function abrirProduto(id){
-  const p = await api("/produtos/"+id);
+  const p = await api("/produtos/"+id); prodAtual = p;
   const temPromo = p.variacoes.some(v=>v.lotes.some(l=>l.preco_promocional));
   $("mProdutoCorpo").innerHTML = `<div class="topo"><div><h2 style="margin:0">${p.nome}</h2><div class="muted">${p.codigo} · ${p.categoria}</div></div><button class="fechar" onclick="fechar('mProduto')">✕</button></div>
+    ${p.etiqueta!=null?`<div class="num-etq" style="margin:0 0 12px"><div><div class="muted" style="font-size:12px">Etiqueta</div><div class="n">Nº ${p.etiqueta}</div></div></div>`:""}
     <div class="card">
       ${p.foto?`<img class="foto-prod" src="${p.foto}" alt="${p.nome}">`:'<div class="vazio" style="padding:16px">Sem foto ainda. A foto é usada no flyer das redes sociais.</div>'}
       <label class="btn sec" style="display:block;text-align:center;margin-top:10px;text-transform:none;letter-spacing:0;font-size:15px;color:var(--vinho)">📷 ${p.foto?"Trocar foto":"Adicionar foto"}
@@ -1158,14 +1268,32 @@ async function abrirProduto(id){
       <button class="btn sec" style="margin-top:8px" onclick="abrirAvisar('${p.produto_id}')">📣 Avisar clientes que vão querer</button>
       <div id="flyerProd"></div>
     </div>
-    ${p.variacoes.map(v=>`<div class="card"><div class="lin"><div><b>${v.cor} · ${v.tamanho}</b><div class="muted">${v.codigo} · ${v.codigo_barras}</div></div>
+    ${p.variacoes.map((v,k)=>`<div class="card"><div class="lin"><div><b>${v.cor} · ${v.tamanho}</b><div class="muted">${v.codigo} · ${v.codigo_barras}</div></div>
       <div style="flex:0 0 auto"><b>${v.quantidade} pç</b></div></div>
       ${v.lotes.map(l=>`<div class="var-lin"><div class="muted">${l.quantidade} pç · ${l.dias_em_loja} dias na loja<br>custo ${brl(l.custo)} · margem ${l.margem_pct}%</div>
         <div style="text-align:right">${l.preco_promocional?`<span class="preco-de">${brl(l.preco_venda)}</span><b>${brl(l.preco_promocional)}</b><br><span class="tag ${l.promo_no_piso?"piso":"promo"}">${l.promo_no_piso?"no limite da margem":"-"+l.desconto_pct+"%"}</span>`:`<b>${brl(l.preco_venda)}</b>`}</div></div>`).join("")}
       <div class="lin" style="margin-top:10px"><button class="btn sec peq" onclick="repor('${v.codigo}','${p.produto_id}')">Repor estoque</button>
-      <button class="btn sec peq" onclick='abrirEtiquetas([${JSON.stringify({nome:p.nome, variacao:v.cor+" "+v.tamanho, codigo:v.codigo, barras:v.codigo_barras, preco:v.lotes[0]?.preco_atual||0, qtd:v.quantidade||1}).replace(/'/g,"&#39;")}])'>Etiquetas</button></div></div>`).join("")}
-    <button class="btn" onclick='abrirEtiquetas(${JSON.stringify(p.variacoes.map(v=>({nome:p.nome, variacao:v.cor+" "+v.tamanho, codigo:v.codigo, barras:v.codigo_barras, preco:v.lotes[0]?.preco_atual||0, qtd:v.quantidade}))).replace(/'/g,"&#39;")})'>🏷️ Etiquetas de todas as cores/tamanhos</button>`;
+      <button class="btn sec peq" onclick="abrirEtiquetas(itensEtq(prodAtual,${k}))">Etiquetas</button>
+      ${v.disponivel>0?`<button class="lixo" style="flex:0 0 auto" title="Tirar do estoque" onclick="tirarEstoque(${k})">🗑️</button>`:""}</div></div>`).join("")}
+    <button class="btn" onclick="abrirEtiquetas(itensEtq(prodAtual))">🏷️ Etiquetas de todas as cores/tamanhos</button>
+    <button class="lixo" style="width:100%;margin-top:14px;padding:12px" onclick="apagarProduto()">🗑️ Apagar este produto</button>`;
   $("mProduto").classList.add("on");
+}
+async function apagarProduto(){
+  const p = prodAtual; if(!p) return;
+  if (!confirm(`Apagar "${p.nome}"${p.etiqueta!=null?" (etiqueta "+p.etiqueta+")":""} com ${p.quantidade_total} peça(s) do estoque?\n\nSe ela já foi vendida alguma vez, as vendas continuam no histórico e no painel.`)) return;
+  try{ const r = await api("/produtos/"+p.produto_id,{method:"DELETE"});
+    fechar("mProduto"); toast(r.historico ? `"${r.nome}" saiu do estoque (as vendas dela ficam no histórico)` : `"${r.nome}" apagado`, 3500); carregarEstoque();
+  }catch(e){ toast(e.message); }
+}
+async function tirarEstoque(k){
+  const p = prodAtual, v = p.variacoes[k];
+  const r = prompt(`${p.nome} ${v.cor} ${v.tamanho}: tem ${v.disponivel} peça(s).\nQuantas peças tirar do estoque? (cadastro errado, perda, defeito…)`, String(v.disponivel));
+  if (r===null) return; const qtd = Number(String(r).replace(",","."));
+  try{ const x = await api(`/variacoes/${v.variacao_id}/tirar`,{method:"POST",body:{quantidade:qtd}});
+    toast(`${x.tirou} peça(s) tirada(s) do estoque`); carregarEstoque();
+    if (x.produto_apagado) fechar("mProduto"); else abrirProduto(p.produto_id);
+  }catch(e){ toast(e.message); }
 }
 async function repor(codigo, pid){
   const qtd = prompt("Quantas peças chegaram?"); if(!qtd) return;
@@ -1278,13 +1406,17 @@ function htmlEtq(it, t){
   const mm = t.h, fLoja = Math.max(5, mm*0.24), fNome = Math.max(5.5, mm*0.27), fVar = Math.max(5, mm*0.25), fPreco = Math.max(6.5, mm*0.36);
   return `<div class="etq" style="width:${t.w}mm;height:${t.h}mm;padding:${mm*0.05}mm ${t.w*0.04}mm">
     ${$("etqLoja").checked?`<div class="e-loja" style="font-size:${fLoja}pt">${$("nomeLoja").textContent}</div>`:""}
-    <div class="e-nome" style="font-size:${fNome}pt">${it.nome}</div>
+    <div class="e-nome" style="font-size:${fNome}pt">${it.etiqueta!=null?`<span class="e-num">${it.etiqueta}</span>`:""}${it.nome}</div>
     <div class="e-var" style="font-size:${fVar}pt">${it.variacao}${$("etqPreco").checked?` · <span class="e-preco" style="font-size:${fPreco}pt">${brl(it.preco)}</span>`:""}</div>
     <svg class="bc" data-c="${it.barras}" style="height:${mm*0.42}mm"></svg></div>`;
 }
 function desenharCodigos(raiz){
   if (!window.JsBarcode) return;
-  raiz.querySelectorAll("svg.bc").forEach(s=>{ try{ JsBarcode(s, s.dataset.c, {format:"EAN13", width:2, height:50, fontSize:16, textMargin:0, margin:0, marginLeft:22, marginRight:14, flat:true}); }catch(_){} });
+  raiz.querySelectorAll("svg.bc").forEach(s=>{ try{
+    const c = s.dataset.c, ean = /^\d{13}$/.test(c) && c.startsWith("200");   // peças antigas do app: EAN-13; etiquetas numeradas: Code 128
+    JsBarcode(s, c, ean ? {format:"EAN13", width:2, height:50, fontSize:16, textMargin:0, margin:0, marginLeft:22, marginRight:14, flat:true}
+                        : {format:"CODE128", width:2, height:50, fontSize:16, textMargin:0, margin:0, marginLeft:22, marginRight:22});
+  }catch(_){} });
 }
 function previaEtq(){
   const t=TAM_ETQ[$("etqTam").value]; if(!etqItens.length) return;
@@ -1319,7 +1451,28 @@ async function abrirCadastro(){
   const cats = await api("/categorias");
   $("pCat").innerHTML = Object.entries(cats).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
   ["pNome","pCusto","pPreco","pCores","pFoto"].forEach(i=>$(i).value=""); $("pFotoPrev").src="data:image/gif;base64,R0lGODlhAQABAAAAACw="; $("pData").value=hoje(); $("pMargem").textContent="";
-  renderTams(); renderMatriz(); $("mCadastro").classList.add("on");
+  renderTams(); renderMatriz(); escolherOrigem("nova"); $("pEtqAntiga").value="";
+  const et = await api("/etiquetas"); $("pProxEtq").textContent = "Nº " + et.proxima;
+  $("mCadastro").classList.add("on");
+  if (!et.definida && et.ultima===0) setTimeout(perguntarInicioEtq, 300);
+}
+let origemPeca = "nova";
+function escolherOrigem(o){ origemPeca=o; $("pOrigem").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.o===o));
+  $("pNumNova").style.display = o==="nova"?"flex":"none"; $("pNumAntiga").style.display = o==="antiga"?"block":"none"; if(o==="antiga") $("pEtqAntiga").focus(); }
+$("pOrigem").onclick = e => { const b=e.target.closest("[data-o]"); if(b) escolherOrigem(b.dataset.o); };
+async function perguntarInicioEtq(){
+  const r = prompt("Sua loja já usa etiquetas numeradas?\n\n• Se SIM: digite o número da ÚLTIMA etiqueta que você usou (ex.: 5968). A próxima peça nova será 5969.\n• Se quer começar do zero: deixe 0.", "0");
+  if (r===null) { await api("/config",{method:"PUT",body:{etiqueta_definida:true}}); return; }
+  await salvarInicioEtq(r);
+}
+async function mudarInicioEtq(){
+  const et = await api("/etiquetas");
+  const r = prompt(`Número da ÚLTIMA etiqueta já usada (hoje: ${et.ultima}).\nA próxima peça nova recebe esse número + 1.`, String(et.ultima));
+  if (r!==null) await salvarInicioEtq(r);
+}
+async function salvarInicioEtq(r){
+  try{ const c = await api("/config",{method:"PUT",body:{etiqueta_ultima:Number(String(r).replace(/\D/g,""))||0, etiqueta_definida:true}});
+    $("pProxEtq").textContent = "Nº " + c.etiquetas.proxima; toast(`Próxima etiqueta: ${c.etiquetas.proxima}`); }catch(e){ toast(e.message); }
 }
 function renderTams(){
   $("pTams").innerHTML = TAMANHOS.map(t=>`<span class="chip ${tamsSel.has(t)?"on":""}" data-t="${t}">${t}</span>`).join("");
@@ -1343,12 +1496,16 @@ async function salvarProduto(){
     .map(i=>{const [cor,tamanho]=i.dataset.k.split("|"); return {cor,tamanho,quantidade:Number(i.value)};});
   if(!$("pNome").value) return toast("Informe o nome da peça");
   if(!grade.length) return toast("Preencha a quantidade de pelo menos uma cor/tamanho");
+  if(origemPeca==="antiga" && !$("pEtqAntiga").value) return toast("Digite o número da etiqueta que já está na roupa");
   try{
     const p = await api("/produtos",{method:"POST",body:{nome:$("pNome").value, categoria:$("pCat").value,
-      custo:Number($("pCusto").value), preco_venda:Number($("pPreco").value), data_entrada:$("pData").value||null, grade}});
+      custo:Number($("pCusto").value), preco_venda:Number($("pPreco").value), data_entrada:$("pData").value||null, grade,
+      etiqueta_antiga: origemPeca==="antiga" ? $("pEtqAntiga").value : null}});
     if ($("pFoto").files[0]) await enviarFoto(p.produto_id, $("pFoto").files[0]);
-    fechar("mCadastro"); toast(`Cadastrado! Código ${p.codigo} com ${p.variacoes.length} variações`, 3500);
-    carregarEstoque(); await abrirProduto(p.produto_id); avisarSeTiver(p.produto_id);
+    fechar("mCadastro"); toast(`Cadastrado! Etiqueta nº ${p.codigo} · ${p.variacoes.length} cor(es)/tamanho(s)`, 3500);
+    carregarEstoque(); await abrirProduto(p.produto_id);
+    if ($("pImprimir").checked) abrirEtiquetas(itensEtq(prodAtual));
+    avisarSeTiver(p.produto_id);
   }catch(e){ toast(e.message); }
 }
 
@@ -1785,6 +1942,9 @@ async function carregarMais(){
   $("cfNome").value=cf.nome_loja; $("cfMargem").value=cf.margem_minima_pct; $("cfTaxa").value=cf.taxa_cartao_pct; $("cfEscada").value=cf.escada_promocao;
   cfgAtual = cf;
   $("cfArroba").value=cf.instagram_arroba||""; $("cfZapLoja").value=cf.whatsapp_loja||"";
+  $("cfTaxaDeb").value = cf.taxas.debito ?? "";
+  $("cfTaxasCred").innerHTML = Array.from({length:12},(_,i)=>i+1).map(n=>`<div><label>${n}x</label><input type="number" inputmode="decimal" step="0.01" data-n="${n}" value="${cf.taxas.credito[n]??""}"></div>`).join("");
+  $("cfProxEtq").textContent = "Nº " + cf.etiquetas.proxima; $("cfUltEtq").value = cf.etiquetas.ultima;
   const u = window.lojaUsuario || {};
   $("infoConta").innerHTML = cf.modo==="demo" ? "Modo demonstração: os dados ficam só neste aparelho. Configure o Supabase para usar no celular e no notebook juntos."
     : `Conectada como <b>${u.email||""}</b>. Os dados ficam na nuvem e aparecem em qualquer aparelho com esse login.`;
@@ -1794,6 +1954,12 @@ async function salvarCliente(){
   if(!$("cNome").value) return toast("Informe o nome");
   await api("/clientes",{method:"POST",body:{nome:$("cNome").value, whatsapp:$("cZap").value||null, aniversario:$("cNiver").value||null}});
   ["cNome","cZap","cNiver"].forEach(i=>$(i).value=""); toast("Cliente cadastrada"); carregarMais();
+}
+async function salvarTaxas(){
+  const cred = [...document.querySelectorAll("#cfTaxasCred input")].filter(i=>i.value!=="").map(i=>`${i.dataset.n}:${Number(i.value)}`).join(",");
+  try{ await api("/config",{method:"PUT",body:{taxa_debito_pct:Number($("cfTaxaDeb").value)||0, taxas_credito:cred||null,
+      taxa_cartao_pct: Number(document.querySelector('#cfTaxasCred input[data-n="1"]').value)||Number($("cfTaxa").value)||0}});
+    toast("Taxas salvas"); pegarTaxas(); carregarMais(); }catch(e){ toast(e.message); }
 }
 async function salvarConfig(){
   const body = {nome_loja:$("cfNome").value, margem_minima_pct:Number($("cfMargem").value),
@@ -1839,6 +2005,7 @@ async function abrirCadastroLoja(etapa=1){
   $("lCnpj").value=mascaraCnpj(c.loja_cnpj); $("lRazao").value=c.loja_razao_social||""; $("lCep").value=mascaraCep(c.cep);
   $("lRua").value=c.endereco||""; $("lNum").value=c.numero||""; $("lBairro").value=c.bairro||""; $("lCidade").value=c.cidade||""; $("lUf").value=c.uf||"";
   $("mMeta").value=c.meta_mensal||""; $("mMargem").value=c.margem_minima_pct; $("mTaxa").value=c.taxa_cartao_pct;
+  modoEtq(c.etiquetas?.ultima>0 ? "continuar" : "zero"); $("mEtqUlt").value = c.etiquetas?.ultima || "";
   if ([...$("mDias").options].some(o=>o.value===c.escada_promocao)) $("mDias").value=c.escada_promocao;
   else { const o=new Option("Personalizada ("+c.escada_promocao+")", c.escada_promocao); $("mDias").add(o); $("mDias").value=c.escada_promocao; }
   coresLogo = [c.cor_primaria, c.cor_secundaria].filter(Boolean);
@@ -1867,6 +2034,9 @@ function validarEtapa(n){
   }
   return true;
 }
+let etqModo = "zero";
+function modoEtq(o){ etqModo=o; $("mEtqModo").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.o===o)); $("mEtqBox").style.display=o==="continuar"?"block":"none"; }
+$("mEtqModo").onclick = e => { const b=e.target.closest("[data-o]"); if(b) modoEtq(b.dataset.o); };
 function dadosEtapa(n){
   if (n===1) return {responsavel_nome:$("rNome").value.trim(), responsavel_whatsapp:$("rZap").value, responsavel_email:$("rEmail").value.trim(),
     responsavel_cargo:valorChips("rCargo")[0]||null};
@@ -1875,7 +2045,8 @@ function dadosEtapa(n){
     cep:$("lCep").value, endereco:$("lRua").value.trim()||null, numero:$("lNum").value.trim()||null, bairro:$("lBairro").value.trim()||null,
     cidade:$("lCidade").value.trim()||null, uf:$("lUf").value.trim().toUpperCase()||null};
   if (n===4) return {meta_mensal:Number($("mMeta").value)||0, margem_minima_pct:Number($("mMargem").value)||0,
-    taxa_cartao_pct:Number($("mTaxa").value)||0, escada_promocao:$("mDias").value};
+    taxa_cartao_pct:Number($("mTaxa").value)||0, escada_promocao:$("mDias").value,
+    etiqueta_ultima: etqModo==="continuar" ? Number(soDig($("mEtqUlt").value))||0 : 0, etiqueta_definida:true};
   return {};
 }
 async function passoCadastro(dir){

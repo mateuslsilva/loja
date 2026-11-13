@@ -148,3 +148,32 @@ export function textoDivulgacao(itens, nomeLoja) {
     whatsapp: `Oi, {nome}! 💖 Separei umas peças no seu tamanho que entraram em promoção aqui na ${nomeLoja}:\n\n${corpo}\n\nQuer que eu reserve alguma pra você?`,
   };
 }
+
+// ---------------------------------------------------------------- maquininha: taxa por parcela
+// Valores de exemplo (confira com a sua maquininha e ajuste em Mais → Ajustes).
+export const TAXAS_CREDITO_PADRAO = "1:4.99,2:6.09,3:6.89,4:7.69,5:8.49,6:9.29,7:10.29,8:11.09,9:11.89,10:12.69,11:13.49,12:14.29";
+export function lerTaxas(txt) {
+  const t = {};
+  for (const par of String(txt || "").split(/[,;\n]+/)) {
+    const m = par.trim().replace(/x/i, "").match(/^(\d{1,2})\s*[:=]\s*(\d+(?:[.,]\d+)?)$/);
+    if (m && +m[1] >= 1 && +m[1] <= 24) t[+m[1]] = Number(m[2].replace(",", "."));
+  }
+  return t;
+}
+export function taxasDaLoja(cfg) {
+  const credito = lerTaxas(cfg.taxas_credito || TAXAS_CREDITO_PADRAO);
+  if (!cfg.taxas_credito && cfg.taxa_cartao_pct != null) credito[1] = cfg.taxa_cartao_pct;
+  return { debito: cfg.taxa_debito_pct ?? cfg.taxa_cartao_pct ?? 0, credito };
+}
+/** % da maquininha para a forma de pagamento e o número de parcelas. */
+export function taxaDaVenda(cfg, forma, parcelas = 1) {
+  const t = taxasDaLoja(cfg);
+  if (forma === "debito") return t.debito;
+  if (forma !== "credito") return 0;
+  const n = Math.max(1, Math.round(parcelas || 1));
+  if (t.credito[n] != null) return t.credito[n];
+  const ks = Object.keys(t.credito).map(Number).filter((k) => k <= n).sort((a, b) => b - a);
+  return ks.length ? t.credito[ks[0]] : (cfg.taxa_cartao_pct ?? 0);
+}
+/** Acréscimo para a loja receber o mesmo valor depois da taxa (repassar a taxa para a cliente). */
+export const acrescimoRepasse = (valor, pct) => (pct > 0 && pct < 100 && valor > 0 ? Math.ceil((valor / (1 - pct / 100) - valor) * 100 - 1e-6) / 100 : 0);

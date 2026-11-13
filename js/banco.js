@@ -15,6 +15,7 @@ export const CONFIG_PADRAO = {
   cor_primaria: null, cor_secundaria: null, meta_mensal: 0,
   capital_inicial: 0, salario_desejado: 0, pct_reinvestir: 30, pct_reserva: 10, pct_salario: 50, pct_sonhos: 10,
   relampago_horas: 3, relampago_margem_min: 15, relampago_descontos: "20,30,50", ultimo_mes_dividido: null,
+  taxa_debito_pct: null, taxas_credito: null, etiqueta_ultima: 0, etiqueta_definida: false,
 };
 
 export const novoId = () => (crypto.randomUUID ? crypto.randomUUID()
@@ -80,10 +81,11 @@ export class BancoSupabase {
     if (error) throw new Error(error.message);
     return data;
   }
-  async registrarVenda({ id, forma, clienteId, desconto, itens, canal = "loja", entrega = null, condicional = null }) {
+  async registrarVenda({ id, forma, clienteId, desconto, itens, canal = "loja", entrega = null, condicional = null, acrescimo = 0, parcelas = 1, taxaPct = null }) {
     const { data, error } = await this.sb.rpc("registrar_venda", {
       p_id: id, p_forma: forma, p_cliente: clienteId, p_desconto: desconto, p_itens: itens,
-      p_canal: canal, p_entrega: entrega, p_condicional: condicional });
+      p_canal: canal, p_entrega: entrega, p_condicional: condicional,
+      p_acrescimo: acrescimo, p_parcelas: parcelas, p_taxa_pct: taxaPct });
     if (error) throw new Error(error.message);
     return data;
   }
@@ -152,7 +154,7 @@ class BancoLocal {
   }
   async remover(tabela, id) { this.e[tabela] = this.e[tabela].filter((x) => x.id !== id); await this._salvar(tabela); }
   async salvarConfig(campos) { Object.assign(this.e.config, campos); await this._gravar("config", this.e.config); return { ...this.e.config }; }
-  async registrarVenda({ id, forma, clienteId, desconto, itens, canal = "loja", entrega = null, condicional = null }) {
+  async registrarVenda({ id, forma, clienteId, desconto, itens, canal = "loja", entrega = null, condicional = null, acrescimo = 0, parcelas = 1, taxaPct = null }) {
     // mesma regra da função registrar_venda do Supabase (lotes mais antigos primeiro, tudo ou nada)
     const lotes = structuredClone(this.e.lotes), novos = [];
     let total = 0, custo = 0;
@@ -169,11 +171,12 @@ class BancoLocal {
       }
       if (falta > 0) throw new Error(`Estoque insuficiente para a peça ${it.codigo}`);
     }
-    total = Math.round((total - (desconto || 0)) * 100) / 100;
-    const taxa = ["credito", "debito"].includes(forma) ? Math.round(total * this.e.config.taxa_cartao_pct) / 100 : 0;
+    total = Math.round((total - (desconto || 0) + (acrescimo || 0)) * 100) / 100;
+    const cartao = ["credito", "debito"].includes(forma), pct = cartao ? (taxaPct ?? this.e.config.taxa_cartao_pct ?? 0) : 0;
+    const taxa = Math.round(total * pct) / 100;
     this.e.lotes = lotes;
     this.e.vendas.push({ id, data: new Date().toISOString(), cliente_id: clienteId, forma_pagamento: forma,
-      canal, entrega, condicional_id: condicional,
+      canal, entrega, condicional_id: condicional, acrescimo: acrescimo || 0, parcelas: Math.max(1, parcelas || 1), taxa_pct: pct,
       total, custo_total: Math.round(custo * 100) / 100, taxa_pagamento: taxa });
     this.e.itens_venda.push(...novos);
     await Promise.all(["lotes", "vendas", "itens_venda"].map((t) => this._salvar(t)));

@@ -230,10 +230,24 @@ end $$;
 
 -- ---------- registrar venda numa transação só (baixa o estoque dos lotes mais antigos primeiro)
 -- p_itens: [{"variacao_id": "...", "quantidade": 2}, ...]
+-- versão 7: parcelas, taxa por parcela e acréscimo; apagar produto; etiquetas numeradas
+alter table vendas add column if not exists acrescimo double precision not null default 0;
+alter table vendas add column if not exists parcelas integer not null default 1;
+alter table vendas add column if not exists taxa_pct double precision not null default 0;
+alter table produtos add column if not exists etiqueta integer;
+alter table produtos add column if not exists arquivado boolean not null default false;
+create unique index if not exists produtos_etiqueta_unica on produtos (owner_id, etiqueta) where etiqueta is not null;
+alter table config add column if not exists taxa_debito_pct double precision;
+alter table config add column if not exists taxas_credito text;
+alter table config add column if not exists etiqueta_ultima integer not null default 0;
+alter table config add column if not exists etiqueta_definida boolean not null default false;
+
 drop function if exists registrar_venda(uuid, text, uuid, double precision, jsonb);
+drop function if exists registrar_venda(uuid, text, uuid, double precision, jsonb, text, jsonb, uuid);
 create or replace function registrar_venda(
   p_id uuid, p_forma text, p_cliente uuid, p_desconto double precision, p_itens jsonb,
-  p_canal text default 'loja', p_entrega jsonb default null, p_condicional uuid default null
+  p_canal text default 'loja', p_entrega jsonb default null, p_condicional uuid default null,
+  p_acrescimo double precision default 0, p_parcelas integer default 1, p_taxa_pct double precision default null
 ) returns jsonb
 language plpgsql security invoker as $$
 declare
@@ -242,8 +256,9 @@ declare
   v_cfg config%rowtype; v_itens jsonb := '[]'::jsonb;
 begin
   select * into v_cfg from config where owner_id = auth.uid();
-  insert into vendas (id, forma_pagamento, cliente_id, total, custo_total, canal, entrega, condicional_id)
-    values (p_id, p_forma, p_cliente, 0, 0, coalesce(p_canal, 'loja'), p_entrega, p_condicional);
+  insert into vendas (id, forma_pagamento, cliente_id, total, custo_total, canal, entrega, condicional_id, acrescimo, parcelas)
+    values (p_id, p_forma, p_cliente, 0, 0, coalesce(p_canal, 'loja'), p_entrega, p_condicional,
+            coalesce(p_acrescimo, 0), greatest(1, coalesce(p_parcelas, 1)));
   for it in select * from jsonb_array_elements(p_itens) loop
     falta := (it->>'quantidade')::integer;
     for l in select * from lotes
@@ -263,11 +278,12 @@ begin
       raise exception 'Estoque insuficiente para a peça %', it->>'codigo';
     end if;
   end loop;
-  v_total := round((v_total - coalesce(p_desconto, 0))::numeric, 2);
+  v_total := round((v_total - coalesce(p_desconto, 0) + coalesce(p_acrescimo, 0))::numeric, 2);
   if p_forma in ('credito','debito') then
-    v_taxa := round((v_total * coalesce(v_cfg.taxa_cartao_pct, 0) / 100)::numeric, 2);
+    v_taxa := round((v_total * coalesce(p_taxa_pct, v_cfg.taxa_cartao_pct, 0) / 100)::numeric, 2);
   end if;
-  update vendas set total = v_total, custo_total = round(v_custo::numeric, 2), taxa_pagamento = v_taxa
+  update vendas set total = v_total, custo_total = round(v_custo::numeric, 2), taxa_pagamento = v_taxa,
+    taxa_pct = case when p_forma in ('credito','debito') then coalesce(p_taxa_pct, v_cfg.taxa_cartao_pct, 0) else 0 end
     where id = p_id;
   return jsonb_build_object('venda_id', p_id, 'total', v_total, 'custo', round(v_custo::numeric, 2),
                             'taxa_maquininha', v_taxa);

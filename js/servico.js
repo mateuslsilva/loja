@@ -14,6 +14,7 @@ export async function iniciarServico(b) {
   banco = b;
   E = await banco.carregar();
   if (banco.prepararFotos) await banco.prepararFotos([...E.produtos.map((p) => p.foto), E.config.logo]);
+  await migrarCodigosBarras().catch(() => {});
   await verificarRelampago();  // troca a etapa do "salvar meu dia", se passou o horário
   await rodarRobo();  // ao abrir o app, já atualiza as promoções do dia
 }
@@ -31,7 +32,8 @@ const reservado = (vid, excetoCond = null) => (E.condicionais || []).filter((c) 
   .reduce((s, c) => s + c.itens.filter((i) => i.variacao_id === vid).reduce((t, i) => t + i.quantidade, 0), 0);
 const disponivel = (vid, excetoCond = null) => qtdVariacao(vid) - reservado(vid, excetoCond);
 const produto = (id) => E.produtos.find((p) => p.id === id) || falhar("Produto não encontrado");
-const codigoBase = (p) => `${p.categoria}-${String(p.sequencial).padStart(4, "0")}`;
+const codigoBase = (p) => (p.etiqueta != null ? String(p.etiqueta) : `${p.categoria}-${String(p.sequencial).padStart(4, "0")}`);
+const ativos = () => E.produtos.filter((p) => !p.arquivado);
 
 function loteJson(l) {
   const atual = R.precoAtual(l);
@@ -48,13 +50,29 @@ function variacaoJson(v) {
 }
 function produtoJson(p) {
   const vs = variacoesDe(p.id).sort((a, b) => a.cor.localeCompare(b.cor) || R.chaveTamanho(a.tamanho) - R.chaveTamanho(b.tamanho));
-  return { produto_id: p.id, codigo: codigoBase(p), nome: p.nome, foto: banco.urlFoto(p.foto),
+  return { produto_id: p.id, codigo: codigoBase(p), etiqueta: p.etiqueta ?? null, nome: p.nome, foto: banco.urlFoto(p.foto),
     categoria: R.CATEGORIAS[p.categoria] || p.categoria,
     quantidade_total: vs.reduce((s, v) => s + qtdVariacao(v.id), 0), variacoes: vs.map(variacaoJson) };
 }
 function acharVariacao(codigo) {
   const c = String(codigo).trim().toUpperCase();
-  return E.variacoes.find((v) => v.codigo === c || v.codigo_barras === c) || falhar(`Peça não encontrada: ${codigo}`);
+  const v = E.variacoes.find((x) => x.codigo === c || x.codigo_barras === c);
+  if (v) return v;
+  if (/^\d{1,9}$/.test(c)) {   // número da etiqueta (ex.: 5968): se só tem 1 cor/tamanho com estoque, é ela
+    const p = ativos().find((x) => x.etiqueta === Number(c));
+    if (p) {
+      const vs = variacoesDe(p.id).filter((x) => disponivel(x.id) > 0);
+      if (vs.length === 1) return vs[0];
+      falhar(vs.length ? `A etiqueta ${c} tem ${vs.length} cores/tamanhos. Escolha em + Produtos.` : `A peça ${c} está sem estoque.`);
+    }
+  }
+  falhar(`Peça não encontrada: ${codigo}`);
+}
+
+// ---------------------------------------------------------------- etiquetas numeradas (1, 2, 3… ou continuando a da loja)
+const maiorEtiqueta = () => Math.max(Number(E.config.etiqueta_ultima) || 0, ...E.produtos.map((p) => p.etiqueta || 0));
+function infoEtiquetas() {
+  return { ultima: maiorEtiqueta(), proxima: maiorEtiqueta() + 1, definida: !!E.config.etiqueta_definida };
 }
 
 // ---------------------------------------------------------------- cadastro
@@ -67,7 +85,26 @@ function montarVariacao(p, cor, tamanho, novasDoProduto) {
   const codigo = `${codigoBase(p)}-${sigla}-${tam}`;
   if ([...E.variacoes, ...novasDoProduto].some((v) => v.codigo === codigo)) falhar(`Já existe a variação ${codigo}. Use Repor estoque.`);
   const numero = Math.max(0, ...E.variacoes.map((v) => v.numero), ...novasDoProduto.map((v) => v.numero)) + 1;
-  return { id: novoId(), produto_id: p.id, cor: R.titulo(cor), cor_sigla: sigla, tamanho: tam, numero, codigo, codigo_barras: R.ean13(numero) };
+  const codigo_barras = p.etiqueta != null ? barrasEtiqueta(p, [...variacoesDe(p.id), ...novasDoProduto]) : R.ean13(numero);
+  return { id: novoId(), produto_id: p.id, cor: R.titulo(cor), cor_sigla: sigla, tamanho: tam, numero, codigo, codigo_barras };
+}
+/** Código de barras das peças com etiqueta numerada: 2 dígitos da cor/tamanho + o número da etiqueta no final.
+ *  Ex.: etiqueta 5969 → 015969 (Preto M), 025969 (Preto G). Impresso em Code 128. */
+function barrasEtiqueta(p, irmas) {
+  const fim = String(p.etiqueta), re = new RegExp(`^(\\d{2})${fim}$`);
+  const usados = irmas.map((v) => (re.exec(v.codigo_barras || "") || [])[1]).filter(Boolean).map(Number);
+  const idx = Math.max(0, ...usados) + 1;
+  if (idx > 99) falhar("Essa peça já tem 99 cores/tamanhos. Cadastre como outro produto.");
+  return String(idx).padStart(2, "0") + fim;
+}
+/** Peças com etiqueta cadastradas antes desta versão ganham o código novo (número da etiqueta no final). */
+async function migrarCodigosBarras() {
+  for (const p of E.produtos.filter((x) => x.etiqueta != null)) {
+    const re = new RegExp(`^\\d{2}${p.etiqueta}$`), vs = variacoesDe(p.id), feitas = vs.filter((v) => re.test(v.codigo_barras));
+    for (const v of vs.filter((x) => !re.test(x.codigo_barras))) {
+      const cb = barrasEtiqueta(p, feitas); await banco.atualizar("variacoes", v.id, { codigo_barras: cb }); v.codigo_barras = cb; feitas.push(v);
+    }
+  }
 }
 
 function montarLote(v, qtd, custo, preco, data) {
@@ -86,7 +123,14 @@ async function cadastrarProduto(d) {
   if (!d.nome?.trim()) falhar("Informe o nome da peça.");
   const cat = R.siglaCategoria(d.categoria);
   const seq = Math.max(0, ...E.produtos.filter((p) => p.categoria === cat).map((p) => p.sequencial)) + 1;
-  const p = { id: novoId(), categoria: cat, sequencial: seq, nome: d.nome.trim(), foto: null, criado_em: new Date().toISOString() };
+  let etiqueta;
+  if (d.etiqueta_antiga != null && String(d.etiqueta_antiga).trim() !== "") {   // peça que já tinha etiqueta da loja
+    etiqueta = Number(String(d.etiqueta_antiga).replace(/\D/g, ""));
+    if (!(etiqueta > 0)) falhar("Digite o número da etiqueta (só números).");
+    const dono = E.produtos.find((p) => p.etiqueta === etiqueta);
+    if (dono) falhar(`A etiqueta ${etiqueta} já é de "${dono.nome}"${dono.arquivado ? " (apagado, mas com vendas no histórico)" : ""}.`);
+  } else etiqueta = maiorEtiqueta() + 1;                                        // peça nova: continua a sequência
+  const p = { id: novoId(), categoria: cat, sequencial: seq, etiqueta, arquivado: false, nome: d.nome.trim(), foto: null, criado_em: new Date().toISOString() };
   const vs = [], ls = [];
   for (const g of d.grade) {
     const v = montarVariacao(p, g.cor, g.tamanho, vs); vs.push(v);
@@ -94,6 +138,7 @@ async function cadastrarProduto(d) {
   }
   await banco.inserir("produtos", [p]); await banco.inserir("variacoes", vs); await banco.inserir("lotes", ls);
   E.produtos.push(p); E.variacoes.push(...vs); E.lotes.push(...ls);
+  if (etiqueta > (Number(E.config.etiqueta_ultima) || 0)) E.config = { ...E.config, ...(await banco.salvarConfig({ etiqueta_ultima: etiqueta })) };
   return { ...produtoJson(p), lucro_por_peca: Math.round((d.preco_venda - d.custo) * 100) / 100,
     margem_pct: R.margemPct(d.preco_venda, d.custo) };
 }
@@ -104,6 +149,56 @@ async function entradaEstoque(d) {
   const l = montarLote(v, d.quantidade, d.custo, preco, d.data_entrada);
   await banco.inserir("lotes", [l]); E.lotes.push(l);
   return variacaoJson(v);
+}
+
+// ---------------------------------------------------------------- apagar / tirar do estoque
+const temVendas = (vids) => E.itens_venda.some((i) => vids.includes(i.variacao_id));
+const emCondicional = (vids) => (E.condicionais || []).some((c) => c.status === "aberta" && c.itens.some((i) => vids.includes(i.variacao_id)));
+/** Cadastro errado: apaga tudo. Se a peça já tem vendas, some do estoque mas fica no histórico (relatórios não mudam). */
+async function apagarProduto(id) {
+  const p = produto(id), vids = variacoesDe(p.id).map((v) => v.id);
+  if (emCondicional(vids)) falhar("Essa peça está com uma cliente no condicional. Feche o condicional antes de apagar.");
+  if (!temVendas(vids)) {
+    for (const l of E.lotes.filter((l) => vids.includes(l.variacao_id))) await banco.remover("lotes", l.id);
+    for (const v of vids) await banco.remover("variacoes", v);
+    await banco.remover("produtos", p.id);
+    if (p.foto) await banco.apagarFoto?.(p.foto).catch?.(() => {});
+    E.lotes = E.lotes.filter((l) => !vids.includes(l.variacao_id)); E.variacoes = E.variacoes.filter((v) => !vids.includes(v.id));
+    E.produtos = E.produtos.filter((x) => x.id !== p.id);
+    E.procuras.filter((x) => x.produto_id === p.id).forEach((x) => (x.produto_id = null));
+    // era a última etiqueta e foi cadastro errado: o número volta a ficar livre (a sequência não pula)
+    if (p.etiqueta != null && p.etiqueta === Number(E.config.etiqueta_ultima)) {
+      const volta = Math.max(p.etiqueta - 1, ...E.produtos.map((x) => x.etiqueta || 0));
+      E.config = { ...E.config, ...(await banco.salvarConfig({ etiqueta_ultima: volta })) };
+    }
+    return { apagado: true, historico: false, nome: p.nome };
+  }
+  for (const l of E.lotes.filter((l) => vids.includes(l.variacao_id) && l.quantidade_atual > 0)) {
+    await banco.atualizar("lotes", l.id, { quantidade_atual: 0 }); l.quantidade_atual = 0;
+  }
+  await banco.atualizar("produtos", p.id, { arquivado: true }); p.arquivado = true;
+  return { apagado: true, historico: true, nome: p.nome };
+}
+/** Tira N peças de uma cor/tamanho (cadastrou a mais, perdeu, estragou). Tira das entradas mais novas primeiro. */
+async function tirarDoEstoque(vid, d) {
+  const v = E.variacoes.find((x) => x.id === vid) || falhar("Cor/tamanho não encontrado.");
+  const livre = disponivel(v.id), qtd = Math.round(Number(d.quantidade));
+  if (!(qtd > 0)) falhar("Diga quantas peças tirar.");
+  if (qtd > livre) falhar(`Só dá para tirar ${livre}${reservado(v.id) ? " (o resto está em condicional)" : ""}.`);
+  let falta = qtd;
+  for (const l of lotesDe(v.id).filter((x) => x.quantidade_atual > 0).reverse()) {
+    if (!falta) break;
+    const q = Math.min(falta, l.quantidade_atual); falta -= q;
+    if (l.quantidade_atual - q === 0 && !E.itens_venda.some((i) => i.lote_id === l.id)) {
+      await banco.remover("lotes", l.id); E.lotes = E.lotes.filter((x) => x.id !== l.id);
+    } else { await banco.atualizar("lotes", l.id, { quantidade_atual: l.quantidade_atual - q }); l.quantidade_atual -= q; }
+  }
+  // a cor/tamanho ficou vazia e nunca vendeu: some do cadastro também
+  let removida = false;
+  if (!lotesDe(v.id).length && !temVendas([v.id])) { await banco.remover("variacoes", v.id); E.variacoes = E.variacoes.filter((x) => x.id !== v.id); removida = true; }
+  const p = produto(v.produto_id), sobrou = variacoesDe(p.id);
+  if (!sobrou.length) { await banco.remover("produtos", p.id); E.produtos = E.produtos.filter((x) => x.id !== p.id); return { tirou: qtd, produto_apagado: true }; }
+  return { tirou: qtd, variacao_removida: removida, produto: produtoJson(p) };
 }
 
 // ---------------------------------------------------------------- vendas
@@ -143,15 +238,18 @@ async function vender(d, { condicional = null } = {}) {
     if (livre < it.quantidade) falhar(`${v.codigo}: só tem ${livre} disponível${reservado(v.id, condicional) ? " (o resto está em condicional)" : ""}.`);
     return { variacao_id: v.id, quantidade: it.quantidade, codigo: v.codigo };
   });
+  const acrescimo = Math.round(Math.max(0, Number(d.acrescimo) || 0) * 100) / 100;
+  const parcelas = d.forma_pagamento === "credito" ? Math.min(24, Math.max(1, Math.round(Number(d.parcelas) || 1))) : 1;
+  const taxaPct = R.taxaDaVenda(E.config, d.forma_pagamento, parcelas);
   await verificarRelampago();
   const id = novoId();
   const r = await banco.registrarVenda({ id, forma: d.forma_pagamento, clienteId: d.cliente_id || null,
-    desconto: d.desconto_extra || 0, itens, canal, entrega, condicional });
+    desconto: d.desconto_extra || 0, itens, canal, entrega, condicional, acrescimo, parcelas, taxaPct });
   E = await banco.carregar();  // recarrega estoque e vendas como ficaram no banco
   if (banco.prepararFotos) await banco.prepararFotos([...E.produtos.map((p) => p.foto), E.config.logo]);
   const ev = await verificarRelampago();  // a peça relâmpago pode ter sido vendida agora
   const lucro = Math.round((r.total - r.custo - r.taxa_maquininha) * 100) / 100;
-  return { ...r, lucro, alerta: lucro < 0 ? "Atenção: essa venda deu prejuízo." : null, relampago: ev,
+  return { ...r, lucro, parcelas, taxa_pct: taxaPct, acrescimo, alerta: lucro < 0 ? "Atenção: essa venda deu prejuízo." : null, relampago: ev,
     entrega: entrega ? entregaJson(E.vendas.find((v) => v.id === id)) : null };
 }
 const registrarVenda = (d) => vender(d);
@@ -343,10 +441,10 @@ async function marcarProcura(id, status) {
 // ---------------------------------------------------------------- busca de produtos (vender sem leitor)
 function buscarPecas(q) {
   const t = R.semAcento(String(q || "")).toLowerCase().trim().split(/\s+/).filter(Boolean);
-  return E.produtos.map((p) => {
+  return ativos().map((p) => {
     const vs = variacoesDe(p.id).map((v) => {
       const l = lotesDe(v.id).find((x) => x.quantidade_atual > 0);
-      return { codigo: v.codigo, cor: v.cor, tamanho: v.tamanho, disponivel: disponivel(v.id), reservado: reservado(v.id),
+      return { codigo: v.codigo, codigo_barras: v.codigo_barras, cor: v.cor, tamanho: v.tamanho, disponivel: disponivel(v.id), reservado: reservado(v.id),
         preco: l ? R.precoAtual(l) : null, promo: l?.preco_promocional != null,
         busca: R.semAcento(`${p.nome} ${v.cor} ${v.tamanho} ${v.codigo} ${v.codigo_barras} ${R.CATEGORIAS[p.categoria] || ""}`).toLowerCase() };
     }).filter((v) => t.every((w) => v.busca.includes(w)))
@@ -932,8 +1030,9 @@ const CAMPOS_CONFIG = ["nome_loja", "margem_minima_pct", "taxa_cartao_pct", "con
   "loja_cnpj", "loja_segmento", "loja_canais", "cep", "endereco", "numero", "bairro", "cidade", "uf",
   "cor_primaria", "cor_secundaria", "meta_mensal", "capital_inicial", "salario_desejado", "pct_reinvestir",
   "pct_reserva", "pct_salario", "pct_sonhos", "relampago_horas", "relampago_margem_min", "relampago_descontos",
-  "ultimo_mes_dividido"];
+  "ultimo_mes_dividido", "taxa_debito_pct", "taxas_credito", "etiqueta_ultima", "etiqueta_definida"];
 const verConfig = () => ({ ...Object.fromEntries(CAMPOS_CONFIG.map((k) => [k, E.config[k]])), modo: banco.modo,
+  taxas: R.taxasDaLoja(E.config), taxas_credito_texto: E.config.taxas_credito || R.TAXAS_CREDITO_PADRAO, etiquetas: infoEtiquetas(),
   logo_url: banco.urlFoto(E.config.logo) });
 
 async function salvarConfig(d) {
@@ -942,6 +1041,12 @@ async function salvarConfig(d) {
   if ("instagram_arroba" in novos) novos.instagram_arroba = String(novos.instagram_arroba).trim().replace(/^@/, "") || null;
   for (const k of ["whatsapp_loja", "responsavel_whatsapp", "loja_cnpj", "cep"]) if (k in novos) novos[k] = String(novos[k]).replace(/\D/g, "") || null;
   if ("nome_loja" in novos && !String(novos.nome_loja).trim()) falhar("Informe o nome da loja.");
+  if (novos.taxas_credito != null && !Object.keys(R.lerTaxas(novos.taxas_credito)).length) falhar("Taxas inválidas. Use o formato 1:4.99,2:6.09,3:6.89");
+  if ("etiqueta_ultima" in novos) {
+    novos.etiqueta_ultima = Math.max(0, Math.round(Number(novos.etiqueta_ultima) || 0));
+    const maior = Math.max(0, ...E.produtos.map((p) => p.etiqueta || 0));
+    novos.etiqueta_ultima = Math.max(novos.etiqueta_ultima, maior);   // nunca volta atrás de uma etiqueta já usada
+  }
   if (novos.escada_promocao !== undefined && !R.lerEscada(novos.escada_promocao).length) falhar("Escada inválida. Use o formato 35:10,50:20,65:30");
   E.config = { ...E.config, ...(await banco.salvarConfig(novos)) };
   await rodarRobo();
@@ -960,16 +1065,19 @@ export async function api(url, opt = {}) {
   const [caminho, qs] = url.split("?"), q = new URLSearchParams(qs || ""), m = (opt.method || "GET").toUpperCase();
   const b = opt.body, seg = caminho.split("/").filter(Boolean).map(decodeURIComponent);
   try {
-    const comId = ["produtos", "despesas", "sonhos", "vendas", "condicionais", "procuras"].includes(seg[0]) && seg[1];
+    const comId = ["produtos", "despesas", "sonhos", "vendas", "condicionais", "procuras", "variacoes"].includes(seg[0]) && seg[1];
     switch (`${m} /${seg[0]}${comId ? "/:id" : ""}${seg[2] ? "/" + seg[2] : ""}`) {
       case "GET /config": return verConfig();
       case "PUT /config": return await salvarConfig(b);
       case "POST /config": return await enviarLogo(b.get("arquivo"));
       case "GET /categorias": return R.CATEGORIAS;
+      case "GET /etiquetas": return infoEtiquetas();
+      case "DELETE /produtos/:id": return await apagarProduto(seg[1]);
+      case "POST /variacoes/:id/tirar": return await tirarDoEstoque(seg[1], b || {});
       case "GET /produtos": {
         const busca = R.semAcento(q.get("busca") || "").toLowerCase();
-        return E.produtos.filter((p) => R.semAcento(p.nome).toLowerCase().includes(busca))
-          .sort((a, b) => a.categoria.localeCompare(b.categoria) || a.sequencial - b.sequencial).map(produtoJson);
+        return ativos().filter((p) => R.semAcento(`${p.nome} ${p.etiqueta ?? ""}`).toLowerCase().includes(busca))
+          .sort((a, b) => (b.etiqueta ?? -1) - (a.etiqueta ?? -1) || a.categoria.localeCompare(b.categoria) || a.sequencial - b.sequencial).map(produtoJson);
       }
       case "POST /produtos": return await cadastrarProduto(b);
       case "GET /produtos/:id": return produtoJson(produto(seg[1]));
