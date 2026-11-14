@@ -7,6 +7,7 @@ import { coresDaLogo } from "./tema.js";
 import * as F from "./financas.js";
 import * as D from "./demanda.js";
 import * as C from "./caixinhas.js";
+import * as CFO from "./cfo.js";
 
 const FORMAS = ["pix", "dinheiro", "debito", "credito", "fiado"];
 let banco, E;  // E = estado em memória (todas as tabelas)
@@ -108,12 +109,12 @@ async function migrarCodigosBarras() {
   }
 }
 
-function montarLote(v, qtd, custo, preco, data) {
+function montarLote(v, qtd, custo, preco, data, origem = "compra") {
   if (!(custo > 0)) falhar("Informe o valor pago (custo).");
   if (!(preco > custo)) falhar(`Preço de venda (${R.brl(preco)}) precisa ser maior que o custo (${R.brl(custo)}).`);
   const l = { id: novoId(), variacao_id: v.id, data_entrada: data || R.hojeISO(), quantidade_inicial: qtd,
     quantidade_atual: qtd, custo_unit: custo, preco_venda: preco, preco_promocional: null, desconto_pct: 0,
-    promo_no_piso: false, promo_desde: null };
+    promo_no_piso: false, promo_desde: null, origem, registrado_em: new Date().toISOString() };
   const c = R.calcularPromo(l, E.config);  // peça com data antiga já entra com o preço certo
   Object.assign(l, { preco_promocional: c.preco, desconto_pct: c.desconto_pct, promo_no_piso: c.no_piso,
     promo_desde: c.preco ? R.hojeISO() : null });
@@ -135,7 +136,8 @@ async function cadastrarProduto(d) {
   const vs = [], ls = [];
   for (const g of d.grade) {
     const v = montarVariacao(p, g.cor, g.tamanho, vs); vs.push(v);
-    if (g.quantidade > 0) ls.push(montarLote(v, g.quantidade, d.custo, d.preco_venda, d.data_entrada));
+    if (g.quantidade > 0) ls.push(montarLote(v, g.quantidade, d.custo, d.preco_venda, d.data_entrada,
+      d.etiqueta_antiga != null && String(d.etiqueta_antiga).trim() !== "" ? "inventario" : d.comprou_agora === false ? "inventario" : "compra"));
   }
   await banco.inserir("produtos", [p]); await banco.inserir("variacoes", vs); await banco.inserir("lotes", ls);
   E.produtos.push(p); E.variacoes.push(...vs); E.lotes.push(...ls);
@@ -147,7 +149,7 @@ async function cadastrarProduto(d) {
 async function entradaEstoque(d) {
   const v = acharVariacao(d.codigo), ls = lotesDe(v.id);
   const preco = d.preco_venda || ls.at(-1)?.preco_venda || falhar("Informe o preço de venda.");
-  const l = montarLote(v, d.quantidade, d.custo, preco, d.data_entrada);
+  const l = montarLote(v, d.quantidade, d.custo, preco, d.data_entrada, d.comprou_agora === false ? "inventario" : "compra");
   await banco.inserir("lotes", [l]); E.lotes.push(l);
   return variacaoJson(v);
 }
@@ -399,8 +401,10 @@ function compraInteligente(orcamento) {
   // sugestão: o que cobre toda a necessidade de 30 dias (arredondado para cima de 50 em 50)
   const tudo = D.listaCompras({ ...base, orcamento: 1e9 }).gasto;
   const sugerido = Math.ceil(tudo / 50) * 50;
-  const orc = Number(orcamento) > 0 ? Number(orcamento) : (sugerido || 500);
-  return { ...D.listaCompras({ ...base, orcamento: orc }), orcamento_sugerido: sugerido };
+  const v = financas().cfo.verba;
+  const verba = v.sem_dados ? null : v.pode_comprar;
+  const orc = Number(orcamento) > 0 ? Number(orcamento) : (verba > 0 ? verba : (sugerido || 500));
+  return { ...D.listaCompras({ ...base, orcamento: orc }), orcamento_sugerido: sugerido, verba: v.sem_dados ? null : v };
 }
 function perfisClientes() {
   const m = new Map();
@@ -779,14 +783,98 @@ function obrigacoes() {
 }
 let cacheCx = null;
 function caixinhas() {
-  const hoje = R.hojeISO(), chave = `${hoje}|${E.vendas.length}|${JSON.stringify(E.despesas.map((d) => [d.id, d.valor, d.valores, d.vencimento]))}|${E.config.salario_desejado}|${JSON.stringify(E.config.salario_meses)}|${E.config.horario}|${E.config.abre_feriado}|${E.config.feriados_extra}|${E.sonhos.map((x) => x.guardado + x.prazo).join()}`;
+  const hoje = R.hojeISO(), chave = `${hoje}|${E.vendas.length}|${JSON.stringify(E.despesas.map((d) => [d.id, d.valor, d.valores, d.vencimento]))}|${E.config.salario_desejado}|${JSON.stringify(E.config.salario_meses)}|${E.config.horario}|${E.config.abre_feriado}|${E.config.feriados_extra}|${E.sonhos.map((x) => x.guardado + x.prazo).join()}|${E.config.cofre_inicio}`;
   if (cacheCx?.chave === chave) return cacheCx.r;
-  const cal = calendario(), d0 = C.dataDe(hoje), inicio = C.iso(new Date(d0.getFullYear(), d0.getMonth() - 2, 1));
+  const cal = calendario(), d0 = C.dataDe(hoje);
+  let inicio = C.iso(new Date(d0.getFullYear(), d0.getMonth() - 2, 1));
+  const ci = E.config.cofre_inicio ? C.iso(new Date(E.config.cofre_inicio)) : null;
+  if (ci && ci < inicio) inicio = [ci.slice(0, 8) + "01", C.iso(new Date(d0.getFullYear() - 1, d0.getMonth(), 1))].sort().pop();
   const diario = diarioLucro(), ob = obrigacoes();
-  const sim = ob.length ? C.simularCaixinhas({ obrigacoes: ob, diario, cal, inicio, hoje })
+  const sim = ob.length ? C.simularCaixinhas({ obrigacoes: ob, diario, cal, inicio, hoje, socorro: ci ? ["sonhos"] : ["sonhos", "salario"] })
     : { caixinhas: [], historico: [], movimentos: [], dias: {} };
   cacheCx = { chave, r: { sim, cal, diario, hoje } };
   return cacheCx.r;
+}
+
+// ---------------------------------------------------------------- diretor financeiro (cofre, compras, metas, saúde)
+const comprasDoCofre = () => E.lotes.filter((l) => l.origem === "compra").map((l) => {
+  const v = E.variacoes.find((x) => x.id === l.variacao_id), p = v && E.produtos.find((x) => x.id === v.produto_id);
+  return { data: C.iso(new Date(l.registrado_em || l.data_entrada + "T12:00:00")), valor: Math.round(l.custo_unit * l.quantidade_inicial * 100) / 100,
+    descricao: `Compra: ${l.quantidade_inicial}x ${p ? p.nome : "peça"}${v ? " " + v.cor + " " + v.tamanho : ""}` };
+});
+function estadoCofreAgora(sim, diario, contasMes) {
+  if (!E.config.cofre_inicio) return null;
+  const metaReserva = Math.round(contasMes * (Number(E.config.reserva_meses) || 2) * 100) / 100;
+  const st = CFO.estadoCofre({ inicio: C.iso(new Date(E.config.cofre_inicio)), hoje: R.hojeISO(), movs: E.cofre || [], diario, dias: sim.dias,
+    historico: sim.historico, compras: comprasDoCofre(), metaReserva });
+  return { ...st, meta_reserva: metaReserva, meses_reserva: contasMes > 0 ? Math.round(st.reserva / contasMes * 10) / 10 : null, inicio: E.config.cofre_inicio };
+}
+function estoqueACusto() {
+  const dAlerta = (R.lerEscada(E.config.escada_promocao)[0] || [35])[0];
+  let custo = 0, parado = 0, paradoVenda = 0, pecas = 0, pecasParadas = 0;
+  for (const l of E.lotes.filter((x) => x.quantidade_atual > 0)) {
+    const c = l.custo_unit * l.quantidade_atual; custo += c; pecas += l.quantidade_atual;
+    if (R.diasEntre(l.data_entrada) >= dAlerta) { parado += c; paradoVenda += R.precoAtual(l) * l.quantidade_atual; pecasParadas += l.quantidade_atual; }
+  }
+  return { custo, parado, paradoVenda, pecas, pecasParadas, dias_alerta: dAlerta };
+}
+function diretorFinanceiro({ cal, diario, hojeS, calMes, tot, margem, salario, sonhosMes, cofre, alertas, vMesTotal }) {
+  const est = estoqueACusto();
+  // ritmo das últimas 8 semanas (por dia útil)
+  const de = C.somaDias(hojeS, -56); let cmv = 0, vendas = 0;
+  for (let x = de; x < hojeS; x = C.somaDias(x, 1)) { cmv += diario[x]?.custo || 0; vendas += diario[x]?.vendas || 0; }
+  const uteis56 = cal.uteis(de, hojeS), temVendas = vendas > 0 && uteis56 >= 4;
+  const cmvDiaUtil = temVendas ? cmv / uteis56 : 0, vendaDiaUtil = temVendas ? vendas / uteis56 : 0;
+  const m0 = +hojeS.slice(5, 7), m1 = m0 % 12 + 1, ratio = C.SAZONAL_MODA[m1] / C.SAZONAL_MODA[m0];
+  const fator = Math.round(Math.min(1.5, Math.max(0.8, (1 + ratio) / 2)) * 100) / 100;
+  const lucroPrevisto = salario.este.projecao_lucro, buraco = temVendas ? tot.mensal + salario.valor - lucroPrevisto : 0;
+  const verba = CFO.verbaCompras({ cmvDiaUtil, uteis30: cal.uteis(hojeS, C.somaDias(hojeS, 30)), fatorSazonal: fator, estoqueCusto: est.custo,
+    paradoCusto: est.parado, coberturaDias: Number(E.config.cobertura_dias) || 60, giro: cofre?.giro || 0, temCofre: !!cofre, apertado: buraco });
+  const metas = CFO.metasMes({ minhaMeta: Number(E.config.meta_mensal) || 0, contasMes: tot.mensal, salario: salario.valor, sonhos: sonhosMes, margem,
+    faltaReserva: cofre ? cofre.meta_reserva - cofre.reserva : 0, uteisMes: calMes.uteis, uteisRestam: calMes.restam, vendidoMes: vMesTotal, vendaDiaUtil });
+  const plano = temVendas ? CFO.planoMesApertado({ buraco, sonhosMes, reserva: cofre?.reserva || 0,
+    paradoCusto: est.parado, paradoVenda: est.paradoVenda, giro: cofre?.giro || 0, verbaCompra: verba.verba || 0, salario: salario.valor }) : null;
+  const sd = CFO.saude({ reservaMeses: cofre?.meses_reserva || 0, metaReservaMeses: Number(E.config.reserva_meses) || 2,
+    cobertura: verba.sem_dados ? null : verba.cobertura_dias, coberturaAlvo: Number(E.config.cobertura_dias) || 60,
+    pctParado: est.custo > 0 ? est.parado / est.custo * 100 : 0, margem, previsaoVsMinima: metas.metas[0].valor > 0 ? metas.previsao / metas.metas[0].valor : null,
+    temVendas, temCofre: !!cofre });
+  // o que fazer agora (mais urgente primeiro)
+  const rec = [];
+  for (const a of alertas) rec.push({ nivel: a.nivel === "perigo" ? 3 : 2, icone: "🏠", texto: `${a.conta} vence em ${a.dias_ate} dia(s) e pode faltar ${R.brl(a.falta_prevista)}. Veja as caixinhas.` });
+  if (plano) rec.push({ nivel: 3, icone: "🧯", texto: `No ritmo atual o mês fecha faltando ${R.brl(plano.buraco)} para contas e salário. Siga o plano abaixo.` });
+  if (!cofre) rec.push({ nivel: 2, icone: "🏦", texto: "Abra o cofre: diga quanto dinheiro a loja tem hoje e o app separa a reserva e o dinheiro de compras." });
+  for (const i of sd.indicadores) if (i.dica) rec.push({ nivel: i.nota < 40 ? 3 : 2, icone: { reserva: "🛟", margem: "🏷️", cobertura: "🧺", parado: "🔥", ritmo: "📉" }[i.id], texto: i.dica });
+  if (!verba.sem_dados && verba.situacao.nivel !== "ok") rec.push({ nivel: 2, icone: "🛍️", texto: verba.situacao.texto });
+  if (metas.conselho) rec.push({ nivel: 1, icone: "🎯", texto: metas.conselho });
+  if (!rec.length) rec.push({ nivel: 0, icone: "✅", texto: "Empresa saudável. Continue separando as caixinhas e comprando pela verba." });
+  rec.sort((a, b) => b.nivel - a.nivel);
+  return { cofre, verba, metas, plano, saude: sd, recomendacoes: rec.slice(0, 5), estoque: { custo: Math.round(est.custo * 100) / 100, parado: Math.round(est.parado * 100) / 100,
+    pecas: est.pecas, pecas_paradas: est.pecasParadas, dias_alerta: est.dias_alerta }, ritmo: { venda_dia_util: Math.round(vendaDiaUtil * 100) / 100, cmv_dia_util: Math.round(cmvDiaUtil * 100) / 100 },
+    capital_total: cofre ? Math.round((Math.max(0, cofre.reserva) + Math.max(0, cofre.giro) + est.custo) * 100) / 100 : null,
+    reserva_meses_meta: Number(E.config.reserva_meses) || 2, cobertura_meta: Number(E.config.cobertura_dias) || 60 };
+}
+async function iniciarCofre(d) {
+  const dinheiro = Number(d.dinheiro); if (!(dinheiro >= 0)) falhar("Diga quanto dinheiro a loja tem hoje.");
+  if (E.config.cofre_inicio) falhar("O cofre já está aberto. Use Colocar / Tirar / Corrigir saldo.");
+  const tot = F.totalDespesas(E.despesas), div = CFO.dividirInicio(dinheiro, tot.mensal, Number(E.config.reserva_meses) || 2);
+  const agora = new Date().toISOString();
+  const movs = [{ id: novoId(), data: agora, bolso: "reserva", valor: div.reserva, tipo: "inicio", descricao: "Abertura do cofre: reserva" },
+    { id: novoId(), data: agora, bolso: "giro", valor: div.giro, tipo: "inicio", descricao: "Abertura do cofre: dinheiro de compras" }];
+  await banco.inserir("cofre", movs); (E.cofre ||= []).push(...movs);
+  E.config = { ...E.config, ...(await banco.salvarConfig({ cofre_inicio: agora })) };
+  return financas();
+}
+async function movimentarCofre(d) {
+  if (!E.config.cofre_inicio) falhar("Abra o cofre primeiro.");
+  const bolso = d.bolso === "giro" ? "giro" : "reserva", tipo = ["entrada", "retirada", "ajuste"].includes(d.tipo) ? d.tipo : "entrada";
+  let valor = Math.round(Number(d.valor) * 100) / 100;
+  if (!(valor >= 0) || (tipo !== "ajuste" && !(valor > 0))) falhar("Valor inválido.");
+  if (tipo === "retirada") valor = -valor;
+  const nome = bolso === "reserva" ? "reserva" : "dinheiro de compras";
+  const m = { id: novoId(), data: new Date().toISOString(), bolso, valor, tipo,
+    descricao: d.descricao?.trim() || (tipo === "ajuste" ? `Saldo corrigido (${nome})` : tipo === "entrada" ? `Colocou na ${nome}` : `Tirou da ${nome}`) };
+  await banco.inserir("cofre", [m]); (E.cofre ||= []).push(m);
+  return financas();
 }
 
 /** Contas "vencidas" até hoje no mês, proporcionais aos dias úteis já passados (inclui hoje). */
@@ -828,7 +916,8 @@ function financas() {
   // previsão de aperto (lucro médio por dia útil das últimas 4 semanas)
   let soma28 = 0; for (let x = C.somaDias(hojeS, -28); x < hojeS; x = C.somaDias(x, 1)) soma28 += diario[x]?.lucro || 0;
   const uteis28 = cal.uteis(C.somaDias(hojeS, -28), hojeS), lucroMedioDiaUtil = uteis28 > 0 ? soma28 / uteis28 : 0;
-  const alertas = E.vendas.length ? C.previsaoAperto(sim.caixinhas, { lucroMedioDiaUtil, margem }) : [];
+  const cofre = estadoCofreAgora(sim, diario, tot.mensal);
+  const alertas = E.vendas.length ? C.previsaoAperto(sim.caixinhas, { lucroMedioDiaUtil, margem, reserva: cofre?.reserva || 0, giro: cofre?.giro || 0, comCofre: !!cofre }) : [];
 
   // mês atual
   const iniMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
@@ -879,7 +968,10 @@ function financas() {
     definido: (cfg.salario_meses || {})[m] != null });
   const salario = { mes: mesAtual, valor: salarioDoMes(mesAtual), padrao: Number(cfg.salario_desejado) || 0, este: sugere(mesAtual), proximo: sugere(proxMes) };
 
+  const cfo = diretorFinanceiro({ cal, diario, hojeS, calMes, tot, margem, salario, sonhosMes, cofre, mes, alertas, vMesTotal: mes.vendas });
+
   return {
+    cfo, meta_mensal_cfg: Number(cfg.meta_mensal) || 0,
     despesas: tot.itens.map((d) => ({ id: d.id, nome: d.nome, tipo: d.tipo, valor: d.valor, valores: d.valores || [], previsto: d.previsto, vencimento: d.vencimento || null })),
     contas_mes: tot.mensal, contas_dia: dHoje.cota_contas, contas_dia_util: contasPorDiaUtil, margem: Math.round(margem * 1000) / 10, margem_fonte: fonte,
     venda_minima_dia: F.vendaNecessaria(contasPorDiaUtil, margem), hoje: termo, mes, calendario: calMes,
@@ -953,7 +1045,9 @@ function pulso() {
   const aneis = [];
   if (h.custo_diario > 0) aneis.push({ id: "contas", nome: "Lucro do dia", valor: h.lucro_hoje, alvo: h.custo_diario, dica: "lucro de hoje × contas + salário + sonhos de hoje" });
   if (metaDia > 0) aneis.push({ id: "dia", nome: cm.hoje.peso < 1 ? "Meta de hoje (meio período)" : "Meta do dia", valor: h.vendas_hoje, alvo: Math.round(metaDia * 100) / 100, dica: "vendas de hoje" });
+  const metaApp = fin.cfo.metas.metas.find((m) => m.id === "app")?.valor || 0;
   if (cfg.meta_mensal > 0) aneis.push({ id: "mes", nome: "Meta do mês", valor: vendasMes, alvo: cfg.meta_mensal, dica: "vendas do mês" });
+  else if (metaApp > 0) aneis.push({ id: "mes", nome: "Meta do app (mês)", valor: vendasMes, alvo: metaApp, dica: "vendas do mês × o que o mês precisa para fechar bem" });
 
   // missões do dia (calculadas a partir dos dados, nada para marcar à mão)
   const ticket = fin.mes.vendas && E.vendas.length ? vendasMes / Math.max(1, E.vendas.filter((v) => new Date(v.data) >= new Date(agora.getFullYear(), agora.getMonth(), 1)).length) : 0;
@@ -1125,7 +1219,7 @@ const CAMPOS_CONFIG = ["nome_loja", "margem_minima_pct", "taxa_cartao_pct", "con
   "cor_primaria", "cor_secundaria", "meta_mensal", "capital_inicial", "salario_desejado", "pct_reinvestir",
   "pct_reserva", "pct_salario", "pct_sonhos", "relampago_horas", "relampago_margem_min", "relampago_descontos",
   "ultimo_mes_dividido", "taxa_debito_pct", "taxas_credito", "etiqueta_ultima", "etiqueta_definida",
-  "horario", "abre_feriado", "feriados_extra", "salario_meses"];
+  "horario", "abre_feriado", "feriados_extra", "salario_meses", "reserva_meses", "cobertura_dias"];
 const verConfig = () => ({ ...Object.fromEntries(CAMPOS_CONFIG.map((k) => [k, E.config[k]])), modo: banco.modo,
   horario_dias: C.lerHorario(E.config.horario), horario_padrao: C.HORARIO_PADRAO,
   taxas: R.taxasDaLoja(E.config), taxas_credito_texto: E.config.taxas_credito || R.TAXAS_CREDITO_PADRAO, etiquetas: infoEtiquetas(),
@@ -1212,6 +1306,8 @@ export async function api(url, opt = {}) {
       case "GET /painel": return painel(q.get("periodo") || "mes");
       case "GET /financas": return financas();
       case "POST /salario": return await salarioMes(b || {});
+      case "POST /cofre/iniciar": return await iniciarCofre(b || {});
+      case "POST /cofre": return await movimentarCofre(b || {});
       case "GET /calendario": {
         const cal = calendario(), m = q.get("mes") || R.hojeISO().slice(0, 7), ini = m + "-01", [a, mm] = m.split("-").map(Number), fim = C.iso(new Date(a, mm, 1));
         const dias = []; for (let x = ini; x < fim; x = C.somaDias(x, 1)) dias.push(cal.info(x));

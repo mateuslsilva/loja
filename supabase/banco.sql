@@ -216,11 +216,23 @@ create index if not exists idx_lotes_variacao on lotes (variacao_id);
 create index if not exists idx_vendas_data on vendas (owner_id, data);
 create index if not exists idx_itens_venda on itens_venda (venda_id);
 
+-- cofre da loja (reserva de emergência + dinheiro de compras)
+create table if not exists cofre (
+  id uuid primary key,
+  owner_id uuid not null default auth.uid() references auth.users on delete cascade,
+  data timestamptz not null default now(),
+  bolso text not null check (bolso in ('reserva','giro')),
+  valor double precision not null,
+  tipo text not null default 'entrada',
+  descricao text
+);
+create index if not exists cofre_owner on cofre (owner_id, data);
+
 -- ---------- segurança: cada conta só vê o que é dela
 do $$
 declare t text;
 begin
-  foreach t in array array['config','produtos','variacoes','lotes','clientes','vendas','itens_venda','despesas','sonhos','aportes','relampagos','condicionais','procuras'] loop
+  foreach t in array array['config','produtos','variacoes','lotes','clientes','vendas','itens_venda','despesas','sonhos','aportes','relampagos','condicionais','procuras','cofre'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists dono on %I', t);
     execute format('create policy dono on %I for all to authenticated
@@ -241,6 +253,13 @@ alter table config add column if not exists taxa_debito_pct double precision;
 alter table config add column if not exists taxas_credito text;
 alter table config add column if not exists etiqueta_ultima integer not null default 0;
 alter table config add column if not exists etiqueta_definida boolean not null default false;
+
+-- versão 10: cofre da loja (reserva + dinheiro de compras), origem das compras, metas do financeiro
+alter table lotes add column if not exists origem text;
+alter table lotes add column if not exists registrado_em timestamptz;
+alter table config add column if not exists cofre_inicio timestamptz;
+alter table config add column if not exists reserva_meses double precision not null default 2;
+alter table config add column if not exists cobertura_dias integer not null default 60;
 
 -- versão 9: dias úteis, horário da loja, feriados, vencimento das contas e salário por mês
 alter table config add column if not exists horario text;

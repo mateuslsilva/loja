@@ -135,7 +135,7 @@ export function cicloDa(dia, s) {
  *  5) no último dia útil antes de um vencimento, se faltar dinheiro na conta, puxa primeiro dos sonhos
  *     e só depois do salário (o mínimo possível). Os dias seguintes repõem os sonhos/salário.
  */
-export function simularCaixinhas({ obrigacoes, diario, cal, inicio, hoje }) {
+export function simularCaixinhas({ obrigacoes, diario, cal, inicio, hoje, socorro = ["sonhos", "salario"] }) {
   const ordem = { conta: 0, salario: 1, sonhos: 2 };
   const ciclo = (o, s) => (o.tipo === "conta" ? cicloDa(o.dia, s) : cicloDa(null, s));
   const estado = new Map();   // id → { ini, fim, vence, alvo, guardado, entradas: [] }
@@ -177,7 +177,7 @@ export function simularCaixinhas({ obrigacoes, diario, cal, inicio, hoje }) {
         const falta = r2(x.st.alvo - x.st.guardado);
         if (falta <= 0 || cal.uteis(somaDias(s, 1), x.st.fim) > 0) continue;
         let precisa = falta;
-        for (const tipo of ["sonhos", "salario"]) {
+        for (const tipo of socorro) {
           for (const y of cotas.filter((c) => c.o.tipo === tipo)) {
             const v = r2(Math.min(precisa, y.st.guardado));
             if (v > 0) { y.st.guardado = r2(y.st.guardado - v); x.st.guardado = r2(x.st.guardado + v); precisa = r2(precisa - v);
@@ -208,25 +208,28 @@ export function simularCaixinhas({ obrigacoes, diario, cal, inicio, hoje }) {
  * Previsão de aperto: com o lucro médio por dia útil, cada conta fecha até o vencimento?
  * Se não, sugere de onde tirar (sonhos primeiro, salário por último) e quanto vender a mais por dia.
  */
-export function previsaoAperto(caixinhas, { lucroMedioDiaUtil, margem }) {
+export function previsaoAperto(caixinhas, { lucroMedioDiaUtil, margem, reserva = 0, giro = 0, comCofre = false }) {
   const alertas = [];
   const contas = caixinhas.filter((c) => c.tipo === "conta" && c.falta > 0).sort((a, b) => a.vence.localeCompare(b.vence));
   let livre = 0;   // lucro previsto que ainda não está comprometido com contas que vencem antes
   let usadoAntes = 0;
   const sonhos = caixinhas.filter((c) => c.tipo === "sonhos").reduce((t, c) => t + c.guardado, 0);
   const salario = caixinhas.filter((c) => c.tipo === "salario").reduce((t, c) => t + c.guardado, 0);
-  let tiraSonhos = 0, tiraSalario = 0;
+  let tiraSonhos = 0, tiraSalario = 0, tiraReserva = 0, tiraGiro = 0;
   for (const c of contas) {
     const previsto = r2(lucroMedioDiaUtil * c.uteis_com_hoje);
     livre = previsto - usadoAntes;
     const faltaPrev = r2(c.falta - Math.max(0, livre));
     usadoAntes += Math.min(c.falta, Math.max(0, livre));
     if (faltaPrev <= 0 || c.dias_ate > 15) continue;
+    // ordem: sonhos → reserva de emergência → dinheiro de compras → salário (o mínimo)
     const s1 = r2(Math.min(faltaPrev, sonhos - tiraSonhos)); tiraSonhos += s1;
-    const s2 = r2(Math.min(faltaPrev - s1, salario - tiraSalario)); tiraSalario += s2;
-    const descoberto = r2(faltaPrev - s1 - s2);
+    const s3 = comCofre ? r2(Math.min(faltaPrev - s1, Math.max(0, reserva - tiraReserva))) : 0; tiraReserva += s3;
+    const s4 = comCofre ? r2(Math.min(faltaPrev - s1 - s3, Math.max(0, giro - tiraGiro))) : 0; tiraGiro += s4;
+    const s2 = r2(Math.min(faltaPrev - s1 - s3 - s4, salario - tiraSalario)); tiraSalario += s2;
+    const descoberto = r2(faltaPrev - s1 - s2 - s3 - s4);
     alertas.push({ conta: c.nome, vence: c.vence, dias_ate: c.dias_ate, falta: c.falta, falta_prevista: faltaPrev,
-      tirar_sonhos: s1, tirar_salario: s2, descoberto,
+      tirar_sonhos: s1, tirar_reserva: s3, tirar_giro: s4, tirar_salario: s2, descoberto,
       vender_a_mais_dia: c.uteis_com_hoje > 0 ? r2(faltaPrev / c.uteis_com_hoje / Math.max(0.05, margem)) : null,
       nivel: descoberto > 0 ? "perigo" : "atencao" });
   }

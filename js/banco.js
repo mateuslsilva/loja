@@ -4,7 +4,7 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 export const TABELAS = ["produtos", "variacoes", "lotes", "clientes", "vendas", "itens_venda",
-  "despesas", "sonhos", "aportes", "relampagos", "condicionais", "procuras"];
+  "despesas", "sonhos", "aportes", "relampagos", "condicionais", "procuras", "cofre"];
 
 export const CONFIG_PADRAO = {
   nome_loja: "Minha Loja", margem_minima_pct: 30, taxa_cartao_pct: 4, considerar_taxa_cartao: true,
@@ -17,6 +17,7 @@ export const CONFIG_PADRAO = {
   relampago_horas: 3, relampago_margem_min: 15, relampago_descontos: "20,30,50", ultimo_mes_dividido: null,
   taxa_debito_pct: null, taxas_credito: null, etiqueta_ultima: 0, etiqueta_definida: false,
   horario: null, abre_feriado: false, feriados_extra: null, salario_meses: {},
+  cofre_inicio: null, reserva_meses: 2, cobertura_dias: 60,
 };
 
 export const novoId = () => (crypto.randomUUID ? crypto.randomUUID()

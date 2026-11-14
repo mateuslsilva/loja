@@ -69,6 +69,29 @@ nav button.ativa{color:var(--vinho);font-weight:700;background:var(--rosa)}
 .fab{position:fixed;right:16px;bottom:108px;width:56px;height:56px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:30px;box-shadow:0 6px 16px #7a2e4d55;z-index:4}
 .modal{position:fixed;inset:0;background:#2a1d2266;display:none;align-items:flex-end;justify-content:center;z-index:10}
 .modal.on{display:flex}
+/* financeiro */
+.cfo-top{display:flex;gap:14px;align-items:center}
+.nota{--p:0;--c:var(--verde);flex:0 0 78px;height:78px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--c) calc(var(--p)*1%),var(--rosa) 0);position:relative;font:800 24px "DM Sans",system-ui,sans-serif;color:var(--tx)}
+.nota::before{content:"";position:absolute;inset:8px;border-radius:50%;background:#fff}
+.nota span{position:relative}.nota small{display:block;font-size:10px;font-weight:600;color:var(--tx2);text-align:center;margin-top:-4px}
+.ind{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ind span{font-size:12.5px;padding:4px 9px;border-radius:999px;background:#f3eef0;color:var(--tx)}
+.ind span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--d)}
+.cfo h3{font:700 15px "DM Sans",system-ui,sans-serif;margin:16px 0 6px}
+.rec{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--linha);font-size:14.5px;line-height:1.4}.rec:first-of-type{border-top:0}
+.rec.n3{color:#8f1d16}.rec b{font-weight:700}
+.meta-l{padding:9px 0;border-top:1px solid var(--linha)}.meta-l:first-of-type{border-top:0}
+.meta-l .barra{position:relative;height:10px;border-radius:6px;background:var(--rosa);margin:6px 0 4px;overflow:visible}
+.meta-l .barra i{display:block;height:100%;border-radius:6px;background:var(--vinho)}
+.meta-l .barra .prev{position:absolute;top:-4px;width:3px;height:18px;border-radius:2px;background:var(--tx);opacity:.55}
+.passo{display:flex;gap:10px;padding:8px 0;border-top:1px dashed var(--linha);font-size:14px}.passo:first-of-type{border-top:0}
+.passo .n{flex:0 0 24px;height:24px;border-radius:50%;background:var(--vinho);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.bolsos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bolso{border:1px solid var(--linha);border-radius:14px;padding:10px 12px;background:#fff}
+.bolso .v{font:800 20px "DM Sans",system-ui,sans-serif;margin:2px 0}.bolso .t{font-size:12.5px;color:var(--tx2)}
+.bolso.total{grid-column:1/-1;background:color-mix(in srgb,var(--vinho) 6%,#fff);border-color:color-mix(in srgb,var(--vinho) 30%,var(--linha))}
+.mov{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;color:var(--tx2)}
 /* horário da loja */
 .hor{display:grid;grid-template-columns:96px minmax(0,1fr) minmax(0,1fr);gap:6px 8px;align-items:center;margin-top:6px}
 .hor .d{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;cursor:pointer;color:var(--tx)}
@@ -465,6 +488,7 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   <div id="fechamento"></div>
   <div id="termoHoje"></div>
   <div id="relampagoBox"></div>
+  <div id="cfoBox"></div>
   <div id="caixinhasBox"></div>
   <h2>Contas da loja</h2>
   <div class="card">
@@ -474,7 +498,7 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   </div>
   <h2>Quanto preciso vender</h2>
   <div class="card" id="quantoVender"></div>
-  <h2>Meu dinheiro</h2>
+  <h2>Cofre da loja (capital de giro)</h2>
   <div class="card" id="capitalBox"></div>
   <h2>Meus sonhos</h2>
   <div class="card" id="sonhosBox"></div>
@@ -704,6 +728,7 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   <label>Cores (separe por vírgula)</label><input id="pCores" placeholder="Preto, Vermelho, Off white" oninput="renderMatriz()">
   <label>Tamanhos</label><div class="chips" id="pTams"></div>
   <div id="pMatriz"></div>
+  <label class="chk" id="pComprouBox"><input type="checkbox" id="pComprou" checked> Comprei agora com o dinheiro da loja (sai do dinheiro de compras)</label>
   <label class="chk"><input type="checkbox" id="pImprimir" checked> Abrir as etiquetas para imprimir depois de salvar</label>
   <button class="btn" style="margin-top:16px" onclick="salvarProduto()">Salvar produto</button>
 </div></div>
@@ -772,6 +797,17 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   <button class="btn" style="margin-top:14px" onclick="salvarCondicional()">Registrar condicional</button>
 </div></div>
 <div class="modal" id="mCondFechar"><div class="folha" id="mCondFecharCorpo"></div></div>
+
+<!-- ================= COFRE: colocar / tirar / corrigir ================= -->
+<div class="modal" id="mCofre"><div class="folha">
+  <div class="topo"><h2 style="margin:0" id="mCofreTit">Cofre</h2><button class="fechar" onclick="fechar('mCofre')">✕</button></div>
+  <label>Bolso</label>
+  <div class="seg" id="cfBolso"><button data-b="reserva" class="on">🛟 Reserva</button><button data-b="giro">🛍️ Dinheiro de compras</button></div>
+  <label id="mCofreLbl">Valor (R$)</label><input id="cfValor" type="number" inputmode="decimal" step="0.01" min="0">
+  <label>Descrição (opcional)</label><input id="cfDesc" placeholder="Ex.: dinheiro da venda do sofá">
+  <p class="muted" id="mCofreDica" style="font-size:13px"></p>
+  <button class="btn" style="margin-top:8px" onclick="salvarCofre()">Salvar</button>
+</div></div>
 
 <!-- ================= PROCURA (venda perdida) ================= -->
 <div class="modal" id="mProcura"><div class="folha">
@@ -1342,7 +1378,8 @@ async function tirarEstoque(k){
 async function repor(codigo, pid){
   const qtd = prompt("Quantas peças chegaram?"); if(!qtd) return;
   const custo = prompt("Valor pago por peça (R$)?"); if(!custo) return;
-  try{ await api("/estoque/entrada",{method:"POST",body:{codigo, quantidade:Number(qtd), custo:Number(custo.replace(",","."))}});
+  const pago = confirm("Pagou agora com o dinheiro da loja?\n\nOK = sai do dinheiro de compras do cofre\nCancelar = já estava pago / veio de outro lugar");
+  try{ await api("/estoque/entrada",{method:"POST",body:{codigo, quantidade:Number(qtd), custo:Number(custo.replace(",",".")), comprou_agora: pago}});
     toast("Estoque reposto"); fechar("mProduto"); carregarEstoque(); if(pid) avisarSeTiver(pid); }catch(e){ toast(e.message); }
 }
 // ---------- CICLO DA DEMANDA: procuraram → compra inteligente → avisar quem queria
@@ -1396,7 +1433,8 @@ async function carregarDemanda(){
     <div class="lin" style="margin-top:10px;align-items:center"><span style="flex:0 0 auto">Vou gastar</span>
       <input id="orcCompra" type="number" inputmode="decimal" min="0" step="50" value="${Math.round(c.orcamento)}" style="flex:1">
       <button class="btn peq" style="flex:0 0 auto;width:auto" onclick="orcCompra=Number($('orcCompra').value)||null;carregarDemanda()">Montar</button></div>
-    ${c.orcamento_sugerido && Math.round(c.orcamento)!==c.orcamento_sugerido?`<p class="muted" style="margin:6px 0 0;font-size:13px">Para cobrir tudo que deve vender em 30 dias: ${brl(c.orcamento_sugerido)}</p>`:""}
+    ${c.verba?`<p class="muted" style="margin:6px 0 0;font-size:13px">💼 Verba do financeiro: <b>${brl(c.verba.pode_comprar)}</b> (${c.verba.cobertura_dias} dias de estoque hoje; ideal ${c.verba.cobertura_alvo})${c.verba.novidades>0?` · deixe ${brl(c.verba.novidades)} para novidades`:""}</p>`:""}
+    ${c.orcamento_sugerido && Math.round(c.orcamento)!==c.orcamento_sugerido?`<p class="muted" style="margin:6px 0 0;font-size:13px">Para repor tudo que deve vender em 30 dias: ${brl(c.orcamento_sugerido)}</p>`:""}
     ${c.compras.length ? `<div class="dem-tot tres"><div><b>${c.pecas} pç</b><span>custam ${brl(c.gasto)}</span></div><div><b>${brl(c.venda_prevista)}</b><span>deve virar em vendas</span></div><div><b>${brl(c.lucro_previsto)}</b><span>lucro previsto</span></div></div>
       ${c.compras.map(x=>`<div class="dem-lin"><div class="dem-q">${x.qtd}<small>pç</small></div>
         <div style="flex:1;min-width:0"><b>${esc(x.nome_cat)} ${x.tamanho||""}</b>${x.cores.length?` <span class="muted">${x.cores.map(esc).join(", ")}</span>`:""}
@@ -1501,7 +1539,7 @@ async function abrirCadastro(){
   if (!et.definida && et.ultima===0) setTimeout(perguntarInicioEtq, 300);
 }
 let origemPeca = "nova";
-function escolherOrigem(o){ origemPeca=o; $("pOrigem").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.o===o));
+function escolherOrigem(o){ origemPeca=o; $("pComprou").checked = o==="nova"; $("pOrigem").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.o===o));
   $("pNumNova").style.display = o==="nova"?"flex":"none"; $("pNumAntiga").style.display = o==="antiga"?"block":"none"; if(o==="antiga") $("pEtqAntiga").focus(); }
 $("pOrigem").onclick = e => { const b=e.target.closest("[data-o]"); if(b) escolherOrigem(b.dataset.o); };
 async function perguntarInicioEtq(){
@@ -1544,7 +1582,7 @@ async function salvarProduto(){
   try{
     const p = await api("/produtos",{method:"POST",body:{nome:$("pNome").value, categoria:$("pCat").value,
       custo:Number($("pCusto").value), preco_venda:Number($("pPreco").value), data_entrada:$("pData").value||null, grade,
-      etiqueta_antiga: origemPeca==="antiga" ? $("pEtqAntiga").value : null}});
+      etiqueta_antiga: origemPeca==="antiga" ? $("pEtqAntiga").value : null, comprou_agora: $("pComprou").checked}});
     if ($("pFoto").files[0]) await enviarFoto(p.produto_id, $("pFoto").files[0]);
     fechar("mCadastro"); toast(`Cadastrado! Etiqueta nº ${p.codigo} · ${p.variacoes.length} cor(es)/tamanho(s)`, 3500);
     carregarEstoque(); await abrirProduto(p.produto_id);
@@ -1662,6 +1700,7 @@ async function carregarDinheiro(){
   </div>`;
   animarAneis($("termoHoje"));
   renderCaixinhas(f);
+  renderCFO(f);
   renderRelampago(f.relampago);
   // contas
   $("listaContas").innerHTML = f.despesas.length ? f.despesas.map(d=>`<div class="conta" onclick="abrirConta('${d.id}')">
@@ -1696,22 +1735,8 @@ async function carregarDinheiro(){
     <p class="muted" style="margin-bottom:0">Este mês até agora: vendeu <b>${brl(f.mes.vendas)}</b>, lucro bruto ${brl(f.mes.lucro_bruto)}, contas do período ${brl(f.mes.contas_ate_hoje)}
       → <b class="${f.mes.resultado<0?"neg":""}">${f.mes.resultado<0?"faltam ":"sobrou "}${brl(Math.abs(f.mes.resultado))}</b>.
       ${f.contas_mes>0?`No ritmo atual o mês fecha ${f.mes.projecao>=0?"com sobra de":"faltando"} <b>${brl(Math.abs(f.mes.projecao))}</b>.`:""}</p>`;
-  // capital
-  const cp=f.capital, pc=f.percentuais;
-  $("capitalBox").innerHTML = `<label style="margin-top:0">Quanto dinheiro você tem para trabalhar? (capital de giro, R$)</label>
-    <div class="lin"><input id="dnCapital" type="number" inputmode="decimal" step="100" value="${f.capital_inicial||""}" placeholder="Ex.: 4000"><button class="btn peq" style="flex:0 0 auto" onclick="salvarCapital()">Ver plano</button></div>
-    ${cp?`<div class="capbar"><i style="flex:${cp.estoque};background:var(--vinho)"></i><i style="flex:${cp.reserva};background:var(--laranja)"></i><i style="flex:${cp.caixa||0.0001};background:var(--rosa2)"></i></div>
-      <div class="leg"><span style="--c:var(--vinho)">Roupas ${brl(cp.estoque)}</span><span style="--c:var(--laranja)">Reserva p/ contas ${brl(cp.reserva)}</span><span style="--c:var(--rosa2)">Caixa ${brl(cp.caixa)}</span></div>
-      <ol style="padding-left:20px;margin:12px 0 0;line-height:1.45">
-        <li><b>Compre ${brl(cp.estoque)} em roupas.</b> Com sua marcação média (${cp.markup.toLocaleString("pt-BR")}×), vendendo tudo isso vira <b>${brl(cp.simulacao.venda_total)}</b>.</li>
-        <li><b>Guarde ${brl(cp.reserva)} para as contas</b>${cp.meses_reserva?` (≈ ${cp.meses_reserva.toLocaleString("pt-BR")} mês(es) de aluguel, luz…)`:""}: assim um mês fraco não te aperta.</li>
-        <li><b>Deixe ${brl(cp.caixa)} no caixa</b> para troco e imprevistos.</li>
-        <li>A cada venda, <b>o valor que você pagou na peça volta para comprar roupa nova</b> (${brl(cp.simulacao.volta_para_estoque)} no total). Só o lucro (${brl(cp.simulacao.lucro_bruto)}) paga as contas, o seu salário e os sonhos.</li></ol>`
-      : '<p class="muted" style="margin-bottom:0">Informe o valor para ver como dividir entre roupas, reserva e caixa.</p>'}
-    <label style="margin-top:16px">Como dividir o que sobra depois das contas (%)</label>
-    <div class="pcts"><div><label>Reinvestir</label><input id="pcR" type="number" value="${pc.pct_reinvestir}"></div><div><label>Reserva</label><input id="pcV" type="number" value="${pc.pct_reserva}"></div>
-      <div><label>Salário</label><input id="pcS" type="number" value="${pc.pct_salario}"></div><div><label>Sonhos</label><input id="pcD" type="number" value="${pc.pct_sonhos}"></div></div>
-    <button class="btn sec" style="margin-top:10px" onclick="salvarPercentuais()">Salvar divisão</button>`;
+  // cofre (capital de giro)
+  renderCofre(f);
   // sonhos
   $("sonhosBox").innerHTML = (f.sonhos.length ? f.sonhos.map(s=>{ const p=s.plano;
     return `<div class="sonho"><div class="lin" style="align-items:flex-start"><span class="emo" style="flex:0 0 auto">${s.emoji||"⭐"}</span>
@@ -1729,6 +1754,83 @@ async function carregarDinheiro(){
 async function usarSalario(mes, valor){
   try{ await api("/salario",{method:"POST",body:{mes, valor}}); toast("Salário definido"); carregarDinheiro(); }catch(e){ toast(e.message); }
 }
+// ---------- DIRETOR FINANCEIRO
+const corNota = n => n>=75 ? "var(--verde)" : n>=50 ? "var(--laranja)" : "#c0392b";
+function renderCFO(f){
+  const c=f.cfo, sd=c.saude, mt=c.metas;
+  const maxMeta = Math.max(...mt.metas.map(m=>m.valor), mt.previsao, 1);
+  $("cfoBox").innerHTML = `<h2>Seu financeiro</h2><div class="card cfo">
+    <div class="cfo-top">${sd.nota!=null?`<div class="nota" style="--p:${sd.nota};--c:${corNota(sd.nota)}"><span>${sd.nota}<small>de 100</small></span></div>`:""}
+      <div><b style="font-size:17px">Saúde da loja: ${sd.rotulo}</b><div class="muted" style="font-size:13.5px">Reserva, margem, estoque e ritmo de vendas, como um diretor financeiro olharia.</div></div></div>
+    <div class="ind">${sd.indicadores.map(i=>`<span style="--d:${corNota(i.nota)}" title="ideal: ${i.ideal}">${i.nome}: <b>${i.valor}</b></span>`).join("")}</div>
+    <h3>O que fazer agora</h3>
+    ${c.recomendacoes.map(r=>`<div class="rec n${r.nivel}"><span>${r.icone}</span><span>${r.texto}</span></div>`).join("")}
+    <h3>Metas do mês</h3>
+    ${mt.metas.map(m=>`<div class="meta-l"><div class="lin" style="font-size:14px"><span>${m.previsao_bate?"✅":"🎯"} ${m.nome}</span><b style="text-align:right">${brl(m.valor)}</b></div>
+      <div class="barra"><i style="width:${Math.min(100,mt.vendido/m.valor*100)}%"></i><span class="prev" style="left:${Math.min(99,mt.previsao/m.valor*100)}%"></span></div>
+      <div class="muted" style="font-size:12.5px">${m.detalhe?m.detalhe+" · ":""}${m.falta>0?`falta ${brl(m.falta)} = <b>${brl(m.por_dia)}</b> por dia útil`:"batida! 🎉"}</div></div>`).join("")}
+    <p class="muted" style="font-size:13px;margin:8px 0 0">Vendido no mês: <b>${brl(mt.vendido)}</b>. No ritmo atual o mês fecha em <b>${brl(mt.previsao)}</b> (a marquinha preta na barra).</p>
+    ${mt.conselho?`<p style="font-size:14px;margin:8px 0 0">💬 ${mt.conselho}</p>`:""}
+    <label style="margin-top:12px">A sua meta de vendas do mês (R$)</label>
+    <div class="lin"><input id="cfoMeta" type="number" inputmode="decimal" step="100" value="${f.meta_mensal_cfg||""}" placeholder="Ex.: 8000"><button class="btn peq" style="flex:0 0 auto;width:auto" onclick="salvarMinhaMeta()">Salvar</button></div>
+    ${c.plano?`<h3>🧯 Plano para o mês fechar (faltam ${brl(c.plano.buraco)})</h3>
+      <p class="muted" style="font-size:13px;margin:0 0 4px">Na ordem que um bom gestor faria. Siga de cima para baixo e pare quando cobrir.</p>
+      ${c.plano.passos.map((p,k)=>`<div class="passo"><span class="n">${k+1}</span><div><b>${p.titulo}: ${brl(p.valor)}</b><div class="muted" style="font-size:13px">${p.texto}</div></div></div>`).join("")}`:""}
+  </div>`;
+}
+async function salvarMinhaMeta(){ try{ await api("/config",{method:"PUT",body:{meta_mensal:Number($("cfoMeta").value)||0}}); toast("Meta salva"); carregarDinheiro(); }catch(e){ toast(e.message); } }
+function renderCofre(f){
+  const c=f.cfo, cf=c.cofre, v=c.verba;
+  const verbaHtml = v.sem_dados ? `<p class="muted" style="font-size:13.5px">🛍️ Com algumas semanas de vendas o app calcula quanto comprar por mês.</p>` :
+    `<div class="msg" style="margin-top:12px;background:color-mix(in srgb,var(--vinho) 6%,#fff);color:var(--tx)"><b>🛍️ Compras do mês</b>
+      <div style="font-size:14px;margin-top:4px">${v.situacao.texto}</div>
+      ${v.pode_comprar>0?`<div style="font-size:13.5px;margin-top:6px">Sugestão: <b>${brl(v.novidades)}</b> em novidades (30%) e <b>${brl(v.reposicao)}</b> repondo o que mais vende.</div>`:""}
+      <div class="muted" style="font-size:12.5px;margin-top:6px">Estoque: ${brl(v.estoque_custo)} pagos (${v.cobertura_dias} dias de venda; ideal ${v.cobertura_alvo}) · vende ≈ ${brl(v.cmv_30)} a preço de custo em 30 dias${v.fator>1.02?` (já com o mês que vem mais forte)`:v.fator<0.98?" (mês que vem costuma ser mais fraco)":""}</div>
+      ${v.pode_comprar>0?`<button class="btn sec" style="margin-top:10px" onclick="irPara('estoque')">Montar a lista de compras</button>`:""}</div>`;
+  if (!cf) {
+    $("capitalBox").innerHTML = `<p style="margin-top:0">O cofre guarda o <b>capital de giro</b> em dois bolsos:</p>
+      <ul style="margin:0;padding-left:20px;line-height:1.5;font-size:14.5px"><li>🛟 <b>Reserva de emergência</b>: ${c.reserva_meses_meta} meses de contas, para um mês fraco não quebrar a loja.</li>
+      <li>🛍️ <b>Dinheiro de compras</b>: o valor pago nas peças vendidas volta para cá e paga as roupas novas.</li></ul>
+      <label>Quanto dinheiro a loja tem hoje? (conta + caixa, fora as roupas)</label>
+      <div class="lin"><input id="cfIni" type="number" inputmode="decimal" step="100" placeholder="Ex.: 3000"><button class="btn peq" style="flex:0 0 auto;width:auto" onclick="abrirCofre()">Abrir o cofre</button></div>
+      <p class="muted" style="font-size:13px">O app separa a reserva primeiro (até 60% do valor) e o resto vai para compras. Depois disso tudo é automático: sobra do dia completa a reserva, conta que não fechar a reserva cobre, compra de roupa sai do dinheiro de compras.</p>${verbaHtml}`;
+    return;
+  }
+  const pctR = cf.meta_reserva>0 ? Math.min(100, cf.reserva/cf.meta_reserva*100) : 100;
+  $("capitalBox").innerHTML = `<div class="bolsos">
+      <div class="bolso"><div class="t">🛟 Reserva de emergência</div><div class="v">${brl(cf.reserva)}</div>
+        <div class="barra" style="margin:4px 0"><i style="width:${pctR}%"></i></div><div class="t">${cf.meses_reserva!=null?String(cf.meses_reserva).replace(".",",")+" mês(es) de contas · ":""}meta ${brl(cf.meta_reserva)}</div></div>
+      <div class="bolso"><div class="t">🛍️ Dinheiro de compras</div><div class="v" style="${cf.giro<0?"color:#b3261e":""}">${brl(cf.giro)}</div><div class="t">volta a cada venda (o custo das peças)</div></div>
+      <div class="bolso"><div class="t">👗 Roupas no estoque</div><div class="v">${brl(c.estoque.custo)}</div><div class="t">${c.estoque.pecas} peças · ${brl(c.estoque.parado)} paradas há ${c.estoque.dias_alerta}+ dias</div></div>
+      <div class="bolso"><div class="t">📦 Nas caixinhas</div><div class="v">${brl(f.caixinhas.reduce((t,x)=>t+x.guardado,0))}</div><div class="t">separado para contas, salário e sonhos</div></div>
+      <div class="bolso total"><div class="t">Capital de giro total (reserva + compras + roupas)</div><div class="v">${brl(c.capital_total)}</div></div></div>
+    <div class="lin" style="margin-top:10px;gap:6px"><button class="btn sec peq" onclick="abrirMovCofre('entrada')">+ Colocar</button><button class="btn sec peq" onclick="abrirMovCofre('retirada')">− Tirar</button><button class="btn sec peq" onclick="abrirMovCofre('ajuste')">Corrigir saldo</button></div>
+    ${verbaHtml}
+    <div class="lin" style="margin-top:12px;font-size:13.5px;align-items:center"><span class="muted">Reserva: guardar quantos meses de contas</span>
+      <select id="cfMetaRes" onchange="salvarAjusteCofre()" style="max-width:150px">${[1,2,3,4,6].map(n=>`<option value="${n}" ${n==c.reserva_meses_meta?"selected":""}>${n} ${n>1?"meses":"mês"}</option>`).join("")}</select></div>
+    <div class="lin" style="margin-top:6px;font-size:13.5px;align-items:center"><span class="muted">Estoque ideal: quantos dias de venda</span>
+      <select id="cfCob" onchange="salvarAjusteCofre()" style="max-width:150px">${[30,45,60,90,120].map(n=>`<option value="${n}" ${n==c.cobertura_meta?"selected":""}>${n} dias</option>`).join("")}</select></div>
+    ${cf.log.length?`<p class="muted" style="margin:12px 0 2px;font-size:13px"><b>Últimos movimentos</b></p>${cf.log.slice(0,8).map(m=>`<div class="mov"><span>${m.data.slice(8)}/${m.data.slice(5,7)} ${m.texto}</span><span style="white-space:nowrap;${m.valor<0?"color:#b3261e":""}">${m.valor?brl(m.valor):""}</span></div>`).join("")}`:""}`;
+}
+async function abrirCofre(){
+  const v = Number($("cfIni").value); if (!(v>=0) || $("cfIni").value==="") return toast("Diga quanto dinheiro a loja tem hoje");
+  try{ await api("/cofre/iniciar",{method:"POST",body:{dinheiro:v}}); toast("Cofre aberto!"); carregarDinheiro(); }catch(e){ toast(e.message); }
+}
+let movCofre="entrada", bolsoCofre="reserva";
+function abrirMovCofre(t){
+  movCofre=t; $("mCofreTit").textContent = {entrada:"Colocar dinheiro", retirada:"Tirar dinheiro", ajuste:"Corrigir saldo"}[t];
+  $("mCofreLbl").textContent = t==="ajuste" ? "Quanto tem de verdade nesse bolso agora? (R$)" : "Valor (R$)";
+  $("mCofreDica").textContent = t==="ajuste" ? "Use quando conferir o banco/caixa e o valor real for diferente do app." : t==="retirada" ? "Evite tirar da reserva para gastos pessoais: ela é o seguro da loja." : "";
+  $("cfValor").value=""; $("cfDesc").value=""; $("mCofre").classList.add("on");
+}
+$("cfBolso").onclick = e => { const b=e.target.closest("[data-b]"); if(!b) return; bolsoCofre=b.dataset.b; $("cfBolso").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); };
+async function salvarCofre(){
+  try{ await api("/cofre",{method:"POST",body:{bolso:bolsoCofre, tipo:movCofre, valor:$("cfValor").value, descricao:$("cfDesc").value}});
+    fechar("mCofre"); toast("Cofre atualizado"); carregarDinheiro(); }catch(e){ toast(e.message); }
+}
+async function salvarAjusteCofre(){
+  try{ await api("/config",{method:"PUT",body:{reserva_meses:Number($("cfMetaRes").value), cobertura_dias:Number($("cfCob").value)}}); carregarDinheiro(); }catch(e){ toast(e.message); }
+}
 function renderCaixinhas(f){
   const cx = f.caixinhas; if(!cx.length){ $("caixinhasBox").innerHTML=""; return; }
   const dt = s => s.slice(8)+"/"+s.slice(5,7);
@@ -1737,7 +1839,7 @@ function renderCaixinhas(f){
   $("caixinhasBox").innerHTML = `<h2>Caixinhas das contas</h2><div class="card">
     <p class="muted" style="margin-top:0">Cada venda separa o lucro aqui, conta por conta, de um vencimento até o outro. Quem vence antes recebe primeiro; depois o seu salário; depois os sonhos.</p>
     ${f.alertas.map(a=>`<div class="alerta-cx ${a.nivel}">⚠️ <b>${a.conta}</b> vence ${a.dias_ate===0?"hoje":"em "+a.dias_ate+" dia(s)"} e no ritmo atual devem faltar <b>${brl(a.falta_prevista)}</b>.
-      ${a.tirar_sonhos>0||a.tirar_salario>0?`Para não entrar no vermelho, o app vai cobrir com ${[a.tirar_sonhos>0?brl(a.tirar_sonhos)+" dos sonhos":"",a.tirar_salario>0?brl(a.tirar_salario)+" do seu salário":""].filter(Boolean).join(" e ")} (os sonhos se repõem nos próximos dias).`:""}
+      ${a.tirar_sonhos>0||a.tirar_salario>0||a.tirar_reserva>0||a.tirar_giro>0?`Para não entrar no vermelho, o app vai cobrir com ${[a.tirar_sonhos>0?brl(a.tirar_sonhos)+" dos sonhos":"",a.tirar_reserva>0?brl(a.tirar_reserva)+" da reserva":"",a.tirar_giro>0?brl(a.tirar_giro)+" do dinheiro de compras":"",a.tirar_salario>0?brl(a.tirar_salario)+" do seu salário":""].filter(Boolean).join(", ")} (tudo se repõe nos próximos dias).`:""}
       ${a.descoberto>0?` Mesmo assim faltam ${brl(a.descoberto)}: venda cerca de <b>${brl(a.vender_a_mais_dia)}</b> a mais por dia ou use o ⚡ Salvar meu dia.`:a.vender_a_mais_dia?` Ou venda ${brl(a.vender_a_mais_dia)} a mais por dia e não mexe em nada.`:""}</div>`).join("")}
     ${cx.map(c=>`<div class="cx ${status(c)}"><div class="topo-cx"><b>${({conta:"🏠",salario:"👛",sonhos:"⭐"})[c.tipo]} ${c.nome}</b><span class="pill">${c.falta<=0?"completo ✓":quando(c)}</span></div>
       <div class="barra"><i style="width:${c.pct}%"></i></div>

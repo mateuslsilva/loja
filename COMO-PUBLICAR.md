@@ -74,7 +74,8 @@ no notebook: todos veem os mesmos produtos e vendas.
 
 Quem controla isso é o arquivo `versao.json`: toda atualização vem com um número novo nele.
 
-> Esta versão (9) trouxe `supabase/banco.sql` novo (horário da loja, feriados, vencimento das contas e salário por mês). **Rode o banco.sql de novo.**
+> Esta versão (10) trouxe `supabase/banco.sql` novo (cofre da loja). **Rode o banco.sql de novo.**
+> A versão 9 trouxe `supabase/banco.sql` novo (horário da loja, feriados, vencimento das contas e salário por mês). **Rode o banco.sql de novo.**
 > A versão 7 trouxe `supabase/banco.sql` novo (parcelas/acréscimo, etiquetas numeradas e apagar produto). **Rode o banco.sql de novo.**
 > Quando a atualização trouxer o arquivo `supabase/banco.sql` novo, rode ele de novo no
 > SQL Editor do Supabase (pode rodar quantas vezes quiser: só adiciona o que falta, não apaga dados).
@@ -186,6 +187,23 @@ Quem controla isso é o arquivo `versao.json`: toda atualização vem com um nú
 - **Salário do mês**: fixo no mês, mas pode mudar de um mês para o outro. No fim do mês (e antes de
   meses fortes como dezembro) o app sugere o salário do próximo mês pelo ritmo das últimas 8 semanas,
   pelo mesmo mês do ano anterior e pela época do ano (padrão do varejo de moda até ter 1 ano de histórico).
+
+- **Seu financeiro** (aba Dinheiro): nota de saúde da loja (reserva, margem, estoque, peças paradas,
+  ritmo de vendas), "O que fazer agora" em ordem de urgência e **três metas do mês**: o mínimo para
+  pagar as contas, a **meta do app** (contas + salário + sonhos + recompor a reserva) e a sua meta,
+  com a previsão de como o mês fecha no ritmo atual.
+- **Plano para o mês que não fecha**, na ordem de um bom gestor: 1) pausar sonhos, 2) queimar estoque
+  parado, 3) usar a reserva, 4) adiar compras, 5) reduzir o salário (o mínimo), 6) negociar prazo.
+  Nunca cartão rotativo, cheque especial ou empréstimo para pagar conta fixa.
+- **Cofre da loja (capital de giro)**: informe uma vez quanto dinheiro a loja tem (fora as roupas) e o
+  app separa em **reserva de emergência** (meta: 2 meses de contas, ajustável) e **dinheiro de compras**.
+  Depois é automático: o valor pago nas peças vendidas volta para compras; a sobra do dia completa a
+  reserva; conta que não fechou na caixinha a reserva cobre; compra de roupa sai do dinheiro de compras.
+  Botões para colocar, tirar e corrigir o saldo quando conferir o banco.
+- **Compras do mês**: quanto comprar pelo giro do estoque (o que vai vender em 30 dias + estoque ideal −
+  o que já tem; peça parada vale meia), limitado ao dinheiro de compras, com 30% para novidades. Em mês
+  apertado, só reposição do que vende rápido. A Compra inteligente (Estoque) já usa essa verba.
+- No cadastro de peça: **"Comprei agora com o dinheiro da loja"** (desmarque para roupa que já tinha).
 
 ## Limites desta versão
 - Os avisos de troca da promoção relâmpago aparecem com o app aberto (ou em segundo plano no
