@@ -123,11 +123,24 @@ const INTENCOES = [
     return { texto: m.falta > 0 ? `Você está com <b>${pct(m.pct)}%</b> da meta: vendeu ${brl(m.vendido)} de ${brl(m.valor)}. Faltam <b>${brl(m.falta)}</b> em ${m.dias_restantes} dia(s), ≈ ${brl(m.por_dia)} por dia. No ritmo atual o mês fecha em ${brl(m.ritmo)}.`
       : `Meta batida! 🎉 ${brl(m.vendido)} de ${brl(m.valor)} (${pct(m.pct)}%).` };
   } },
+  { id: "caixinhas", re: /caixinha|separad|guardado (do|pro|para)|quanto (tenho|ja tenho|juntei) (do|pro|para)|aluguel|energia|vencimento|venc/, f: async () => {
+    const f = await api("/financas"), cx = f.caixinhas.filter((c) => c.tipo === "conta");
+    if (!cx.length) return { texto: "Cadastre as contas com o dia do vencimento e eu separo o dinheiro de cada uma.", acoes: [{ rotulo: "Cadastrar contas", acao: "ir:dinheiro" }] };
+    return { texto: cx.map((c) => `• ${c.nome}: ${brl(c.guardado)} de ${brl(c.alvo)} (vence ${c.vence.slice(8)}/${c.vence.slice(5, 7)})${c.falta > 0 ? ` – falta ${brl(c.falta)}, ${brl(c.por_dia)}/dia útil` : " ✅"}`).join("<br>") +
+      (f.alertas.length ? `<br>⚠️ ${f.alertas.map((a) => `${a.conta}: podem faltar ${brl(a.falta_prevista)}`).join("; ")}` : ""), acoes: [{ rotulo: "Ver caixinhas", acao: "ir:dinheiro" }] };
+  } },
+  { id: "salario", re: /salario|retirada|pro.?labore|quanto (posso|devo) (tirar|receber|pegar)/, f: async () => {
+    const f = await api("/financas"), s = f.salario, g = s.proximo;
+    return { texto: `Seu salário deste mês: <b>${brl(s.valor)}</b>.${g.poucos_dados ? "" : `<br>Para ${g.nome_mes} eu sugiro <b>${brl(g.sugerido)}</b> (lucro previsto ${brl(g.projecao_lucro)}, contas ${brl(g.contas)}). ${g.motivos[g.motivos.length - 1] || ""}`}`,
+      acoes: [{ rotulo: "Ver no Dinheiro", acao: "ir:dinheiro" }] };
+  } },
   { id: "contas", re: /preciso vender|contas|devendo|pagar|equilibrio|empatar/, f: async () => {
     const f = await api("/financas"), h = f.hoje;
-    if (f.contas_dia <= 0) return { texto: "Cadastre as contas da loja (aluguel, luz, água, internet) e eu calculo quanto você precisa vender por dia.", acoes: [{ rotulo: "Cadastrar contas", acao: "ir:dinheiro" }] };
-    return { texto: h.falta > 0 ? `Hoje as contas da loja custam ${brl(h.custo_diario)}. Você já lucrou ${brl(h.lucro_hoje)}. Faltam <b>${brl(h.falta)}</b> de lucro, ou seja, vender mais uns <b>${brl(h.venda_para_cobrir)}</b>.`
-      : `As contas de hoje já estão pagas! 🎉 Sobraram ${brl(h.sobra)} de lucro.`,
+    if (!f.despesas.length) return { texto: "Cadastre as contas da loja (aluguel, luz, água, internet) e eu calculo quanto você precisa vender por dia.", acoes: [{ rotulo: "Cadastrar contas", acao: "ir:dinheiro" }] };
+    if (!h.aberto) return { texto: h.mensagem };
+    if (h.custo_diario <= 0) return { texto: h.mensagem };
+    return { texto: h.falta > 0 ? `Hoje o dia precisa de ${brl(h.custo_diario)} de lucro (contas, salário e sonhos). Você já lucrou ${brl(h.lucro_hoje)}. Faltam <b>${brl(h.falta)}</b> de lucro, ou seja, vender mais uns <b>${brl(h.venda_para_cobrir)}</b>.`
+      : `O dia já está pago! 🎉 Passaram ${brl(h.sobra)} do necessário: isso já adianta as próximas contas.`,
       acoes: h.falta > 0 ? [{ rotulo: "⚡ Salvar meu dia", acao: "salvar_dia" }] : [] };
   } },
   { id: "lucro", re: /lucr|ganhei|ganho|sobrou/, f: async (q) => {
@@ -212,5 +225,5 @@ export async function perguntar(pergunta) {
 
 const x_venda = (c) => c.venda_prevista;
 
-export const SUGESTOES = ["O que comprar?", "O que procuraram?", "Quanto vendi hoje?", "Quanto falta para a meta?", "Condicionais abertos", "Entregas pendentes", "Quanto preciso vender hoje?", "Qual peça mais vende?",
+export const SUGESTOES = ["Quanto tenho do aluguel?", "Qual meu salário de dezembro?", "O que comprar?", "O que procuraram?", "Quanto vendi hoje?", "Quanto falta para a meta?", "Condicionais abertos", "Entregas pendentes", "Quanto preciso vender hoje?", "Qual peça mais vende?",
   "O que está parado?", "Melhores clientes", "Lucro do mês"];

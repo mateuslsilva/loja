@@ -69,6 +69,29 @@ nav button.ativa{color:var(--vinho);font-weight:700;background:var(--rosa)}
 .fab{position:fixed;right:16px;bottom:108px;width:56px;height:56px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:30px;box-shadow:0 6px 16px #7a2e4d55;z-index:4}
 .modal{position:fixed;inset:0;background:#2a1d2266;display:none;align-items:flex-end;justify-content:center;z-index:10}
 .modal.on{display:flex}
+/* horário da loja */
+.hor{display:grid;grid-template-columns:96px minmax(0,1fr) minmax(0,1fr);gap:6px 8px;align-items:center;margin-top:6px}
+.hor .d{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;cursor:pointer;color:var(--tx)}
+.hor input.hora{width:100%;min-width:0;box-sizing:border-box;text-align:center;font-variant-numeric:tabular-nums}
+.chk{text-transform:none!important;letter-spacing:0!important;color:var(--tx)!important}
+.hor .d input{width:20px;height:20px;accent-color:var(--vinho)}
+.hor input[type=time]{padding:8px;font-size:15px}
+.hor .fechado{grid-column:2/4;color:var(--tx2);font-size:13.5px}
+/* caixinhas */
+.cx{padding:12px 0;border-top:1px solid var(--linha)}.cx:first-child{border-top:0;padding-top:0}
+.cx .topo-cx{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.cx .barra{height:9px;border-radius:6px;background:var(--rosa);overflow:hidden;margin:7px 0 5px}
+.cx .barra i{display:block;height:100%;border-radius:6px;background:var(--vinho)}
+.cx.ok .barra i{background:var(--verde)}.cx.atencao .barra i{background:var(--laranja)}.cx.perigo .barra i{background:#c0392b}
+.cx .pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--rosa);color:var(--vinho);white-space:nowrap}
+.cx.ok .pill{background:#e3f4ea;color:#1e7a46}.cx.atencao .pill{background:#fff1df;color:#a35a00}.cx.perigo .pill{background:#fde8e6;color:#b3261e}
+.alerta-cx{border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:14px;line-height:1.45;background:#fff1df;border:1px solid #f6d3a6}
+.alerta-cx.perigo{background:#fde8e6;border-color:#f3c0ba}
+.destino{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px dashed rgba(255,255,255,.35);font-size:14.5px}
+.destino:first-of-type{border-top:0}
+.sal-sug{border:1.5px solid var(--vinho);border-radius:14px;padding:12px;margin-top:12px;background:color-mix(in srgb,var(--vinho) 5%,#fff)}
+.sal-sug .v{font:800 26px "DM Sans",system-ui,sans-serif;color:var(--vinho)}
+.sal-sug ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;color:var(--tx2);line-height:1.45}
 .box-cartao{margin-top:10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--vinho) 5%,#fff);border:1px solid var(--linha)}
 .parc{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:6px}
 .parc span{border:1px solid var(--linha);background:#fff;border-radius:10px;text-align:center;padding:7px 0;font-weight:700;font-size:14px;cursor:pointer}
@@ -442,6 +465,7 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   <div id="fechamento"></div>
   <div id="termoHoje"></div>
   <div id="relampagoBox"></div>
+  <div id="caixinhasBox"></div>
   <h2>Contas da loja</h2>
   <div class="card">
     <div id="listaContas"></div>
@@ -497,6 +521,19 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
     <label>Escada de promoção (dias:desconto%)</label><input id="cfEscada" placeholder="35:10,50:20,65:30">
     <p class="muted">Ex.: com 35 dias, 10% off; com 50 dias, 20%; com 65 dias, 30%. O preço nunca fica abaixo do custo + margem mínima.</p>
     <button class="btn" onclick="salvarConfig()">Salvar configurações</button>
+  </div>
+  <h2>Funcionamento da loja</h2>
+  <div class="card">
+    <p class="muted" style="margin-top:0">As contas do mês são divididas só pelos dias em que a loja abre. Sábado com meio período vale meio dia; feriado fechado não conta.</p>
+    <div id="cfHorario"></div>
+    <label class="chk"><input type="checkbox" id="cfFeriado"> A loja abre em feriados</label>
+    <label>Feriados da cidade / dias que não abre</label>
+    <textarea id="cfFeriados" rows="3" placeholder="Um por linha. Ex.:&#10;08/04 Aniversário de Cuiabá&#10;24/12/2026 Véspera de Natal"></textarea>
+    <div class="chips" style="margin-top:6px"><span class="chip" onclick="addFeriado('carnaval')">+ Carnaval</span><span class="chip" onclick="addFeriado('corpus')">+ Corpus Christi</span>
+      <span class="chip" onclick="addFeriado('08/04 Aniversário de Cuiabá')">+ Aniversário de Cuiabá (08/04)</span></div>
+    <p class="muted" style="font-size:13px">Feriados nacionais o app já conhece (Natal, Tiradentes, Sexta-feira Santa, 20/11…).</p>
+    <div id="cfCalPrev" class="muted" style="font-size:14px"></div>
+    <button class="btn" style="margin-top:12px" onclick="salvarFuncionamento()">Salvar funcionamento</button>
   </div>
   <h2>Maquininha de cartão</h2>
   <div class="card">
@@ -579,6 +616,10 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
       <div style="flex:0 0 100px"><label>Número</label><input id="lNum"></div>
       <div><label>Bairro</label><input id="lBairro"></div>
     </div>
+    <label>Dias e horários que a loja abre</label>
+    <p class="muted" style="margin:0">O app divide as contas só pelos dias que a loja abre. Meio período conta meio dia.</p>
+    <div id="lHorario"></div>
+    <label class="chk"><input type="checkbox" id="lFeriado"> A loja abre em feriados</label>
     <div class="erro-campo" id="erro2"></div>
   </section>
 
@@ -683,6 +724,9 @@ pre.msg-wa{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c7ecc9;bord
   <div id="ctMedia" style="display:none"><label>Valor das 3 últimas contas (R$)</label>
     <div class="lin"><input id="ctV1" type="number" inputmode="decimal" placeholder="1ª (mais antiga)"><input id="ctV2" type="number" inputmode="decimal" placeholder="2ª"><input id="ctV3" type="number" inputmode="decimal" placeholder="3ª (última)"></div>
     <p class="muted" id="ctPrev">O app faz a média e prevê a próxima conta.</p></div>
+  <label>Vence todo dia</label>
+  <div class="lin" style="align-items:center"><input id="ctVenc" type="number" inputmode="numeric" min="1" max="31" placeholder="Ex.: 18" style="flex:0 0 110px">
+    <span class="muted" style="font-size:13.5px">O dinheiro desta conta é separado de um vencimento até o outro.</span></div>
   <div class="lin" style="margin-top:14px"><button class="btn sec" id="ctExcluir" onclick="excluirConta()">Excluir</button><button class="btn" onclick="salvarConta()">Salvar</button></div>
 </div></div>
 
@@ -1600,39 +1644,55 @@ async function carregarDinheiro(){
         <button class="btn" onclick="fecharMes('${fc.mes}',true)">${fc.sonhos.length?"Guardar nos sonhos":"Entendi"}</button></div></div>`
     : `<div class="card"><div class="tit-card"><b>${mesNome(fc.mes)} não fechou as contas</b></div>
       <p style="margin:0">Faltaram <b>${brl(-fc.sobra)}</b> para pagar as contas da loja. Acontece! Este mês dá para virar:
-      venda pelo menos <b>${brl(f.meta.so_contas/30)}</b> por dia e use o ⚡ Salvar meu dia quando o movimento estiver fraco. 💪</p>
+      venda pelo menos <b>${brl(f.meta.so_contas/(f.calendario.uteis||26))}</b> por dia útil e use o ⚡ Salvar meu dia quando o movimento estiver fraco. 💪</p>
       <button class="btn sec" style="margin-top:10px" onclick="fecharMes('${fc.mes}',false)">Bora!</button></div>`;
   // termômetro de hoje
-  const semContas = f.contas_dia<=0;
+  const semContas = !f.despesas.length || h.custo_diario<=0;
   $("termoHoje").innerHTML = `<div class="termo">
-    <div class="muted">${semContas?"Hoje":"Contas de hoje (aluguel, luz, água… ÷ 30)"}</div>
+    <div class="muted">${!h.aberto?"Hoje":semContas?"Hoje":`Lucro que o dia precisa${h.peso<1?" (meio período)":""}: contas${f.salario.valor>0?" + salário":""}${f.caixinhas.some(c=>c.tipo==="sonhos")?" + sonhos":""}, divididos pelos dias úteis`}</div>
     ${semContas?`<div class="msg">${h.mensagem}</div>`:`<div class="termo-corpo">${aneisSVG([{valor:h.lucro_hoje,alvo:h.custo_diario}],{tam:96,esp:10,cores:["#fff"],
         centro:`<text x="48" y="54" text-anchor="middle" style="font:700 19px 'DM Sans',system-ui,sans-serif;fill:#fff">${h.pct}%</text>`})}
       <div><b class="big">${brl(h.lucro_hoje)}</b><div class="muted">de ${brl(h.custo_diario)} de lucro</div><div class="muted">Vendeu ${brl(h.vendas_hoje)} hoje</div></div></div>
     <div class="msg">${h.mensagem}</div>
     ${h.falta>0?`<div class="msg">Faltam <b>${brl(h.falta)}</b> de lucro ≈ vender mais <b>${brl(h.venda_para_cobrir)}</b> (sua margem é ${f.margem.toLocaleString("pt-BR")}%).</div>`:""}
-    ${h.sobra>0?`<div class="msg">Hoje sobraram <b>${brl(h.sobra)}</b> depois das contas do dia. Separe assim:</div>${blocoDivisao(h.divisao_sobra)}`:""}
+    ${h.aberto&&h.meta_lucro>0?`<div class="msg">🎯 Meta de hoje: vender cerca de <b>${brl(h.meta_venda)}</b> no total.</div>`:""}
     ${h.falta>0 && !f.relampago?`<button class="btn" onclick="abrirSalvarDia()">⚡ Salvar meu dia</button>`:""}`}
+    ${h.destino.length?`<div class="msg" style="margin-top:10px"><b>Para onde vai o dinheiro de hoje (${brl(h.vendas_hoje)})</b>
+      ${h.destino.map(d=>`<div class="destino"><span>${({estoque:"🧺",taxa:"💳",conta:"🏠",salario:"👛",sonhos:"⭐",sobra:"📦"})[d.tipo]||"•"} ${d.nome}</span><b>${brl(d.valor)}</b></div>`).join("")}</div>`:""}
   </div>`;
   animarAneis($("termoHoje"));
+  renderCaixinhas(f);
   renderRelampago(f.relampago);
   // contas
   $("listaContas").innerHTML = f.despesas.length ? f.despesas.map(d=>`<div class="conta" onclick="abrirConta('${d.id}')">
       <div><b>${d.nome}</b><div class="muted">${d.tipo==="media"?`média de ${d.valores.length} conta(s)${d.previsto.tendencia?" · "+({subindo:"↑ subindo",descendo:"↓ descendo","estável":"estável"})[d.previsto.tendencia]:""}`:"valor fixo"}</div></div>
-      <b>${brl(d.previsto.valor)}</b></div>`).join("") : '<p class="muted" style="margin:0">Nenhuma conta ainda. Comece pelo aluguel, energia, água e internet.</p>';
+      <div style="text-align:right"><b>${brl(d.previsto.valor)}</b><div class="muted" style="font-size:12.5px">${d.vencimento?"vence dia "+d.vencimento:"<span style='color:#a35a00'>sem vencimento</span>"}</div></div></div>`).join("") : '<p class="muted" style="margin:0">Nenhuma conta ainda. Comece pelo aluguel, energia, água e internet.</p>';
   $("totalContas").innerHTML = f.contas_mes>0 ? `<div class="lin"><span class="muted">Total por mês</span><b style="text-align:right">${brl(f.contas_mes)}</b></div>
-    <div class="lin"><span class="muted">Por dia (÷ 30)</span><b style="text-align:right">${brl(f.contas_dia)}</b></div>
-    <p class="muted" style="margin-bottom:0">A loja "acorda devendo" <b>${brl(f.contas_dia)}</b> todo dia. Como parte de cada venda é o valor que você pagou na peça,
-      para sobrar ${brl(f.contas_dia)} é preciso vender cerca de <b>${brl(f.venda_minima_dia)}</b> por dia (margem de ${f.margem.toLocaleString("pt-BR")}%${f.margem_fonte!=="vendas"?", estimada pelo estoque":""}).</p>` : "";
+    <div class="lin"><span class="muted">Por dia útil (${String(f.calendario.uteis).replace(".",",")} dias úteis neste mês)</span><b style="text-align:right">${brl(f.contas_dia_util)}</b></div>
+    <p class="muted" style="margin-bottom:0">Sábado de meio período conta meio dia; domingo e feriado fechado não contam${f.calendario.feriados.filter(x=>x.fecha).length?` (feriados do mês: ${f.calendario.feriados.filter(x=>x.fecha).map(x=>x.data.slice(8)+"/"+x.data.slice(5,7)+" "+x.nome).join(", ")})`:""}.
+      Como parte de cada venda é o valor que você pagou na peça, para sobrar ${brl(f.contas_dia_util)} é preciso vender cerca de <b>${brl(f.venda_minima_dia)}</b> por dia útil (margem de ${f.margem.toLocaleString("pt-BR")}%${f.margem_fonte!=="vendas"?", estimada pelo estoque":""}).</p>` : "";
   // quanto vender
   const mt=f.meta;
-  $("quantoVender").innerHTML = `<label style="margin-top:0">Quanto você quer tirar de salário por mês? (R$)</label>
-    <div class="lin"><input id="dnSalario" type="number" inputmode="decimal" step="100" value="${f.salario_desejado||""}" placeholder="Ex.: 1500"><button class="btn peq" style="flex:0 0 auto" onclick="salvarSalario()">Calcular</button></div>
+  const sl=f.salario, nomeMes = m => ({"01":"janeiro","02":"fevereiro","03":"março","04":"abril","05":"maio","06":"junho","07":"julho","08":"agosto","09":"setembro","10":"outubro","11":"novembro","12":"dezembro"})[m.slice(5)];
+  const blocoSug = (g, titulo) => g.poucos_dados ? "" : g.sugerido<=0 ? `<div class="sal-sug" style="border-color:#e0a03a"><div class="muted" style="font-size:13px">${titulo}</div>
+      <p style="margin:6px 0 0">No ritmo atual, o lucro previsto de ${g.nome_mes} (${brl(g.projecao_lucro)}) quase só paga as contas (${brl(g.contas)}).
+      ${g.maximo>0?`Dá para tirar no máximo <b>${brl(g.maximo)}</b>, sem folga nenhuma.`:"Não sobra salário com segurança."} Vale caprichar nas vendas e no ⚡ Salvar meu dia.</p>
+      <ul>${g.motivos.map(m=>`<li>${m}</li>`).join("")}</ul></div>` : `<div class="sal-sug"><div class="muted" style="font-size:13px">${titulo}</div>
+      <div class="v">${brl(g.sugerido)}</div>
+      <div class="muted" style="font-size:13px">Lucro previsto em ${g.nome_mes}: ${brl(g.projecao_lucro)} · contas ${brl(g.contas)} · máximo sem apertar: ${brl(g.maximo)}</div>
+      <ul>${g.motivos.map(m=>`<li>${m}</li>`).join("")}<li>Deixei 15% de folga e 10% para reforçar o estoque.${g.cobre_sonhos?" Ainda sobra para os sonhos.":" Os sonhos podem ficar mais lentos nesse mês."}</li></ul>
+      ${g.atual===g.sugerido&&g.definido?'<div class="muted" style="margin-top:8px">✅ Já é o salário desse mês.</div>':`<button class="btn" style="margin-top:10px" onclick="usarSalario('${g.mes}',${g.sugerido})">Usar ${brl(g.sugerido)} em ${g.nome_mes}</button>`}</div>`;
+  const fimDoMes = new Date().getDate() >= 20;
+  $("quantoVender").innerHTML = `<label style="margin-top:0">Seu salário de ${nomeMes(sl.mes)} (R$)</label>
+    <div class="lin"><input id="dnSalario" type="number" inputmode="decimal" step="50" value="${sl.valor||""}" placeholder="Ex.: 1500"><button class="btn peq" style="flex:0 0 auto" onclick="salvarSalario()">Salvar</button></div>
+    <p class="muted" style="margin:6px 0 0;font-size:13px">O salário é fixo no mês, mas pode mudar de um mês para o outro. ${sl.este.definido?"":"(É o mesmo valor todo mês até você mudar.)"}</p>
+    ${!sl.valor||sl.este.sugerido<sl.valor*0.8?blocoSug(sl.este, `Sugestão para ${nomeMes(sl.mes)}`):""}
+    ${fimDoMes||sl.proximo.fator>=1.15?blocoSug(sl.proximo, `💡 Sugestão de salário para ${sl.proximo.nome_mes}`):""}
     <table class="tabela" style="margin-top:12px">
       <tr><td>Só para pagar as contas</td><td><b>${brl(mt.so_contas)}</b>/mês</td></tr>
-      <tr><td>Contas + salário${finAtual.sonhos.some(s=>!s.concluido&&s.plano.por_mes)?" + sonhos":""} + reinvestir</td><td><b>${brl(mt.com_salario)}</b>/mês</td></tr>
-      <tr><td>Isso dá por dia</td><td><b>${brl(mt.por_dia)}</b></td></tr></table>
-    ${mt.sobra_necessaria>0?`<p class="muted">Com isso, depois das contas sobram ${brl(mt.sobra_necessaria)} por mês, divididos assim:</p>${blocoDivisao(mt.divisao)}`:""}
+      <tr><td>Contas + salário${mt.divisao.sonhos>0?" + sonhos":""}</td><td><b>${brl(mt.com_salario)}</b>/mês</td></tr>
+      <tr><td>Isso dá por dia útil</td><td><b>${brl(mt.por_dia)}</b></td></tr></table>
+    <p class="muted" style="font-size:13.5px">É o que enche as caixinhas: ${brl(mt.lucro_necessario)} de lucro (contas ${brl(f.contas_mes)}${mt.divisao.salario>0?` + salário ${brl(mt.divisao.salario)}`:""}${mt.divisao.sonhos>0?` + sonhos ${brl(mt.divisao.sonhos)}`:""}). O valor pago nas peças volta para o estoque, e o que vender acima disso reforça o estoque e a reserva.</p>
     <p class="muted" style="margin-bottom:0">Este mês até agora: vendeu <b>${brl(f.mes.vendas)}</b>, lucro bruto ${brl(f.mes.lucro_bruto)}, contas do período ${brl(f.mes.contas_ate_hoje)}
       → <b class="${f.mes.resultado<0?"neg":""}">${f.mes.resultado<0?"faltam ":"sobrou "}${brl(Math.abs(f.mes.resultado))}</b>.
       ${f.contas_mes>0?`No ritmo atual o mês fecha ${f.mes.projecao>=0?"com sobra de":"faltando"} <b>${brl(Math.abs(f.mes.projecao))}</b>.`:""}</p>`;
@@ -1666,12 +1726,38 @@ async function carregarDinheiro(){
     : '<p class="muted" style="margin-top:0">Para que você está trabalhando? Uma moto, pintar a casa, uma viagem… Cadastre e o app mostra quanto guardar e separa parte da sobra para ele.</p>')
     + `<button class="btn" style="margin-top:10px" onclick="abrirSonho()">+ Novo sonho</button>`;
 }
+async function usarSalario(mes, valor){
+  try{ await api("/salario",{method:"POST",body:{mes, valor}}); toast("Salário definido"); carregarDinheiro(); }catch(e){ toast(e.message); }
+}
+function renderCaixinhas(f){
+  const cx = f.caixinhas; if(!cx.length){ $("caixinhasBox").innerHTML=""; return; }
+  const dt = s => s.slice(8)+"/"+s.slice(5,7);
+  const status = c => c.falta<=0 ? "ok" : f.alertas.some(a=>a.conta===c.nome) ? (f.alertas.find(a=>a.conta===c.nome).nivel) : c.dias_ate<=5 ? "atencao" : "";
+  const quando = c => c.tipo==="conta" ? (c.dias_ate===0?"vence hoje":c.dias_ate===1?"vence amanhã":`vence ${dt(c.vence)} (em ${c.dias_ate} dias)`) : `até ${dt(c.vence)}`;
+  $("caixinhasBox").innerHTML = `<h2>Caixinhas das contas</h2><div class="card">
+    <p class="muted" style="margin-top:0">Cada venda separa o lucro aqui, conta por conta, de um vencimento até o outro. Quem vence antes recebe primeiro; depois o seu salário; depois os sonhos.</p>
+    ${f.alertas.map(a=>`<div class="alerta-cx ${a.nivel}">⚠️ <b>${a.conta}</b> vence ${a.dias_ate===0?"hoje":"em "+a.dias_ate+" dia(s)"} e no ritmo atual devem faltar <b>${brl(a.falta_prevista)}</b>.
+      ${a.tirar_sonhos>0||a.tirar_salario>0?`Para não entrar no vermelho, o app vai cobrir com ${[a.tirar_sonhos>0?brl(a.tirar_sonhos)+" dos sonhos":"",a.tirar_salario>0?brl(a.tirar_salario)+" do seu salário":""].filter(Boolean).join(" e ")} (os sonhos se repõem nos próximos dias).`:""}
+      ${a.descoberto>0?` Mesmo assim faltam ${brl(a.descoberto)}: venda cerca de <b>${brl(a.vender_a_mais_dia)}</b> a mais por dia ou use o ⚡ Salvar meu dia.`:a.vender_a_mais_dia?` Ou venda ${brl(a.vender_a_mais_dia)} a mais por dia e não mexe em nada.`:""}</div>`).join("")}
+    ${cx.map(c=>`<div class="cx ${status(c)}"><div class="topo-cx"><b>${({conta:"🏠",salario:"👛",sonhos:"⭐"})[c.tipo]} ${c.nome}</b><span class="pill">${c.falta<=0?"completo ✓":quando(c)}</span></div>
+      <div class="barra"><i style="width:${c.pct}%"></i></div>
+      <div class="lin" style="font-size:13.5px"><span class="muted">${brl(c.guardado)} de ${brl(c.alvo)}${c.recebeu_hoje>0?` · hoje +${brl(c.recebeu_hoje)}`:""}</span>
+        <span style="text-align:right">${c.falta>0?`falta ${brl(c.falta)}${c.uteis_restam>0?` · <b>${brl(c.por_dia)}</b>/dia útil`:""}`:""}</span></div></div>`).join("")}
+    ${f.movimentos.length?`<p class="muted" style="margin:12px 0 4px;font-size:13px"><b>Ajustes que o app fez:</b></p>${f.movimentos.slice(0,5).map(m=>`<div class="muted" style="font-size:13px">${dt(m.data)}: ${brl(m.valor)} de ${m.de} → ${m.para}</div>`).join("")}`:""}
+    ${f.historico_contas.length?`<p class="muted" style="margin:12px 0 4px;font-size:13px"><b>Últimos vencimentos:</b></p>${f.historico_contas.slice(0,6).map(h=>`<div class="muted" style="font-size:13px">${dt(h.venceu)} ${h.nome}: ${h.faltou>0?`juntou ${brl(h.juntou)}, <span style="color:#b3261e">faltaram ${brl(h.faltou)}</span>`:"pago com o dinheiro separado ✅"}</div>`).join("")}`:""}
+  </div>`;
+}
 async function fecharMes(mes, guardar){
   const sonhos = guardar ? [...document.querySelectorAll("#fechamento [data-sonho]")].map(i=>({id:i.dataset.sonho, valor:Number(i.value)||0})) : [];
   await api("/financas/dividir",{method:"POST",body:{mes, sonhos}}); if(sonhos.some(x=>x.valor>0)) toast("Guardado nos seus sonhos! ⭐");
   carregarDinheiro();
 }
-async function salvarSalario(){ await api("/config",{method:"PUT",body:{salario_desejado:Number($("dnSalario").value)||0}}); carregarDinheiro(); }
+async function salvarSalario(){
+  const v = Number($("dnSalario").value)||0;
+  try{ await api("/config",{method:"PUT",body:{salario_desejado:v}});            // vale para os próximos meses
+    await api("/salario",{method:"POST",body:{mes:finAtual.salario.mes, valor:v}}); // e para este mês
+    toast("Salário salvo"); carregarDinheiro(); }catch(e){ toast(e.message); }
+}
 async function salvarCapital(){ await api("/config",{method:"PUT",body:{capital_inicial:Number($("dnCapital").value)||0}}); carregarDinheiro(); }
 async function salvarPercentuais(){
   const v=["pcR","pcV","pcS","pcD"].map(i=>Math.max(0,Number($(i).value)||0)), t=v.reduce((a,b)=>a+b,0);
@@ -1690,12 +1776,12 @@ function abrirConta(id){
   $("mContaTit").textContent = d ? "Editar conta" : "Nova conta"; $("ctExcluir").style.display = d ? "block" : "none";
   $("contaRapida").style.display = d ? "none" : "flex";
   $("ctNome").value=d?.nome||""; $("ctValor").value=d?.tipo==="fixa"?d.valor:"";
-  const vs=d?.valores||[]; ["ctV1","ctV2","ctV3"].forEach((i,k)=>$(i).value=vs[k]??"");
+  const vs=d?.valores||[]; ["ctV1","ctV2","ctV3"].forEach((i,k)=>$(i).value=vs[k]??""); $("ctVenc").value=d?.vencimento||"";
   tipoConta(d?.tipo||"fixa"); $("mConta").classList.add("on");
 }
 async function salvarConta(){
   const tipo=$("ctTipo").querySelector(".chip.on").dataset.v;
-  const body={nome:$("ctNome").value, tipo, valor:Number($("ctValor").value)||0, valores:["ctV1","ctV2","ctV3"].map(i=>Number($(i).value)).filter(v=>v>0)};
+  const body={nome:$("ctNome").value, tipo, valor:Number($("ctValor").value)||0, valores:["ctV1","ctV2","ctV3"].map(i=>Number($(i).value)).filter(v=>v>0), vencimento:$("ctVenc").value};
   try{ await api(contaEditando?`/despesas/${contaEditando.id}`:"/despesas",{method:contaEditando?"PUT":"POST",body}); fechar("mConta"); toast("Conta salva"); carregarDinheiro(); }
   catch(e){ toast(e.message); }
 }
@@ -1857,7 +1943,7 @@ async function carregarPainel(){
       <div class="donut-meta">${roscaMeta(p.meta.pct)}
         <div><span class="muted">Já vendeu</span><div class="num">${brl(p.meta.vendido)}</div>
           <span class="muted">Da meta de</span><div class="num claro">${brl(p.meta.valor)}</div></div></div>
-      <div class="muted" style="margin-top:10px">${p.meta.falta>0?`Faltam <b>${brl(p.meta.falta)}</b> em ${p.meta.dias_restantes} dia(s), ≈ ${brl(p.meta.por_dia)} por dia.`:"<b>Meta batida! 🎉</b>"}
+      <div class="muted" style="margin-top:10px">${p.meta.falta>0?`Faltam <b>${brl(p.meta.falta)}</b> em ${String(p.meta.dias_restantes).replace(".",",")} dia(s) útil(eis), ≈ ${brl(p.meta.por_dia)} por dia útil.`:"<b>Meta batida! 🎉</b>"}
         No ritmo atual o mês fecha em <b>${brl(p.meta.ritmo)}</b>.</div></div>`
     : `<div class="card"><div class="tit-card"><b>Meta do mês</b></div><p class="muted" style="margin:0 0 8px">Defina uma meta para acompanhar quanto falta vender por dia.</p>
       <button class="btn sec peq" onclick="irPara('mais')">Definir meta</button></div>`;
@@ -1942,6 +2028,8 @@ async function carregarMais(){
   $("cfNome").value=cf.nome_loja; $("cfMargem").value=cf.margem_minima_pct; $("cfTaxa").value=cf.taxa_cartao_pct; $("cfEscada").value=cf.escada_promocao;
   cfgAtual = cf;
   $("cfArroba").value=cf.instagram_arroba||""; $("cfZapLoja").value=cf.whatsapp_loja||"";
+  montarHorario("cf", cf.horario_dias); $("cfFeriado").checked = !!cf.abre_feriado; $("cfFeriados").value = cf.feriados_extra || "";
+  previaCalendario();
   $("cfTaxaDeb").value = cf.taxas.debito ?? "";
   $("cfTaxasCred").innerHTML = Array.from({length:12},(_,i)=>i+1).map(n=>`<div><label>${n}x</label><input type="number" inputmode="decimal" step="0.01" data-n="${n}" value="${cf.taxas.credito[n]??""}"></div>`).join("");
   $("cfProxEtq").textContent = "Nº " + cf.etiquetas.proxima; $("cfUltEtq").value = cf.etiquetas.ultima;
@@ -1954,6 +2042,37 @@ async function salvarCliente(){
   if(!$("cNome").value) return toast("Informe o nome");
   await api("/clientes",{method:"POST",body:{nome:$("cNome").value, whatsapp:$("cZap").value||null, aniversario:$("cNiver").value||null}});
   ["cNome","cZap","cNiver"].forEach(i=>$(i).value=""); toast("Cliente cadastrada"); carregarMais();
+}
+// ---------- horário de funcionamento (mesmo componente no cadastro e nas configurações)
+const DIAS_SEM = [[1,"Segunda"],[2,"Terça"],[3,"Quarta"],[4,"Quinta"],[5,"Sexta"],[6,"Sábado"],[0,"Domingo"]];
+function montarHorario(pref, dias){
+  $(pref+"Horario").innerHTML = `<div class="hor">${DIAS_SEM.map(([k,n])=>{ const d=dias?.[k];
+    return `<div class="d" onclick="if(event.target.tagName!=='INPUT'){const c=$('${pref}H${k}');c.checked=!c.checked;horarioDia('${pref}',${k})}"><input type="checkbox" id="${pref}H${k}" ${d?"checked":""} onchange="horarioDia('${pref}',${k})"> ${n}</div>
+      <input class="hora" inputmode="numeric" maxlength="5" placeholder="08:00" id="${pref}A${k}" value="${d?.abre||"08:00"}" style="${d?"":"display:none"}"><input class="hora" inputmode="numeric" maxlength="5" placeholder="18:00" id="${pref}F${k}" value="${d?.fecha||(k===6?"13:00":"18:00")}" style="${d?"":"display:none"}">
+      <span class="fechado" id="${pref}X${k}" style="${d?"display:none":""}">fechado</span>`; }).join("")}</div>`;
+}
+function horarioDia(pref,k){ const on=$(pref+"H"+k).checked; $(pref+"A"+k).style.display=$(pref+"F"+k).style.display=on?"":"none"; $(pref+"X"+k).style.display=on?"none":""; if(pref==="cf") previaCalendario(); }
+const horaOk = v => { const m=String(v).match(/^(\d{1,2}):?(\d{2})$/); return m && +m[1]<24 && +m[2]<60 ? `${m[1].padStart(2,"0")}:${m[2]}` : null; };
+function lerHorarioUI(pref){
+  const out=[];
+  for (const [k,n] of DIAS_SEM) if ($(pref+"H"+k).checked) {
+    const a=horaOk($(pref+"A"+k).value), f=horaOk($(pref+"F"+k).value);
+    if (!a||!f||f<=a) throw new Error(`Confira o horário de ${n} (ex.: 08:00 às 18:00)`);
+    out.push(`${k}=${a}-${f}`);
+  }
+  if (!out.length) throw new Error("Marque pelo menos um dia que a loja abre.");
+  return out.join(";");
+}
+document.addEventListener("input", e => { if (!e.target.classList?.contains("hora")) return;
+  const d=e.target.value.replace(/\D/g,"").slice(0,4); e.target.value = d.length>2 ? d.slice(0,2)+":"+d.slice(2) : d; });
+function addFeriado(t){ const v=$("cfFeriados").value.trim(); if(!v.toLowerCase().includes(t.toLowerCase().slice(0,8))) $("cfFeriados").value = (v?v+"\n":"")+t; }
+async function previaCalendario(){
+  try{ const c = await api("/calendario"), mes = new Date().toLocaleDateString("pt-BR",{month:"long"});
+    $("cfCalPrev").innerHTML = `<b style="color:var(--tx)">${mes[0].toUpperCase()+mes.slice(1)}: ${String(c.uteis).replace(".",",")} dias úteis</b>${c.feriados.length?" · feriados: "+c.feriados.map(f=>`${f.data.slice(8)}/${f.data.slice(5,7)} ${f.nome}${f.fecha?"":" (loja abre)"}`).join(", "):""}<br><span style="font-size:12.5px">(conta com o que está salvo)</span>`; }catch(_){}
+}
+async function salvarFuncionamento(){
+  try{ await api("/config",{method:"PUT",body:{horario:lerHorarioUI("cf"), abre_feriado:$("cfFeriado").checked, feriados_extra:$("cfFeriados").value.trim()||null}});
+    toast("Funcionamento salvo"); previaCalendario(); }catch(e){ toast(e.message); }
 }
 async function salvarTaxas(){
   const cred = [...document.querySelectorAll("#cfTaxasCred input")].filter(i=>i.value!=="").map(i=>`${i.dataset.n}:${Number(i.value)}`).join(",");
@@ -2004,6 +2123,7 @@ async function abrirCadastroLoja(etapa=1){
   marcarChips("lCanais", (c.loja_canais||"").split(",").filter(Boolean)); $("lInsta").value=c.instagram_arroba||""; $("lZap").value=mascaraZap(c.whatsapp_loja);
   $("lCnpj").value=mascaraCnpj(c.loja_cnpj); $("lRazao").value=c.loja_razao_social||""; $("lCep").value=mascaraCep(c.cep);
   $("lRua").value=c.endereco||""; $("lNum").value=c.numero||""; $("lBairro").value=c.bairro||""; $("lCidade").value=c.cidade||""; $("lUf").value=c.uf||"";
+  montarHorario("l", c.horario_dias); $("lFeriado").checked = !!c.abre_feriado;
   $("mMeta").value=c.meta_mensal||""; $("mMargem").value=c.margem_minima_pct; $("mTaxa").value=c.taxa_cartao_pct;
   modoEtq(c.etiquetas?.ultima>0 ? "continuar" : "zero"); $("mEtqUlt").value = c.etiquetas?.ultima || "";
   if ([...$("mDias").options].some(o=>o.value===c.escada_promocao)) $("mDias").value=c.escada_promocao;
@@ -2029,6 +2149,7 @@ function validarEtapa(n){
   }
   if (n===2){
     if (!$("lNome").value.trim()) return erro("Informe o nome da loja.");
+    try { lerHorarioUI("l"); } catch(e) { return erro(e.message); }
     if (!$("lSeg").value) return erro("Escolha o segmento.");
     if ($("lCnpj").value && !cnpjValido($("lCnpj").value)) return erro("CNPJ inválido. Confira os números (ou deixe em branco).");
   }
@@ -2043,7 +2164,8 @@ function dadosEtapa(n){
   if (n===2) return {nome_loja:$("lNome").value.trim(), loja_segmento:$("lSeg").value, loja_canais:valorChips("lCanais").join(","),
     instagram_arroba:$("lInsta").value, whatsapp_loja:$("lZap").value, loja_cnpj:$("lCnpj").value, loja_razao_social:$("lRazao").value.trim()||null,
     cep:$("lCep").value, endereco:$("lRua").value.trim()||null, numero:$("lNum").value.trim()||null, bairro:$("lBairro").value.trim()||null,
-    cidade:$("lCidade").value.trim()||null, uf:$("lUf").value.trim().toUpperCase()||null};
+    cidade:$("lCidade").value.trim()||null, uf:$("lUf").value.trim().toUpperCase()||null,
+    horario: lerHorarioUI("l"), abre_feriado: $("lFeriado").checked};
   if (n===4) return {meta_mensal:Number($("mMeta").value)||0, margem_minima_pct:Number($("mMargem").value)||0,
     taxa_cartao_pct:Number($("mTaxa").value)||0, escada_promocao:$("mDias").value,
     etiqueta_ultima: etqModo==="continuar" ? Number(soDig($("mEtqUlt").value))||0 : 0, etiqueta_definida:true};

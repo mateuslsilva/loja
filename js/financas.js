@@ -49,17 +49,19 @@ export function margemBruta(vendas, lotes) {
 export const vendaNecessaria = (lucroNecessario, margem) => r2(Math.max(0, lucroNecessario) / margem);
 
 // ---------------------------------------------------------------- termômetro do dia
-export function termometroDia({ custoDiario, lucroHoje, vendasHoje, margem }) {
+export function termometroDia({ custoDiario, lucroHoje, vendasHoje, margem, temContas = custoDiario > 0 }) {
+  // custoDiario = quanto o dia precisa de lucro (contas do dia + salário + sonhos)
   const coberto = Math.min(lucroHoje, custoDiario), falta = r2(Math.max(0, custoDiario - lucroHoje));
   const pct = custoDiario > 0 ? Math.round(lucroHoje / custoDiario * 100) : 100;
   const sobra = r2(Math.max(0, lucroHoje - custoDiario));
   let mensagem;
-  if (custoDiario <= 0) mensagem = "Cadastre as contas da loja para eu calcular quanto você precisa vender por dia.";
-  else if (lucroHoje <= 0) mensagem = `Bom dia! Hoje a loja amanheceu devendo ${brl(custoDiario)} das contas. Bora vender! 💪`;
-  else if (pct < 50) mensagem = `Começou! Já pagou ${pct}% das contas de hoje. Continue que o dia está só começando. 🚀`;
-  else if (pct < 100) mensagem = `Falta pouco! Mais ${brl(falta)} de lucro e as contas do dia estão pagas. 🔥`;
-  else if (pct < 200) mensagem = "Contas do dia pagas! 🎉 Agora tudo que entrar é lucro de verdade.";
-  else mensagem = `Dia excelente! 🏆 Você lucrou ${pct}% do que precisava. Separe a sobra do jeito certo.`;
+  if (!temContas) mensagem = "Cadastre as contas da loja para eu calcular quanto você precisa vender por dia.";
+  else if (custoDiario <= 0) mensagem = "Tudo em dia! ✅ As caixinhas estão completas: hoje cada venda é lucro extra para reforçar o estoque.";
+  else if (lucroHoje <= 0) mensagem = `Bom dia! Hoje a loja precisa de ${brl(custoDiario)} de lucro para as contas, o seu salário e os sonhos. Bora vender! 💪`;
+  else if (pct < 50) mensagem = `Começou! Já fez ${pct}% do que o dia precisa. Continue que o dia está só começando. 🚀`;
+  else if (pct < 100) mensagem = `Falta pouco! Mais ${brl(falta)} de lucro e o dia está pago. 🔥`;
+  else if (pct < 200) mensagem = "Dia pago! 🎉 Contas, salário e sonhos de hoje separados. O que entrar agora adianta as próximas contas.";
+  else mensagem = `Dia excelente! 🏆 Você fez ${pct}% do que o dia precisava. O excedente já está adiantando as contas.`;
   return { custo_diario: custoDiario, lucro_hoje: r2(lucroHoje), vendas_hoje: r2(vendasHoje), coberto: r2(coberto), falta,
     venda_para_cobrir: vendaNecessaria(falta, margem), pct, sobra, mensagem };
 }
@@ -74,17 +76,12 @@ export function dividirSobra(valor, cfg) {
   return { reinvestir: parte("pct_reinvestir"), reserva: parte("pct_reserva"), salario: parte("pct_salario"), sonhos: parte("pct_sonhos") };
 }
 
-/** Quanto precisa vender no mês para pagar as contas, tirar o salário e guardar para os sonhos. */
-export function metaMensal({ despesasMes, salario, sonhosMes, margem, cfg }) {
-  // o salário e os sonhos saem da sobra; a sobra também alimenta reinvestimento e reserva nas proporções escolhidas
-  const p = { ...DIVISAO_PADRAO, ...cfg };
-  const soma = p.pct_reinvestir + p.pct_reserva + p.pct_salario + p.pct_sonhos || 100;
-  const sobraPeloSalario = p.pct_salario > 0 ? salario / (p.pct_salario / soma) : 0;
-  const sobraPelosSonhos = p.pct_sonhos > 0 ? sonhosMes / (p.pct_sonhos / soma) : 0;
-  const sobra = Math.max(sobraPeloSalario, sobraPelosSonhos);
-  const lucroBruto = despesasMes + sobra;
+/** Quanto precisa VENDER no mês para encher as caixinhas: contas + salário + sonhos (o que passar disso reforça o estoque). */
+export function metaMensal({ despesasMes, salario, sonhosMes, margem, cfg, diasUteis = DIAS_MES }) {
+  const lucroBruto = despesasMes + salario + sonhosMes;
   return { so_contas: vendaNecessaria(despesasMes, margem), com_salario: vendaNecessaria(lucroBruto, margem),
-    por_dia: vendaNecessaria(lucroBruto / DIAS_MES, margem), sobra_necessaria: r2(sobra), divisao: dividirSobra(sobra, cfg) };
+    lucro_necessario: r2(lucroBruto), por_dia: vendaNecessaria(lucroBruto / (diasUteis > 0 ? diasUteis : DIAS_MES), margem),
+    sobra_necessaria: r2(salario + sonhosMes), divisao: { salario: r2(salario), sonhos: r2(sonhosMes) } };
 }
 
 // ---------------------------------------------------------------- capital de giro

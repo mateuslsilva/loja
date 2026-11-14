@@ -242,6 +242,13 @@ alter table config add column if not exists taxas_credito text;
 alter table config add column if not exists etiqueta_ultima integer not null default 0;
 alter table config add column if not exists etiqueta_definida boolean not null default false;
 
+-- versão 9: dias úteis, horário da loja, feriados, vencimento das contas e salário por mês
+alter table config add column if not exists horario text;
+alter table config add column if not exists abre_feriado boolean not null default false;
+alter table config add column if not exists feriados_extra text;
+alter table config add column if not exists salario_meses jsonb not null default '{}'::jsonb;
+alter table despesas add column if not exists vencimento integer check (vencimento between 1 and 31);
+
 drop function if exists registrar_venda(uuid, text, uuid, double precision, jsonb);
 drop function if exists registrar_venda(uuid, text, uuid, double precision, jsonb, text, jsonb, uuid);
 create or replace function registrar_venda(

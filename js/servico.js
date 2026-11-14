@@ -6,6 +6,7 @@ import { gerarFlyer } from "./flyer.js";
 import { coresDaLogo } from "./tema.js";
 import * as F from "./financas.js";
 import * as D from "./demanda.js";
+import * as C from "./caixinhas.js";
 
 const FORMAS = ["pix", "dinheiro", "debito", "credito", "fiado"];
 let banco, E;  // E = estado em memória (todas as tabelas)
@@ -597,11 +598,13 @@ function painel(periodo = "mes") {
   // meta do mês
   const iniMes = new Date(agora.getFullYear(), agora.getMonth(), 1), fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 1);
   const vendidoMes = soma(E.vendas.filter((v) => entre(v, iniMes, fimMes)), (v) => v.total);
-  const diasRestantes = Math.round((fimMes - inicioDia(agora)) / 86400000);
+  // dias úteis (sábado meio período, feriado fechado não conta)
+  const calP = calendario(), hojeP = R.hojeISO(), iniP = C.iso(iniMes), fimP = C.iso(fimMes);
+  const diasRestantes = calP.uteis(hojeP, fimP), uteisPassados = calP.uteis(iniP, C.somaDias(hojeP, 1)), uteisMesP = calP.uteis(iniP, fimP);
   const meta = cfg.meta_mensal > 0 ? { valor: cfg.meta_mensal, vendido: vendidoMes, pct: Math.round(vendidoMes / cfg.meta_mensal * 1000) / 10,
     falta: r2(Math.max(0, cfg.meta_mensal - vendidoMes)), dias_restantes: diasRestantes,
-    por_dia: r2(Math.max(0, cfg.meta_mensal - vendidoMes) / Math.max(1, diasRestantes)),
-    ritmo: r2(vendidoMes / agora.getDate() * new Date(agora.getFullYear(), agora.getMonth() + 1, 0).getDate()) } : null;
+    por_dia: r2(Math.max(0, cfg.meta_mensal - vendidoMes) / Math.max(0.5, diasRestantes)),
+    ritmo: r2(uteisPassados > 0 ? vendidoMes / uteisPassados * uteisMesP : vendidoMes) } : null;
 
   // resultado por mês (últimos 6) – DRE simplificado
   const dre = [];
@@ -750,6 +753,46 @@ const mesISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,
 const lucroDe = (vs) => vs.reduce((s, v) => s + v.total - v.custo_total - v.taxa_pagamento, 0);
 const vendasEntre = (a, b) => E.vendas.filter((v) => { const d = new Date(v.data); return d >= a && d < b; });
 
+// ---------------------------------------------------------------- calendário e caixinhas
+const calendario = () => C.criarCalendario(E.config);
+function diarioLucro() {
+  const d = {};
+  for (const v of E.vendas) {
+    const k = C.iso(new Date(v.data)), x = d[k] ||= { lucro: 0, vendas: 0, custo: 0, taxa: 0 };
+    x.lucro += v.total - v.custo_total - v.taxa_pagamento; x.vendas += v.total; x.custo += v.custo_total; x.taxa += v.taxa_pagamento;
+  }
+  return d;
+}
+const salarioDoMes = (mes) => { const m = E.config.salario_meses || {}; return m[mes] != null ? Number(m[mes]) : Number(E.config.salario_desejado) || 0; };
+function sonhosPorMes() {
+  const hoje = R.hojeISO();
+  return E.sonhos.filter((x) => !x.concluido && x.prazo).reduce((t, x) => t + Math.max(0, x.valor - (x.guardado || 0)) / F.mesesEntre(hoje, x.prazo), 0);
+}
+function obrigacoes() {
+  const ob = [...E.despesas].sort((a, b) => (a.ordem - b.ordem) || String(a.criado_em).localeCompare(String(b.criado_em)))
+    .map((d) => ({ id: d.id, nome: d.nome, tipo: "conta", dia: Number(d.vencimento) || null, valor: () => F.previsaoDespesa(d).valor }));
+  if (salarioDoMes(R.hojeISO().slice(0, 7)) > 0 || Object.keys(E.config.salario_meses || {}).length)
+    ob.push({ id: "salario", nome: "Seu salário", tipo: "salario", valor: (ini) => salarioDoMes(ini.slice(0, 7)) });
+  const sm = sonhosPorMes();
+  if (sm > 0) ob.push({ id: "sonhos", nome: "Sonhos", tipo: "sonhos", valor: () => sm });
+  return ob;
+}
+let cacheCx = null;
+function caixinhas() {
+  const hoje = R.hojeISO(), chave = `${hoje}|${E.vendas.length}|${JSON.stringify(E.despesas.map((d) => [d.id, d.valor, d.valores, d.vencimento]))}|${E.config.salario_desejado}|${JSON.stringify(E.config.salario_meses)}|${E.config.horario}|${E.config.abre_feriado}|${E.config.feriados_extra}|${E.sonhos.map((x) => x.guardado + x.prazo).join()}`;
+  if (cacheCx?.chave === chave) return cacheCx.r;
+  const cal = calendario(), d0 = C.dataDe(hoje), inicio = C.iso(new Date(d0.getFullYear(), d0.getMonth() - 2, 1));
+  const diario = diarioLucro(), ob = obrigacoes();
+  const sim = ob.length ? C.simularCaixinhas({ obrigacoes: ob, diario, cal, inicio, hoje })
+    : { caixinhas: [], historico: [], movimentos: [], dias: {} };
+  cacheCx = { chave, r: { sim, cal, diario, hoje } };
+  return cacheCx.r;
+}
+
+/** Contas "vencidas" até hoje no mês, proporcionais aos dias úteis já passados (inclui hoje). */
+function calMesSafe(mensal, cal, ini, fim, hoje) {
+  const u = cal.uteis(ini, fim); return u > 0 ? mensal * cal.uteis(ini, C.somaDias(hoje, 1)) / u : 0;
+}
 function financas() {
   const cfg = E.config, agora = new Date(), hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
   const despesas = [...E.despesas].sort((a, b) => (a.ordem - b.ordem) || String(a.criado_em).localeCompare(String(b.criado_em)));
@@ -757,18 +800,43 @@ function financas() {
   const ultimos90 = vendasEntre(new Date(hoje.getTime() - 90 * 864e5), new Date(hoje.getTime() + 864e5));
   const { margem, fonte } = F.margemBruta(ultimos90, E.lotes);
 
-  // hoje
+  // calendário do mês (dias úteis com peso: sábado meio período, feriado fechado = 0)
+  const { sim, cal, diario } = caixinhas(), hojeS = R.hojeISO();
+  const iniMesS = hojeS.slice(0, 8) + "01", fimMesS = C.iso(new Date(agora.getFullYear(), agora.getMonth() + 1, 1));
+  const infoHoje = cal.info(hojeS);
+  const calMes = { uteis: cal.uteis(iniMesS, fimMesS), passados: cal.uteis(iniMesS, hojeS), restam: cal.uteis(hojeS, fimMesS),
+    feriados: cal.feriadosEntre(iniMesS, fimMesS), hoje: infoHoje };
+  const contasPorDiaUtil = calMes.uteis > 0 ? Math.round(tot.mensal / calMes.uteis * 100) / 100 : tot.diario;
+
+  // hoje: quanto cada caixinha precisa receber hoje e para onde foi o lucro do dia
   const vHoje = vendasEntre(hoje, new Date(hoje.getTime() + 864e5));
-  const termo = F.termometroDia({ custoDiario: tot.diario, lucroHoje: lucroDe(vHoje), vendasHoje: vHoje.reduce((s, v) => s + v.total, 0), margem });
+  const dHoje = sim.dias[hojeS] || { cota_contas: 0, cota_total: 0, recebido: {}, sobra: 0, cotas: {} };
+  const termo = F.termometroDia({ custoDiario: dHoje.cota_total, lucroHoje: lucroDe(vHoje), vendasHoje: vHoje.reduce((s, v) => s + v.total, 0), margem,
+    temContas: E.despesas.length > 0 || dHoje.cota_total > 0 });
+  termo.contas_hoje = dHoje.cota_contas;
+  if (!infoHoje.aberto) termo.mensagem = `Hoje a loja não abre${infoHoje.feriado ? ` (${infoHoje.feriado})` : ""}. As contas de hoje já estão divididas entre os dias úteis do mês. 😴`;
   termo.divisao_sobra = F.dividirSobra(termo.sobra, cfg);
+  termo.aberto = infoHoje.aberto; termo.peso = infoHoje.peso;
+  termo.meta_lucro = dHoje.cota_total; termo.meta_venda = F.vendaNecessaria(dHoje.cota_total, margem);
+  const dh = diario[hojeS] || { custo: 0, taxa: 0 };
+  termo.destino = [
+    ...(dh.custo > 0 ? [{ nome: "Repor as peças vendidas", tipo: "estoque", valor: Math.round(dh.custo * 100) / 100 }] : []),
+    ...(dh.taxa > 0 ? [{ nome: "Maquininha", tipo: "taxa", valor: Math.round(dh.taxa * 100) / 100 }] : []),
+    ...sim.caixinhas.filter((c) => c.recebeu_hoje > 0).map((c) => ({ id: c.id, nome: c.nome, tipo: c.tipo, valor: c.recebeu_hoje })),
+    ...(dHoje.sobra > 0 ? [{ nome: "Reforço do estoque / reserva", tipo: "sobra", valor: dHoje.sobra }] : []),
+  ];
+  // previsão de aperto (lucro médio por dia útil das últimas 4 semanas)
+  let soma28 = 0; for (let x = C.somaDias(hojeS, -28); x < hojeS; x = C.somaDias(x, 1)) soma28 += diario[x]?.lucro || 0;
+  const uteis28 = cal.uteis(C.somaDias(hojeS, -28), hojeS), lucroMedioDiaUtil = uteis28 > 0 ? soma28 / uteis28 : 0;
+  const alertas = E.vendas.length ? C.previsaoAperto(sim.caixinhas, { lucroMedioDiaUtil, margem }) : [];
 
   // mês atual
   const iniMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
   const vMes = vendasEntre(iniMes, new Date(hoje.getTime() + 864e5)), lucroMes = lucroDe(vMes), dia = agora.getDate();
-  const contasAteHoje = Math.min(tot.mensal, tot.diario * dia);
+  const contasAteHoje = Math.min(tot.mensal, calMesSafe(tot.mensal, cal, iniMesS, fimMesS, hojeS));
   const mes = { vendas: Math.round(vMes.reduce((s, v) => s + v.total, 0) * 100) / 100, lucro_bruto: Math.round(lucroMes * 100) / 100,
     contas_ate_hoje: Math.round(contasAteHoje * 100) / 100, resultado: Math.round((lucroMes - contasAteHoje) * 100) / 100,
-    projecao: Math.round((lucroMes / dia * F.DIAS_MES - tot.mensal) * 100) / 100 };
+    projecao: Math.round(((calMes.passados + infoHoje.peso > 0 ? lucroMes / (calMes.passados + infoHoje.peso) * calMes.uteis : 0) - tot.mensal) * 100) / 100 };
 
   // sobra média dos últimos 3 meses fechados (base do ritmo dos sonhos)
   const sobras = [];
@@ -803,11 +871,22 @@ function financas() {
   for (const l of E.lotes) if (l.quantidade_atual > 0) { venda += l.quantidade_atual * l.preco_venda; custo += l.quantidade_atual * l.custo_unit; }
   const capital = F.planoCapital({ capital: cfg.capital_inicial, despesasMes: tot.mensal, markup: custo ? venda / custo : 2 });
 
+  // salário: o do mês (pode mudar mês a mês) + sugestão para este mês e o próximo
+  const lucroMesHist = {}; for (const [k, v] of Object.entries(diario)) lucroMesHist[k.slice(0, 7)] = (lucroMesHist[k.slice(0, 7)] || 0) + v.lucro;
+  const lucroDias = Object.fromEntries(Object.entries(diario).map(([k, v]) => [k, v.lucro]));
+  const mesAtual = hojeS.slice(0, 7), proxMes = C.iso(new Date(agora.getFullYear(), agora.getMonth() + 1, 1)).slice(0, 7);
+  const sugere = (m) => ({ ...C.sugerirSalario({ mes: m, lucroMes: lucroMesHist, lucroDias, cal, hoje: hojeS, contasMes: tot.mensal, sonhosMes, salarioAtual: salarioDoMes(m) }),
+    definido: (cfg.salario_meses || {})[m] != null });
+  const salario = { mes: mesAtual, valor: salarioDoMes(mesAtual), padrao: Number(cfg.salario_desejado) || 0, este: sugere(mesAtual), proximo: sugere(proxMes) };
+
   return {
-    despesas: tot.itens.map((d) => ({ id: d.id, nome: d.nome, tipo: d.tipo, valor: d.valor, valores: d.valores || [], previsto: d.previsto })),
-    contas_mes: tot.mensal, contas_dia: tot.diario, margem: Math.round(margem * 1000) / 10, margem_fonte: fonte,
-    venda_minima_dia: F.vendaNecessaria(tot.diario, margem), hoje: termo, mes,
-    meta: F.metaMensal({ despesasMes: tot.mensal, salario: cfg.salario_desejado || 0, sonhosMes, margem, cfg }),
+    despesas: tot.itens.map((d) => ({ id: d.id, nome: d.nome, tipo: d.tipo, valor: d.valor, valores: d.valores || [], previsto: d.previsto, vencimento: d.vencimento || null })),
+    contas_mes: tot.mensal, contas_dia: dHoje.cota_contas, contas_dia_util: contasPorDiaUtil, margem: Math.round(margem * 1000) / 10, margem_fonte: fonte,
+    venda_minima_dia: F.vendaNecessaria(contasPorDiaUtil, margem), hoje: termo, mes, calendario: calMes,
+    caixinhas: sim.caixinhas, movimentos: sim.movimentos.filter((m) => m.data >= C.somaDias(hojeS, -35)).reverse(),
+    historico_contas: sim.historico.filter((h) => h.tipo === "conta" && h.venceu >= C.somaDias(hojeS, -35)).reverse(), alertas,
+    lucro_medio_dia_util: Math.round(lucroMedioDiaUtil * 100) / 100, salario,
+    meta: F.metaMensal({ despesasMes: tot.mensal, salario: salario.valor, sonhosMes, margem, cfg, diasUteis: calMes.uteis }),
     salario_desejado: cfg.salario_desejado || 0, sobra_media_mes: Math.round(sobraMedia * 100) / 100, divisao_media: div,
     percentuais: { pct_reinvestir: cfg.pct_reinvestir ?? 30, pct_reserva: cfg.pct_reserva ?? 10, pct_salario: cfg.pct_salario ?? 50, pct_sonhos: cfg.pct_sonhos ?? 10 },
     capital, capital_inicial: cfg.capital_inicial || 0, sonhos, fechamento, relampago: relampagoJson(),
@@ -820,9 +899,19 @@ async function salvarDespesa(id, d) {
   const valores = (d.valores || []).map(Number).filter((v) => v > 0).slice(-3);
   if (tipo === "fixa" && !(Number(d.valor) > 0)) falhar("Informe o valor da conta.");
   if (tipo === "media" && !valores.length) falhar("Informe pelo menos 1 conta anterior.");
-  const campos = { nome: d.nome.trim(), tipo, valor: tipo === "fixa" ? Number(d.valor) : 0, valores };
+  const venc = d.vencimento === "" || d.vencimento == null ? null : Math.round(Number(d.vencimento));
+  if (venc != null && !(venc >= 1 && venc <= 31)) falhar("O dia do vencimento vai de 1 a 31.");
+  const campos = { nome: d.nome.trim(), tipo, valor: tipo === "fixa" ? Number(d.valor) : 0, valores, vencimento: venc };
   if (id) { await banco.atualizar("despesas", id, campos); Object.assign(E.despesas.find((x) => x.id === id) || {}, campos); }
   else { const n = { id: novoId(), ordem: E.despesas.length, criado_em: new Date().toISOString(), ...campos }; await banco.inserir("despesas", [n]); E.despesas.push(n); }
+  return financas();
+}
+
+async function salarioMes(d) {
+  const mes = String(d.mes || ""); if (!/^\d{4}-\d{2}$/.test(mes)) falhar("Mês inválido.");
+  const m = { ...(E.config.salario_meses || {}) };
+  if (d.valor == null || d.valor === "") delete m[mes]; else { const v = Number(d.valor); if (!(v >= 0)) falhar("Valor inválido."); m[mes] = Math.round(v * 100) / 100; }
+  E.config = { ...E.config, ...(await banco.salvarConfig({ salario_meses: m })) };
   return financas();
 }
 
@@ -855,14 +944,15 @@ async function dividirMes(d) {
 // ---------------------------------------------------------------- pulso da loja: anéis, missões, sequência, conquistas
 function pulso() {
   const cfg = E.config, agora = new Date(), hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
-  const fin = financas(), h = fin.hoje, diasMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0).getDate();
+  const fin = financas(), h = fin.hoje, cm = fin.calendario;
   const doDia = (d) => vendasEntre(d, new Date(d.getTime() + 864e5));
   const vHoje = doDia(hoje);
-  const metaDia = cfg.meta_mensal > 0 ? cfg.meta_mensal / diasMes : (fin.meta.por_dia || 0);
+  // meta de vendas de hoje: meta do mês dividida pelos dias úteis (sábado meio período vale meio dia; fechado = 0)
+  const metaDia = !cm.hoje.aberto ? 0 : cfg.meta_mensal > 0 ? (cm.uteis > 0 ? cfg.meta_mensal * cm.hoje.peso / cm.uteis : 0) : (h.meta_venda || 0);
   const vendasMes = fin.mes.vendas;
   const aneis = [];
-  if (h.custo_diario > 0) aneis.push({ id: "contas", nome: "Contas do dia", valor: h.lucro_hoje, alvo: h.custo_diario, dica: "lucro de hoje × contas do dia" });
-  if (metaDia > 0) aneis.push({ id: "dia", nome: "Meta do dia", valor: h.vendas_hoje, alvo: Math.round(metaDia * 100) / 100, dica: "vendas de hoje" });
+  if (h.custo_diario > 0) aneis.push({ id: "contas", nome: "Lucro do dia", valor: h.lucro_hoje, alvo: h.custo_diario, dica: "lucro de hoje × contas + salário + sonhos de hoje" });
+  if (metaDia > 0) aneis.push({ id: "dia", nome: cm.hoje.peso < 1 ? "Meta de hoje (meio período)" : "Meta do dia", valor: h.vendas_hoje, alvo: Math.round(metaDia * 100) / 100, dica: "vendas de hoje" });
   if (cfg.meta_mensal > 0) aneis.push({ id: "mes", nome: "Meta do mês", valor: vendasMes, alvo: cfg.meta_mensal, dica: "vendas do mês" });
 
   // missões do dia (calculadas a partir dos dados, nada para marcar à mão)
@@ -874,7 +964,9 @@ function pulso() {
     R.diasEntre(E.lotes.find((l) => l.id === iv.lote_id)?.data_entrada || R.hojeISO()) >= diasAlerta);
   const temParada = E.lotes.some((l) => l.quantidade_atual > 0 && R.diasEntre(l.data_entrada) >= diasAlerta);
   const missoes = [];
-  if (h.custo_diario > 0) missoes.push({ id: "contas", titulo: "Pague as contas de hoje", detalhe: h.falta > 0 ? `faltam ${R.brl(h.falta)} de lucro` : "contas pagas!",
+  if (!cm.hoje.aberto) missoes.push({ id: "contas", titulo: "Dia de descanso 😴", detalhe: cm.hoje.motivo, progresso: 1, acao: null });
+  else if (E.despesas.length && h.custo_diario <= 0) missoes.push({ id: "contas", titulo: "Caixinhas em dia ✅", detalhe: "contas, salário e sonhos já separados", progresso: 1, acao: null });
+  else if (h.custo_diario > 0) missoes.push({ id: "contas", titulo: "Pague o dia (contas, salário, sonhos)", detalhe: h.falta > 0 ? `faltam ${R.brl(h.falta)} de lucro` : "contas pagas!",
     progresso: Math.min(1, h.lucro_hoje / h.custo_diario), acao: h.falta > 0 ? "salvar_dia" : null });
   else missoes.push({ id: "contas", titulo: "Cadastre as contas da loja", detalhe: "aluguel, luz, água…", progresso: E.despesas.length ? 1 : 0, acao: "dinheiro" });
   missoes.push({ id: "vendas", titulo: `Faça ${nVendas} vendas hoje`, detalhe: `${vHoje.length} de ${nVendas}`, progresso: Math.min(1, vHoje.length / nVendas), acao: "vender" });
@@ -883,17 +975,19 @@ function pulso() {
     progresso: vHoje.some((v) => v.cliente_id) ? 1 : 0, acao: "vender" });
 
   // sequência: dias seguidos batendo o objetivo (domingo sem venda não quebra)
-  const bateu = (vs) => h.custo_diario > 0 ? lucroDe(vs) >= h.custo_diario : vs.length > 0;
+  // (dia que a loja não abre e não teve venda não quebra; cada dia é comparado com as contas DAQUELE dia)
+  const { sim, cal } = caixinhas();
+  const bateuDia = (s, vs) => { const c = sim.dias[s]?.cota_contas; return c > 0 ? lucroDe(vs) >= c - 0.01 : vs.length > 0; };
   let seq = 0;
-  const hojeBateu = bateu(vHoje);
+  const hojeBateu = cm.hoje.aberto && bateuDia(R.hojeISO(), vHoje);
   for (let k = 1; k < 400; k++) {
-    const d = new Date(hoje.getTime() - k * 864e5), vs = doDia(d);
-    if (bateu(vs)) seq++;
-    else if (d.getDay() === 0 && !vs.length) continue;
+    const d = new Date(hoje.getTime() - k * 864e5), s = C.iso(d), vs = doDia(d);
+    if (cal.peso(s) === 0 && !vs.length) continue;
+    if (bateuDia(s, vs)) seq++;
     else break;
   }
   if (hojeBateu) seq++;
-  const objetivoSeq = h.custo_diario > 0 ? "dias seguidos pagando as contas" : "dias seguidos com venda";
+  const objetivoSeq = E.despesas.length ? "dias seguidos pagando as contas" : "dias seguidos com venda";
 
   // recorde do mês e conquistas
   const totalVendas = E.vendas.length, maiorMes = (() => {
@@ -1030,8 +1124,10 @@ const CAMPOS_CONFIG = ["nome_loja", "margem_minima_pct", "taxa_cartao_pct", "con
   "loja_cnpj", "loja_segmento", "loja_canais", "cep", "endereco", "numero", "bairro", "cidade", "uf",
   "cor_primaria", "cor_secundaria", "meta_mensal", "capital_inicial", "salario_desejado", "pct_reinvestir",
   "pct_reserva", "pct_salario", "pct_sonhos", "relampago_horas", "relampago_margem_min", "relampago_descontos",
-  "ultimo_mes_dividido", "taxa_debito_pct", "taxas_credito", "etiqueta_ultima", "etiqueta_definida"];
+  "ultimo_mes_dividido", "taxa_debito_pct", "taxas_credito", "etiqueta_ultima", "etiqueta_definida",
+  "horario", "abre_feriado", "feriados_extra", "salario_meses"];
 const verConfig = () => ({ ...Object.fromEntries(CAMPOS_CONFIG.map((k) => [k, E.config[k]])), modo: banco.modo,
+  horario_dias: C.lerHorario(E.config.horario), horario_padrao: C.HORARIO_PADRAO,
   taxas: R.taxasDaLoja(E.config), taxas_credito_texto: E.config.taxas_credito || R.TAXAS_CREDITO_PADRAO, etiquetas: infoEtiquetas(),
   logo_url: banco.urlFoto(E.config.logo) });
 
@@ -1041,6 +1137,8 @@ async function salvarConfig(d) {
   if ("instagram_arroba" in novos) novos.instagram_arroba = String(novos.instagram_arroba).trim().replace(/^@/, "") || null;
   for (const k of ["whatsapp_loja", "responsavel_whatsapp", "loja_cnpj", "cep"]) if (k in novos) novos[k] = String(novos[k]).replace(/\D/g, "") || null;
   if ("nome_loja" in novos && !String(novos.nome_loja).trim()) falhar("Informe o nome da loja.");
+  if (novos.horario != null && !Object.keys(C.lerHorario(novos.horario)).length && novos.horario !== "") falhar("Marque pelo menos um dia que a loja abre.");
+  if (novos.horario === "") falhar("Marque pelo menos um dia que a loja abre.");
   if (novos.taxas_credito != null && !Object.keys(R.lerTaxas(novos.taxas_credito)).length) falhar("Taxas inválidas. Use o formato 1:4.99,2:6.09,3:6.89");
   if ("etiqueta_ultima" in novos) {
     novos.etiqueta_ultima = Math.max(0, Math.round(Number(novos.etiqueta_ultima) || 0));
@@ -1113,6 +1211,12 @@ export async function api(url, opt = {}) {
       }
       case "GET /painel": return painel(q.get("periodo") || "mes");
       case "GET /financas": return financas();
+      case "POST /salario": return await salarioMes(b || {});
+      case "GET /calendario": {
+        const cal = calendario(), m = q.get("mes") || R.hojeISO().slice(0, 7), ini = m + "-01", [a, mm] = m.split("-").map(Number), fim = C.iso(new Date(a, mm, 1));
+        const dias = []; for (let x = ini; x < fim; x = C.somaDias(x, 1)) dias.push(cal.info(x));
+        return { mes: m, uteis: cal.uteis(ini, fim), dias, feriados: cal.feriadosEntre(ini, fim), moveis: C.datasMoveis(a) };
+      }
       case "POST /financas": return await dividirMes(b);             // /financas/dividir
       case "POST /despesas": return await salvarDespesa(null, b);
       case "PUT /despesas/:id": return await salvarDespesa(seg[1], b);

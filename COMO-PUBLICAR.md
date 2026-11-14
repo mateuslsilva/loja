@@ -74,6 +74,7 @@ no notebook: todos veem os mesmos produtos e vendas.
 
 Quem controla isso é o arquivo `versao.json`: toda atualização vem com um número novo nele.
 
+> Esta versão (9) trouxe `supabase/banco.sql` novo (horário da loja, feriados, vencimento das contas e salário por mês). **Rode o banco.sql de novo.**
 > A versão 7 trouxe `supabase/banco.sql` novo (parcelas/acréscimo, etiquetas numeradas e apagar produto). **Rode o banco.sql de novo.**
 > Quando a atualização trouxer o arquivo `supabase/banco.sql` novo, rode ele de novo no
 > SQL Editor do Supabase (pode rodar quantas vezes quiser: só adiciona o que falta, não apaga dados).
@@ -167,6 +168,24 @@ Quem controla isso é o arquivo `versao.json`: toda atualização vem com um nú
   e o número da etiqueta no final. Ex.: etiqueta 5969 → `015969` (Preto M), `025969` (Preto G).
   Vale para peça nova e para peça antiga (ex.: 4120 → `014120`). Impresso em Code 128 (lê em qualquer
   leitor e na câmera). Na tela **Estoque**, o botão **📷 Ler etiqueta** abre a peça na hora.
+
+- **Dias úteis de verdade** (não mais ÷ 30): o cadastro da loja e **Configurações → Funcionamento**
+  têm os dias e horários de cada dia. Meio período vale meio dia (ex.: sábado 08:00–13:00 = 0,5).
+  Domingo fechado e feriados não contam. O app já conhece os feriados nacionais (inclusive Sexta-feira
+  Santa e 20/11); feriados da cidade (ex.: 08/04 Aniversário de Cuiabá), Carnaval e Corpus Christi
+  você adiciona. Se a loja abrir em feriado, marque a opção.
+- **Vencimento de cada conta**: o dinheiro de cada conta é separado de um vencimento até o outro
+  (aluguel que vence dia 18 junta do dia 18 até o dia 17 do mês seguinte).
+- **Caixinhas** (aba Dinheiro): todo lucro do dia é dividido sozinho. Primeiro as contas que vencem
+  antes, depois o seu salário, depois os sonhos. O que passar disso adianta as próximas contas e, por
+  fim, reforça o estoque. Se um dia for fraco, os próximos recalculam sozinhos.
+  "Para onde vai o dinheiro de hoje" mostra cada real: repor as peças, maquininha, cada conta, salário, sonhos.
+- **Não entrar no vermelho**: se uma conta estiver perto de vencer e o ritmo não der, o app avisa,
+  tira primeiro dos sonhos e só depois do salário (o mínimo), e diz quanto vender a mais por dia.
+  Os sonhos se repõem nos dias seguintes.
+- **Salário do mês**: fixo no mês, mas pode mudar de um mês para o outro. No fim do mês (e antes de
+  meses fortes como dezembro) o app sugere o salário do próximo mês pelo ritmo das últimas 8 semanas,
+  pelo mesmo mês do ano anterior e pela época do ano (padrão do varejo de moda até ter 1 ano de histórico).
 
 ## Limites desta versão
 - Os avisos de troca da promoção relâmpago aparecem com o app aberto (ou em segundo plano no

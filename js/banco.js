@@ -16,6 +16,7 @@ export const CONFIG_PADRAO = {
   capital_inicial: 0, salario_desejado: 0, pct_reinvestir: 30, pct_reserva: 10, pct_salario: 50, pct_sonhos: 10,
   relampago_horas: 3, relampago_margem_min: 15, relampago_descontos: "20,30,50", ultimo_mes_dividido: null,
   taxa_debito_pct: null, taxas_credito: null, etiqueta_ultima: 0, etiqueta_definida: false,
+  horario: null, abre_feriado: false, feriados_extra: null, salario_meses: {},
 };
 
 export const novoId = () => (crypto.randomUUID ? crypto.randomUUID()
